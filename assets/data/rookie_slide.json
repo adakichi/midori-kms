@@ -1,0 +1,59 @@
+    {"rookie":[
+        {
+            "id": 1,
+            "icon": "mdi-presentation-play",
+            "title": "司法書士のお仕事",
+            "to": "/study/rookie/slide1",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vRvgFtIhVKiEDbGD2SsofuNRhMDUjubEm0TyqAX42wEY3m_HwdglfaVPM4Yl2Rk2MjflQKCieApp8Nm/embed?start=false&loop=false&delayms=3000"
+        },
+        {
+            "id": 2,
+            "icon": "mdi-presentation-play",
+            "title": "債務整理とは",
+            "to": "/study/rookie/slide2",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vQC8uZUZIVjAG8LDP4TO8WtwW9lrApSzotdwCTNQDjF698HXr4TXaf9Rl7-hJP1zktDtmHH0bL1vlns/embed?start=false&loop=false&delayms=3000" 
+        },
+        {
+            "id": 3,
+            "icon": "mdi-presentation-play",
+            "title": "全体の流れ",
+            "to": "/study/rookie/slide3",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vTmq1T-pV03gErxbBWhuD5udP-xMXF8AzmCUDOnrnlEBu4CdFpQQ47pIFUuo_IKnH3rQ0YyQbXzsx52/embed?start=false&loop=false&delayms=3000"
+        },
+        {
+            "id": 4,
+            "icon": "mdi-presentation-play",
+            "title": "過払いとは",
+            "to": "/study/rookie/slide4",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vQgjKQmO-WrseqVKRV2yCHuHetLp-mWOk2uZHmTITphAScOBeZL5D0z7JWiODEfC-GtV9whLaD7NXnL/embed?start=false&loop=false&delayms=3000" 
+        },
+        {
+            "id": 5,
+            "icon": "mdi-presentation-play",
+            "title": "中決",
+            "to": "/study/rookie/slide5",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vQpyApi0u8WFz-Yyz0BQ4Rt5M2zqwujJkAb_lHUjr7YzyyJoqDqaFHSxVONLy-NiEr7jEqqIHRg19vI/embed?start=false&loop=false&delayms=3000"
+        },
+        {
+            "id": 6,
+            "icon": "mdi-presentation-play",
+            "title": "交面過払い",
+            "to": "/study/rookie/slide6",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vQEV7_3SGk6QIZQMo2IrRjpiFKWofIPSThBgQy1WsHNEvb-he7TYUVQ2tENORpb-SgfV2PZlF_EbFDl/embed?start=false&loop=false&delayms=3000"
+        },
+        {
+            "id": 7,
+            "icon": "mdi-presentation-play",
+            "title": "交面債務整理",
+            "to": "/study/rookie/slide7",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vSuH6ZpioEUFeWBbK_qbfk8Mbjz6w5Wmp5hYYbILh_2amfJqCXDm6oQ6RYH5Xfgybpn_fu_euNQgxXz/embed?start=false&loop=false&delayms=3000"
+        },
+        {
+            "id": 8,
+            "icon": "mdi-presentation-play",
+            "title": "完了清算",
+            "to": "/study/rookie/slide8",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vQ3jOVxzRqxB_Q2IPpOqrK2HmPZRe6QUEFUsVCzDw1bnk40NIe4Tx2sSUo5yctq5gIId621MaMPEUFL/embed?start=false&loop=false&delayms=3000"
+        }
+    ]
+}
