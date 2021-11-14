@@ -1,10 +1,15 @@
 <template>
+    <v-dialog
+    v-model="isOpen"
+    persistent
+    width="700"
+    >
     <v-card>
         <v-card-title>
             <h3>{{slide.id}}.{{ slide.title}}</h3>
             <v-spacer></v-spacer>
-            <v-btn :disabled="slide.id < 2 ? true : false" @click="clickPrevBtn"><v-icon>mdi-chevron-left</v-icon>PREV</v-btn>
-            <v-btn :disabled="slide.id > 7 ? true : false" @click="clickNextBtn">NEXT<v-icon>mdi-chevron-right</v-icon></v-btn>
+            <v-btn :disabled="isPrevBtn ? false : true" @click="clickPrevBtn"><v-icon>mdi-chevron-left</v-icon>PREV</v-btn>
+            <v-btn :disabled="isNextBtn ? false : true" @click="clickNextBtn">NEXT<v-icon>mdi-chevron-right</v-icon></v-btn>
             <!-- <v-spacer></v-spacer> -->
             <v-card-actions>
                 <v-btn @click="clickCloseBtn">
@@ -19,6 +24,7 @@
         </div>
         </v-layout>
     </v-card>
+    </v-dialog>
 </template>
 
 <script>
@@ -30,30 +36,68 @@ export default {
     },
     data(){
         return{
+            isOpen:false,
             showSlide:true
         }
     },
     methods:{
+        clickOpenBtn(){
+            this.isOpen = true
+        },
         clickCloseBtn(){
-            this.$emit('clickCloseBtn')
+            this.isOpen = false
         },
         clickPrevBtn(){
+            this.myNum = -1 
             this.showSlide = false
             this.$emit('clickPrev')
         },
         clickNextBtn(){
+            this.myNum = +1 
             this.showSlide = false
             this.$emit('clickNext')
         }
     },
     props:{
         slide:{
-            type:Object
+            type:Object,
+            default:() => ({
+                id:0,
+                title:'none',
+                src:''
+            })
+        },
+        isBtn:{
+            type:Boolean,
+            default:() => (false)
+        },
+        myNum:{
+            type:Number
+        },
+        min:{
+            type:Number
+        },
+        max:{
+            type:Number
         }
     },
     computed:{
         slideTitle(){
             return this.slide.title
+        },
+        isPrevBtn(){
+            let result = false
+            if(this.isBtn){
+               result =  this.myNum <= this.min ? false : true 
+            }
+            return result
+        },
+        isNextBtn(){
+            let result = false
+            if(this.isBtn){
+               result =  this.myNum >= this.max ? false : true 
+            }
+            return result
         }
     }
 };

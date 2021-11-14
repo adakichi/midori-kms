@@ -20,7 +20,7 @@
                             <v-list-item
                                 v-for="list in item.lists"
                                 :key="list.title"
-                                @click="test(list.id)"
+                                @click="openSlide(list.id)"
                             >
                                     <v-list-item-icon>
                                         <v-icon>{{list.icon}}</v-icon>
@@ -34,19 +34,16 @@
                 </v-col>
                 <v-col>
                     <!-- スライド表示部分 -->
-                    <v-dialog
-                    v-model="slideComp"
-                    persistent
-                    width="700"
-                    >
                         <slide-view
-                         v-if="slideComp"
+                            ref="slide"
                           :slide="activeSlide" 
-                          v-on:clickCloseBtn="closeSlideComp"
+                          :isBtn="true"
+                          :min="1"
+                          :max="8"
+                          :myNum="activeSlide.id"
                           v-on:clickPrev="prevSlide"
                           v-on:clickNext="nextSlide">
                         </slide-view>
-                    </v-dialog>
                 </v-col>
             </v-row>
         </v-col>
@@ -64,7 +61,6 @@ export default {
     },
     data(){
         return{
-            slideComp:false,
             activeSlide:{id:1},
             studyMenu:[
                 {
@@ -90,9 +86,8 @@ export default {
         }
     },
     methods:{
-        test(id){
-            console.log('id')
-            this.slideComp = !this.slideComp
+        openSlide(id){
+            this.$refs.slide.clickOpenBtn()
              this.activeSlide = this.slideData[id -1]
         },
         closeSlideComp(){
