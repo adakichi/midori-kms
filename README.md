@@ -1,5 +1,14 @@
 # midori-kms
 
+## About
+midori-KMS is my private working tools.
+these are function.
+
+- Work Report.
+- Phone Book.
+- Slide for Training.
+- Test for Rookie.
+
 ## Build Setup
 
 ```bash
