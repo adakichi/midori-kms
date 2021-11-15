@@ -1,6 +1,12 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
+  // 追加部分:dir構成を変更
+  srcDir:'./client',
+
+  // 追加部分:serverMiddlewareを設定
+  serverMiddleware:["~~/api/"],
+
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
 
