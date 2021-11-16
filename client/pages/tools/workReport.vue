@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-row justify="center" aligh-content="center">
-            <v-col cols=12 sm=8 md=8 lg=4>
+            <v-col cols=12 sm=8 md=8 lg=5 xl=12 >
         <v-card>
             <v-toolbar color="success">
             <v-toolbar-title>業務報告書</v-toolbar-title>
@@ -22,7 +22,9 @@
                     :counter="10"
                     label="名前"
                     ></v-text-field>
-                    <v-textarea v-model="report"
+                    <v-textarea
+                    v-model="report"
+                    :hint="divisionFormat.hint"
                     label="メモ">
                     </v-textarea>
             <v-card-actions>
@@ -32,29 +34,23 @@
                 </v-form>
                 </v-card-text>
         </v-card>
-        <v-card><p>name:{{name}}</p>
-        <p>division:{{division}}</p>
-        <p>selectedDivision:{{selectedDivision}}
-        <p>report:{{report}}</p></v-card>
         </v-col>
         </v-row>
-        <v-btn @click="test">test</v-btn>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
-import {chatworkConf} from '/midori-kms/midori-kms/midori-kms_config'
 export default {
     data() {
         return {
-            name:"",
+            name:'',
             selectedDivision:{},
             division:[
                 { text:"新規", value:"新規"},
                 { text:"交面", value:"交面"}
                 ],
-            report:""
+            report:''
         }
     },
     methods:{
@@ -62,21 +58,50 @@ export default {
                 this.$router.push(path)
             },
             submit(){
-                const result = window.confirm('本当に送信しますか？')
+                    if(this.name == '' || this.selectedDivision === undefined){
+                        alert('名前もしくは所属が空です。')
+                    }else{
+                const result = window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
                 if(result){
                 let body = "[info][title]" + this.name + "[/title]"
                     body = body + this.report + "[/info]"
                     axios.post('http://localhost:3000/api/cw/send',{
                         content: body,
                         division:this.selectedDivision
-                    })
-                        .then(response =>{console.log(response.data)})
-                    console.log('confirm:yes')
+                    }).then((response) =>{
+                        let strings = ''
+                        response.data.forEach(element => {
+                            console.log(element)
+                            strings = strings + element.message_id + '\n'
+                        });
+                        if(strings){strings = '送信成功\n'+ 'message_ids\n' + strings}
+                        alert(strings)
+                    }).catch((error)=>{
+                        console.log('error:')
+                        console.log(error)
+                        alert(error)
+                    }).then(console.log('submit:Done!'))
+                    }
                 }
-            },
-            test(){
-                console.log(chatworkConf)
             }
+        },
+        computed:{
+            divisionFormat(){
+                let format = ''
+                let hint =''
+                switch(this.selectedDivision){
+                    case '新規':
+                        format = '受電：　　件\n成約：　　件\n[hr]業務報告'
+                        hint = '吉澤さんに送信されます'
+                        break;
+                    case '交面':
+                        format = '交面架電：　　件\n交面実績：　　件\n意思確認：　　件\n[hr]業務報告\n'
+                        hint = '交面全員に送信されます'
+                        break;
+                }
+                this.report = format
+                return {format:format,hint:hint}
+            }
+        }
     }
-}
 </script>

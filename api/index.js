@@ -12,6 +12,8 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 // kokomade
+
+
 import {chatworkConf} from '/midori-kms/midori-kms/midori-kms_config'
 
 
@@ -55,37 +57,46 @@ app.get("/cw/send",function(req,res,next){
         }
     return {from: from, to: toRoomId}
 }
+
 //chatworkへの転送api
 app.post("/cw/send",function(req,res,next){
     console.log('POST:/cw/send')
     console.log('division:' + req.body.division)
     const division = forwardingAddress(req.body.division)
     const body = req.body.content
-    const roomIds = [
-        '81402638',
-        '81402638',
-        '81402638'
-    ]
+    const roomIds = division.to
     const cwToken = division.from
     let params = new URLSearchParams()
     params.append('body',body)
+    params.append('self_unread',1)
     const urls =  roomIds.map((roomId)=>{
         return chatworkConf.baseUrl + '/rooms/' + roomId + '/messages'
     })
     console.log(params)
     console.log('axios.all:start!!')
-        Promise.all(
-            urls.map(function(url){
-                axios.post(url,params,{
-                    headers: {'X-ChatWorkToken' : cwToken}
-                })
-            })
+    const axioses = urls.map(function(url){
+        return axios.post(url,params,{
+            headers: {'X-ChatWorkToken' : cwToken}
+        })
+    })
+    let responseData = []
+    Promise.all(
+        axioses
         ).then((responses)=> {
-            console.log('res:' + responses)
-            res.send(responses)
-        }).catch(function(errors) {
-            console.log('error:' + errors)
-            res.send(errors)
+            console.log('done:promise')
+            if(responses){
+                responseData = responses.map((re)=>{
+                    return re.data
+                })
+                res.send(responseData)
+            }
+        }).catch((errors)=> {
+            if(errors){
+                responseData = errors.map((error)=>{
+                    return error.data
+                })                
+                res.send(errors)
+            }
         })
 })
 
