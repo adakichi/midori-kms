@@ -3,7 +3,7 @@
         <v-row justify="center" aligh-content="center">
             <v-col cols=12 sm=8 md=8 lg=4>
         <v-card>
-            <v-toolbar color="primary">
+            <v-toolbar color="success">
             <v-toolbar-title>業務報告書</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn @click="routerPush('/tools/tools_index')">戻る</v-btn>
@@ -45,7 +45,6 @@
 <script>
 import axios from 'axios'
 import {chatworkConf} from '/midori-kms/midori-kms/midori-kms_config'
-// const room = require('/midori-kms/midori-kms/midori-kms_config')
 export default {
     data() {
         return {
@@ -67,8 +66,11 @@ export default {
                 if(result){
                 let body = "[info][title]" + this.name + "[/title]"
                     body = body + this.report + "[/info]"
-                    axios.get(chatworkConf.baseUrl + '/me')
-                        .then(response =>{console.log('response!')})
+                    axios.post('http://localhost:3000/api/cw/send',{
+                        content: body,
+                        division:this.selectedDivision
+                    })
+                        .then(response =>{console.log(response.data)})
                     console.log('confirm:yes')
                 }
             },
