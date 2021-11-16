@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-switch
+      color="deep-purple darken-2"
       v-model="theme"
       :prepend-icon="themeIcon"
     ></v-switch>
