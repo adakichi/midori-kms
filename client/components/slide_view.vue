@@ -2,9 +2,9 @@
     <v-dialog
     v-model="isOpen"
     persistent
-    width="700"
+    width="710"
     >
-    <v-card>
+    <v-card color="primary accent2">
         <v-card-title>
             <h3>{{slide.id}}.{{ slide.title}}</h3>
             <v-spacer></v-spacer>
@@ -18,11 +18,11 @@
                 </v-btn>
             </v-card-actions>
         </v-card-title>
-        <v-layout justify-center>
-        <div class="slide">
-            <iframe v-show="showSlide" :src="slide.src" @load="showSlide = true" frameborder="0" width="640" height="389" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
-        </div>
-        </v-layout>
+        <v-card-text >
+            <div class="slide">
+            <iframe v-show="showSlide" :src="slide.src" @load="showSlide = true" frameborder="0" width="628" height="389" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+            </div>
+        </v-card-text>
     </v-card>
     </v-dialog>
 </template>
@@ -107,6 +107,8 @@ export default {
 .slide { 
     width:640px;
     height:395px;
+    padding: auto;
+    margin: auto;
     background-image: url("~assets/img/loading-37-1.gif");
     background-repeat: no-repeat;
     background-position-x: 300px;
