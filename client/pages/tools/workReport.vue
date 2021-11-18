@@ -3,7 +3,7 @@
         <v-row justify="center" aligh-content="center">
             <v-col cols=12 sm=8 md=8 lg=5 xl=12 >
         <v-card>
-            <v-toolbar color="success">
+            <v-toolbar color="accent">
             <v-toolbar-title>業務報告書</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn @click="routerPush('/tools/tools_index')">戻る</v-btn>
