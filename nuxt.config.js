@@ -1,6 +1,11 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
+  //IPアドレスで外部からアクセス可能にする為追加
+  server: {
+    host: '0.0.0.0' // デフォルト: localhost
+  },
+
   // 追加部分:dir構成を変更
   srcDir:'./client',
 
