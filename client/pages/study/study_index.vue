@@ -12,6 +12,7 @@
                         :key="item.title"
                         :append-icon="item.lists ? undefined : ''"
                         no-action
+                        @click="routerPush(item.to)"
                         >
                         <template v-slot:activator>
                             <v-list-item-icon><v-icon>{{item.icon}}</v-icon></v-list-item-icon>
@@ -71,11 +72,16 @@ export default {
                 {
                     icon:'mdi-folder',
                     title:'新人',
-                    lists:[]
+                    lists:[{id:'1', title:'単語',to:'~/study/wordList'}]
                 },
                 {
                     icon:'mdi-folder',
                     title:'交面',
+                },
+                {
+                    icon:'mdi-folder',
+                    title:'単語リスト',
+                    to:'/study/wordList'
                 },
                 {
                     icon:'mdi-folder',
@@ -100,6 +106,11 @@ export default {
         nextSlide(){
             const id = this.activeSlide.id
             this.activeSlide = this.slideData[id]
+        },
+        routerPush(to){
+            if(to){
+                this.$router.push(to)
+            }
         }
     },
     computed:{
