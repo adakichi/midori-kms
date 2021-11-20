@@ -51,6 +51,22 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
+      <v-menu offset-y dense>
+        <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          color="primary"
+          dark
+          v-bind="attrs"
+          v-on="on"
+        >内線表</v-btn>
+        </template>
+        <v-list nav>
+          <v-list-group
+          v-for="group in phonebook" :key="group.title">
+            <v-list-item-title>{{group.title}}</v-list-item-title>
+          </v-list-group>
+          </v-list>
+      </v-menu>
         <theme-toggle></theme-toggle>
       <v-btn
         icon
@@ -91,11 +107,13 @@
 </template>
 
 <script>
+const phonejson = require('~/assets/data/phone_book.json')
 import themeToggle from '~/components/themeToggle.vue'
 export default {
   components: { themeToggle },
   data () {
     return {
+      phonebook:phonejson.book,
       clipped: false,
       drawer: false,
       fixed: false,
@@ -121,7 +139,7 @@ export default {
           to: '/study/study_index'
         },
         {
-          icon: 'mdi-help',
+          icon: 'mdi-frequently-asked-questions',
           title: 'FAQ',
           to: '/faq/faq_index'
         }
