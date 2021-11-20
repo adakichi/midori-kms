@@ -1,5 +1,4 @@
 const express = require("express");
-
 const app = express();
 
 
@@ -14,7 +13,7 @@ app.use(bodyParser.json())
 // kokomade
 
 
-import {chatworkConf} from '~/midori-kms_config'
+import {chatworkConf} from '../midori-kms_config'
 
 
 app.get("/", function(req,res){
