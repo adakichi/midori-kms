@@ -11,7 +11,7 @@
                             <v-card-text>{{item.explain}}</v-card-text>
                             <v-chip-group v-for="tag in item.tag" :key="tag">
                                 <v-spacer></v-spacer>
-                                <v-chip x-small color="primary">{{tag}}</v-chip>
+                                <v-chip x-small :color="tagcolor(tag)">{{tag}}</v-chip>
                             </v-chip-group>
                         </v-card>
                     </v-col>
@@ -26,6 +26,30 @@ export default {
     data(){
         return {
             menulist:tangojson.tangoList
+        }
+    },
+    methods:{
+        tagcolor(tag){
+            let color = ''
+            switch(tag){
+                case '全般,':
+                    color = 'primary'
+                    break
+                case '過払い,':
+                    color = 'blue'
+                    break
+                case '任意,':
+                    color = 'orange'
+                    break
+                case 'みどり,':
+                    color = 'green'
+                    break
+                case '主な電話,':
+                    color = 'pink'
+                    break
+                
+            }
+            return color
         }
     }
 }
