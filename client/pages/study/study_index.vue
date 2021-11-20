@@ -66,25 +66,24 @@ export default {
             studyMenu:[
                 {
                     icon:'mdi-folder',
-                    title:'入所案内',
-                    lists:[]
+                    title:'入所案内'
                 },
                 {
-                    icon:'mdi-folder',
-                    title:'新人',
+                    icon:'mdi-presentation-play',
+                    title:'新人用スライド',
                     lists:[{id:'1', title:'単語',to:'~/study/wordList'}]
                 },
                 {
-                    icon:'mdi-folder',
+                    icon:'mdi-presentation-play',
                     title:'交面',
                 },
                 {
-                    icon:'mdi-folder',
+                    icon:'mdi-book-open-variant',
                     title:'単語リスト',
                     to:'/study/wordList'
                 },
                 {
-                    icon:'mdi-folder',
+                    icon:'mdi-lead-pencil',
                     title:'TEST',
                     to:'/study/slide_view'
                 }
