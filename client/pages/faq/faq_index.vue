@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1><v-icon>mdi-help</v-icon>FAQ</h1>
+        <h1><v-avatar><v-icon>mdi-frequently-asked-questions</v-icon></v-avatar>FAQ</h1>
         <v-row>
             <v-col
             v-for="item in bcp"
