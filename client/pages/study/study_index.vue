@@ -21,7 +21,7 @@
                             <v-list-item
                                 v-for="list in item.lists"
                                 :key="list.title"
-                                @click="openSlide(list.id)"
+                                @click="openSlide({id:list.id,'title':item.title})"
                             >
                                     <v-list-item-icon>
                                         <v-icon>{{list.icon}}</v-icon>
@@ -40,7 +40,7 @@
                           :slide="activeSlide" 
                           :isBtn="true"
                           :min="1"
-                          :max="8"
+                          :max="slideData.length"
                           :myNum="activeSlide.id"
                           v-on:clickPrev="prevSlide"
                           v-on:clickNext="nextSlide">
@@ -63,6 +63,7 @@ export default {
     data(){
         return{
             activeSlide:{id:1},
+            slideData:[],
             studyMenu:[
                 {
                     icon:'mdi-folder',
@@ -75,7 +76,11 @@ export default {
                 },
                 {
                     icon:'mdi-presentation-play',
-                    title:'交面',
+                    title:'交面課',
+                },
+                {
+                    icon:'mdi-presentation-play',
+                    title:'調査課',
                 },
                 {
                     icon:'mdi-book-open-variant',
@@ -91,9 +96,17 @@ export default {
         }
     },
     methods:{
-        openSlide(id){
+        openSlide(obj){
+            switch(obj.title){
+                case '調査課':
+                    this.slideData = slides.chousa
+                    break
+                case '新人用スライド':
+                    this.slideData = slides.rookie
+                    break
+            }
             this.$refs.slide.clickOpenBtn()
-             this.activeSlide = this.slideData[id -1]
+            this.activeSlide = this.slideData[obj.id -1]
         },
         closeSlideComp(){
             this.slideComp = false
@@ -113,12 +126,10 @@ export default {
         }
     },
     computed:{
-        slideData(){
-            return slides.rookie
-        },
         studyMenuList(){
             let menu = this.studyMenu
-            menu[1].lists = this.slideData
+            menu[1].lists = slides.rookie
+            menu[3].lists = slides.chousa
             return menu
         }
     }

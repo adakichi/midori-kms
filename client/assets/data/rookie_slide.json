@@ -55,5 +55,15 @@
             "to": "/study/rookie/slide8",
             "src":"https://docs.google.com/presentation/d/e/2PACX-1vQ3jOVxzRqxB_Q2IPpOqrK2HmPZRe6QUEFUsVCzDw1bnk40NIe4Tx2sSUo5yctq5gIId621MaMPEUFL/embed?start=false&loop=false&delayms=3000"
         }
+    ],
+    "chousa":[
+        {
+            "id": 1,
+            "icon": "mdi-presentation-play",
+            "title": "履歴書類のフロー（紙）",
+            "to": "/study/chousa/slide1",
+            "src":"https://docs.google.com/presentation/d/e/2PACX-1vTH4gCU5-irhLyqAh_EEk38CpDYRIZ52WOMAQsH3dc0rNrL91fcOfMa0Kp9zmGQvZHnrtm4pz80OzSd/embed?start=false&loop=false&delayms=3000"
+        }
+        
     ]
 }
