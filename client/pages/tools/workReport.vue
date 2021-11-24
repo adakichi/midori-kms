@@ -65,7 +65,7 @@ export default {
                 if(result){
                 let body = "[info][title]" + this.name + "[/title]"
                     body = body + this.report + "[/info]"
-                    axios.post('http://localhost:3000/api/cw/send',{
+                    axios.post('/api/cw/send',{
                         content: body,
                         division:this.selectedDivision
                     }).then((response) =>{
