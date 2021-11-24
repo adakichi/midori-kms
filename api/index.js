@@ -59,8 +59,8 @@ app.get("/cw/send",function(req,res,next){
 
 //chatworkへの転送api
 app.post("/cw/send",function(req,res,next){
-    console.log('POST:/cw/send')
-    console.log('division:' + req.body.division)
+    console.log('\nPOST:/cw/send\n---start cw send process---')
+    console.log('  division: ' + req.body.division)
     const division = forwardingAddress(req.body.division)
     const body = req.body.content
     const roomIds = division.to
@@ -72,7 +72,7 @@ app.post("/cw/send",function(req,res,next){
         return chatworkConf.baseUrl + '/rooms/' + roomId + '/messages'
     })
     console.log(params)
-    console.log('axios.all:start!!')
+    console.log('  axios.all:start!!')
     const axioses = urls.map(function(url){
         return axios.post(url,params,{
             headers: {'X-ChatWorkToken' : cwToken}
@@ -82,11 +82,12 @@ app.post("/cw/send",function(req,res,next){
     Promise.all(
         axioses
         ).then((responses)=> {
-            console.log('done:promise')
+            console.log('  done:promise')
             if(responses){
                 responseData = responses.map((re)=>{
                     return re.data
                 })
+                console.log('--- Done!! cw send process ---')
                 res.send(responseData)
             }
         }).catch((errors)=> {
@@ -98,6 +99,8 @@ app.post("/cw/send",function(req,res,next){
             }
         })
 })
+
+
 
 module.exports = {
     path: "/api/",
