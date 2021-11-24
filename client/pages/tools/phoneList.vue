@@ -1,84 +1,118 @@
 <template>
-    <v-container>
-        <h1>内線表</h1>
+    <v-container fluid grid-list>
         <v-row>
-            <v-col>
-                <v-card>
-                    <v-toolbar>
-                    </v-toolbar>
-                    <v-expansion-panels>
+        <h1>内線表</h1>
+                <v-btn @click="fullopen">OPEN</v-btn>
+                <v-btn @click="fullclose">CLOSE</v-btn>
+                <v-btn @click="all">ALL</v-btn>
+                <v-btn @click="none">NONE</v-btn>
+        </v-row>
+                    <v-expansion-panels v-model="panel" multiple>
+        <v-row>
+            <v-col v-for="(group,i) in phonebooks" :key="i" sm=4 md=4 lg=3>
                         <v-expansion-panel>
-                            <v-expansion-panel-header>
-                                内線表
-                            </v-expansion-panel-header>
-                            <v-expansion-panel-content>
-                                ないせんひょう
-                            </v-expansion-panel-content>
+                        <v-expansion-panel-header>
+                            {{group.title}}
+                        </v-expansion-panel-header>
+                        <v-expansion-panel-content
+                        >
+                        <v-list>
+                        <v-list-item
+                        v-for="item in group.member"
+                        :key="item.number"
+                        ><a :href="phoneUrl(item.number)">
+                            {{item.name}} : {{item.fixnum}}</a>
+                        </v-list-item>
+                        </v-list>
+                        </v-expansion-panel-content>
                         </v-expansion-panel>
-                    </v-expansion-panels>
-                </v-card>
             </v-col>
         </v-row>
-            <div @drop="drop($event, 'お気に入り')">
+                    </v-expansion-panels>
+        <v-row>
+            <v-col>
+                <v-card color="primary" @drop="drop($event, 'お気に入り')">
+                    <v-card-title>
+                        お気に入り
+                    </v-card-title>
                 <phone-card class="area-bookmark" :members="bookmarkGroup"></phone-card>
-                <button @click="fullopen">OPEN</button>
-                <button @click="fullclose">CLOSE</button>
+                </v-card>
+            </v-col>
+            <v-col>
+                <v-card>
+                    <v-card-title></v-card-title>
+                    <v-card-actions></v-card-actions>
+                </v-card>
                 <div class="accordion" draggable="true" @drop="drop($event, '完了')">
                     <p class="accordion-header" @click="open('customer')">
-                        <fa-shevron :is-open-status="isOpen.customer"></fa-shevron>
                         カスタマー</p>
                     <phone-card  class="accordion-body" v-if="isOpen.customer" :members="customerGroup"></phone-card>
                 </div>
+            </v-col>
+            <v-col>
                 <div class="accordion" @drop="drop($event, '後方')">
                     <p class="accordion-header" @click="open('backoffice')">
-                        <fa-shevron :is-open-status="isOpen.backoffice"></fa-shevron>
                         債務整理後方</p>
                     <phone-card class="accordion-body" v-if="isOpen.backoffice" :members="backofficeGroup"></phone-card>
                 </div>
+            </v-col>
+            <v-col>
                 <div class="accordion" @drop="drop($event, '交渉')">
                     <p class="accordion-header" @click="open('negotiation')">
-                        <fa-shevron :is-open-status="isOpen.negotiation"></fa-shevron>
                         交渉</p>
                     <phone-card class="accordion-body" v-if="isOpen.negotiation" :members="negotiationGroup"></phone-card>
                 </div>
+            </v-col>
+            <v-col>
                 <div class="accordion" @drop="drop($event, '交面')">
                     <p class="accordion-header" @click="open('koumen')">
-                        <fa-shevron :is-open-status="isOpen.koumen"></fa-shevron>
                         交面</p>
                     <phone-card class="accordion-body" v-if="isOpen.koumen" :members="koumenGroup"></phone-card>
                 </div>
+            </v-col>
+            <div>
                 <div class="accordion" @drop="drop($event, '調査')">
                     <p class="accordion-header" @click="open('research')">
-                        <fa-shevron :is-open-status="isOpen.research"></fa-shevron>
                         調査</p>
                     <phone-card class="accordion-body" v-if="isOpen.research" :members="researchGroup"></phone-card>
                 </div>
                 <div class="accordion" @drop="drop($event, '相続')">
                     <p class="accordion-header" @click="open('souzoku')">
-                        <fa-shevron :is-open-status="isOpen.souzoku"></fa-shevron>
                         相続</p>
                     <phone-card class="accordion-body" v-if="isOpen.souzoku" :members="souzokuGroup"></phone-card>
                 </div>
                 <div class="accordion" @drop="drop($event, 'その他')">
                     <p class="accordion-header" @click="open('sonota')">
-                        <fa-shevron :is-open-status="isOpen.sonota"></fa-shevron>
                         その他</p>
                     <phone-card class="accordion-body" v-if="isOpen.sonota" :members="sonotaGroup"></phone-card>
                 </div>
                 <div class="accordion" @drop="drop($event, '新規')">
                     <p class="accordion-header" @click="open('shinki')">
-                        <fa-shevron :is-open-status="isOpen.shinki"></fa-shevron>
                         新規</p>
                     <phone-card class="accordion-body" v-if="isOpen.shinki" :members="shinkiGroup"></phone-card>
                 </div>
             </div>
+        </v-row>
     </v-container>
 </template>
 
 <script>
+const phonebook = require('../../../client/assets/data/phone_book.json')
 export default {
                 data(){
                     return{
+                        panel:[0,1,2,3,4,5,6,7,8],
+                        groups:[
+                            {'bookmark':this.bookmarkGroup},
+                            {'customer':this.customerGroup},
+                            {'backoffice':this.backofficeGroup,},
+                            {'negotiation':this.negotiationGroup,},
+                            {'koumen':this.koumenGroup,},
+                            {'research':this.researchGroup,},
+                            {'souzoku':this.souzokuGroup,},
+                            {'sonota':this.sonotaGroup,},
+                            {'shinki':this.shinkiGroup,}
+                            ],
                         isOpen : {
                             customer:false,
                             backoffice:false,
@@ -90,6 +124,7 @@ export default {
                             shinki:false,
                             bookmark:false
                         },
+                        phonebooks:phonebook.book,
                         lists:[
                             {name:'完了課',number: '5106',group:'完了'},
                             {name:'熊谷',number: '1037',group:'完了'},
@@ -139,6 +174,16 @@ export default {
                     }
                 },
                 methods: {
+                    all () {
+                        const arr = Object.keys(this.phonebooks)
+                        const arr2 = arr.map((ele,idx,arr) => {
+                            return idx
+                        })
+                        this.panel = arr2
+                    },
+                    none () {
+                        this.panel = []
+                    },
                     fullopen:function(){
                         Object.keys(this.isOpen).map(key => this.isOpen[key] = true)
                     },
