@@ -42,6 +42,7 @@
 <script>
 import axios from 'axios'
 export default {
+    auth:'guest',
     data() {
         return {
             name:'',
