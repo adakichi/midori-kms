@@ -35,6 +35,7 @@
 <script>
 import axios from 'axios'
   export default {
+    auth:false,
     data(){
       return {
         user:{
