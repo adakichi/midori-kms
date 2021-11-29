@@ -18,8 +18,12 @@ export default {
         // tokenRequired: true,
         // tokenType: 'bearer'
       }
+    },
+    redirect:{
+      login: '/users/login',
+      logout: '/users/login'
     }
-  },
+},
 
   // 追加部分:dir構成を変更
   srcDir:'./client',
