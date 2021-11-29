@@ -69,7 +69,7 @@
           </v-list-group>
           </v-list>
       </v-menu>
-      <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/user/login')">ログイン</v-btn>
+      <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/users/login')">ログイン</v-btn>
       <v-btn v-else @click="$auth.logout()">ログアウト</v-btn>
         <theme-toggle></theme-toggle>
       <v-btn
