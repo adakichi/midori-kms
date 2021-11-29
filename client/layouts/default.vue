@@ -130,7 +130,7 @@ export default {
         {
           icon: 'mdi-login',
           title: 'Login',
-          to: '/login'
+          to: '/users/login'
         },
         {
           icon: 'mdi-chart-bubble',
