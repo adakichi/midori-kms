@@ -81,7 +81,7 @@ app.post('/auth/login',(req,res)=>{
         console.log(payload)
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret')
-        res.status(200)
+        res.json({token})
       }))
     })
   })
