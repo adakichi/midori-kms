@@ -51,7 +51,7 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-            <!-- User Name:{{$auth.user.name}}さん -->
+            User:{{$auth.user.name ? $auth.user.name : 'ゲスト'}}さん
       <v-spacer />
       <v-menu offset-y dense>
         <template v-slot:activator="{ on, attrs }">
@@ -69,8 +69,8 @@
           </v-list-group>
           </v-list>
       </v-menu>
-      <!-- <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/login')">ログイン</v-btn>
-      <v-btn v-else @click="$auth.logout()">ログアウト</v-btn> -->
+      <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/user/login')">ログイン</v-btn>
+      <v-btn v-else @click="$auth.logout()">ログアウト</v-btn>
         <theme-toggle></theme-toggle>
       <v-btn
         icon
