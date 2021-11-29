@@ -1,6 +1,11 @@
 <template>
   <v-row justify="center" align="center">
     <v-col cols="12" sm="8" md="6">
+      <v-card>
+        <v-card-title>
+          ようこそ　{{$auth.user.name ? $auth.user.name : 'ゲスト'}}　さん
+        </v-card-title>
+      </v-card>
       <v-card class="logo py-4 d-flex justify-center">
         <NuxtLogo />
         <VuetifyLogo />
