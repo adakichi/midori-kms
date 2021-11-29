@@ -4,12 +4,12 @@
         <v-col col=9 xs=9 sm=9 md=6 lg=6>
             <v-card>
               <v-card-title>
-                ログインフォーム
+                新規ユーザー登録
                 </v-card-title>
-                <v-form ref="form" v-model="valid">
+                <v-form ref="form" @submit.prevent="">
                 <v-card-text>
                     <v-text-field
-                      v-model="user.id"
+                      v-model="user.userId"
                       :counter="20"
                       label="ID"
                       clearable
@@ -23,7 +23,7 @@
                       required
                       @click:append="showpass = !showpass"
                     ></v-text-field>
-                    <v-btn @click="submit">送信</v-btn>
+                    <v-btn @click="createUser">登録</v-btn>
                     </v-card-text>
                 </v-form>
             </v-card>
@@ -33,23 +33,27 @@
 </template>
 
 <script>
+import axios from 'axios'
   export default {
     data(){
       return {
         user:{
-          id:'',
+          userId:'',
           password:''
         },
         showpass:false
       }
     },
     methods:{
-      submit(){
-        alert('id:' + this.user.id + '\npassword:' + this.user.password)
-      //   this.$auth.loginWith('local',{
-      //     data:this.user
-      // })
-      },
+      createUser(){
+        console.log('--post create user---')
+        const data = {name:this.name,password:this.password}
+        axios.post('http://localhost:3000/api/auth/register/', data)
+        .then((res)=>{
+          if(res.data.message){alert(res.data.message)}
+            this.$auth.loginWith('local',{data:this.user})
+        })
+      }
     }
   }
 </script>

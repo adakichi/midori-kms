@@ -1,5 +1,24 @@
 const express = require("express");
 const app = express();
+const mysql = require('mysql')
+const bcrypt = require("bcrypt")
+const saltRounds = 10
+const jwt =require('jsonwebtoken')
+
+//databaseへのコネクト
+const db = mysql.createConnection({
+    host:'localhost',
+    user: 'root',
+    password: 'XonurO',
+    database: 'comic_list'
+  })
+  db.connect((err)=>{
+    if(err){
+      console.error('error connecting: ' + err.stack)
+      return
+    }
+    console.log('Connected id: ' + db.threadId)
+  })
 
 
 // kokokara
@@ -21,6 +40,98 @@ app.get("/", function(req,res){
     res.send("Hello world")
 })
 
+//ログイン
+app.post('/auth/login',(req,res)=>{
+    console.log('\n---start post login process---\n' + Date())
+    if(!req.body.password){
+      console.log('パスワードが空の為返却します。\n---stop post login process---\n')
+      return res.send({"message": "パスワードが空です！"})
+    }
+    const userId = req.body.userId
+    console.log('req user id:' + userId)
+    const reqpass = req.body.password
+    const sql = "SELECT * FROM users WHERE user_id = ?"
+    db.query(sql, userId,(err,user,fields)=>{
+      if(err){
+        console.log('  query error\n---stop post login process---')
+        return res.json({"message": err.message})
+      }
+      if(!user[0]){
+        console.log('not match user\n---stop post login process---')
+        return res.json({"message": "nameもしくはPASSが間違っています"})
+      }
+      console.log('query sucess!!\nstart compare ->')
+      bcrypt.compare(req.body.password, user[0].password,((err,result)=>{
+        if(err){
+          console.log('compare error')
+          console.log(err)
+          console.log('---stop post login process---')
+          return res.json({"error":err})
+        }
+        if(!result){
+          console.log(' compare is false')
+          console.log('---stop post login process---')
+          return res.json({ "message" : "一致しませんでした。"})
+          // return res.json({"message": "password is correct"})
+        }
+        const payload = {
+          id:user[0].id,
+          name:user[0].user_id
+        }
+        console.log(payload)
+        console.log('---Done post login process---')
+        const token = jwt.sign(payload, 'secret')
+        res.json({token})
+      }))
+    })
+  })
+  
+//tokenが正しいかの問い合わせ
+  app.get('/auth/user/',(req,res) => {
+    console.log('\n--- auth user ---')
+    const bearToken = req.headers['authorization']
+    const bearer = bearToken.split(' ')
+    const token = bearer[1]
+    jwt.verify(token,'secret',(err,user)=>{
+      if(err){
+        console.log('auth user denied\n---x---x---x---')
+        return res.json({message:"error:token is undefined"})
+      }else{
+        console.log('auth user admitted\n---------------')
+        return res.json({
+              user
+            })
+      }
+    })
+  })
+
+//ログアウト後の動作
+  app.get('\n/auth/logout',(req,res)=>{
+    console.log(req.body)
+    console.log('\n--- post /auth/logout/ ---\n' + req.body + ' がログアウトしました。\n--- --- --- ---')
+  })
+  
+//新規登録
+  app.post('/auth/register/',(req,res)=>{
+    console.log('\n--- request(POST) auth/register/ start---\n' + Date())
+    const insertSql = 'INSERT INTO USERS (user_id, password) VALUES (?,?)'
+    bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
+      db.query(insertSql, [req.body.userId, hash],(err)=>{
+        if(err){
+          console.log(' db.query Error\n err: ' + err.message + '\n--- Done process ---')
+          return res.json({"message": "登録できませんでした。\nError : " + err.message})
+        }
+        console.log(' Sucess Create New User\n--- Done process ---')
+        return res.json({
+          "message":"新規登録が成功しました。\n message : create User successfully",
+          "data":[req.body.userId,req.body.email]
+        })
+      })
+    })
+  })
+  
+
+//ChatWorkとの
 app.get("/cw/send",function(req,res,next){
     console.log("get:cw/send")
     let myname = "jhon doe"
@@ -100,7 +211,8 @@ app.post("/cw/send",function(req,res,next){
         })
 })
 
-
+// データベースのendは不要です。
+// db.end()
 
 module.exports = {
     path: "/api/",

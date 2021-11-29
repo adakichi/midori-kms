@@ -51,6 +51,8 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
+            User:{{$auth.user ? $auth.user.name : 'ゲスト'}}
+      <v-spacer />
       <v-menu offset-y dense>
         <template v-slot:activator="{ on, attrs }">
         <v-btn
@@ -67,6 +69,8 @@
           </v-list-group>
           </v-list>
       </v-menu>
+      <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/users/login')">ログイン</v-btn>
+      <v-btn v-else @click="$auth.logout()">ログアウト</v-btn>
         <theme-toggle></theme-toggle>
       <v-btn
         icon
@@ -122,6 +126,11 @@ export default {
           icon: 'mdi-apps',
           title: 'Welcome',
           to: '/'
+        },
+        {
+          icon: 'mdi-login',
+          title: 'Login',
+          to: '/users/login'
         },
         {
           icon: 'mdi-chart-bubble',

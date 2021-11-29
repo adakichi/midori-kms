@@ -6,6 +6,30 @@ export default {
     host: '0.0.0.0' // デフォルト: localhost
   },
 
+  //auth middleware設定
+  router:{
+    // middleware:['auth']
+  },
+
+  //auth情報追加
+  auth: {
+    strategies: {
+      local: {
+        endpoints: {
+          login: { url: '/api/auth/login', method: 'post', propertyName: 'token' },
+          logout: { url: '/api/auth/logout', method: 'post' },
+          user: { url: '/api/auth/user', method: 'get', propertyName: 'user' }
+        },
+        // tokenRequired: true,
+        // tokenType: 'bearer'
+      }
+    },
+    redirect:{
+      login: '/users/login',
+      logout: '/users/login'
+    }
+},
+
   // 追加部分:dir構成を変更
   srcDir:'./client',
 
@@ -54,6 +78,7 @@ export default {
   modules: [
     // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios',
+    '@nuxtjs/auth'
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
