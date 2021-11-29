@@ -208,7 +208,8 @@ app.post("/cw/send",function(req,res,next){
         })
 })
 
-db.end()
+// データベースのendは不要です。
+// db.end()
 
 module.exports = {
     path: "/api/",
