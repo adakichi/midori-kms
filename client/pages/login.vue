@@ -6,10 +6,10 @@
               <v-card-title>
                 ログインフォーム
                 </v-card-title>
-                <v-form ref="form" v-model="valid">
+                <v-form ref="form" @submit.prevent="">
                 <v-card-text>
                     <v-text-field
-                      v-model="user.id"
+                      v-model="user.userId"
                       :counter="20"
                       label="ID"
                       clearable
@@ -23,7 +23,7 @@
                       required
                       @click:append="showpass = !showpass"
                     ></v-text-field>
-                    <v-btn @click="submit">送信</v-btn>
+                    <v-btn @click="login">送信</v-btn>
                     </v-card-text>
                 </v-form>
             </v-card>
@@ -33,11 +33,12 @@
 </template>
 
 <script>
+import axios from 'axios'
   export default {
     data(){
       return {
         user:{
-          id:'',
+          userId:'',
           password:''
         },
         showpass:false
@@ -50,6 +51,29 @@
       //     data:this.user
       // })
       },
+      login(){
+        this.$auth.loginWith('local',{
+          data:this.user
+        })
+      },
+      login(){
+        console.log('--get-->')
+        const data = {userId:this.user.userId,password:this.user.password}
+        axios.post('/api/auth/login', data)
+          .then((res)=>{
+            if(res.data.message){alert(res.data.message)}
+            console.log(res.data)
+          })
+      },
+      createUser(){
+        console.log('--post create user---')
+        const data = {name:this.name,password:this.password}
+        axios.post('http://localhost:3000/api/auth/register/', data)
+        .then((res)=>{
+          if(res.data.message){alert(res.data.message)}
+          console.log(res)
+        })
+      }
     }
   }
 </script>
