@@ -1,5 +1,24 @@
 const express = require("express");
 const app = express();
+const mysql = require('mysql')
+const bcrypt = require("bcrypt")
+const saltRounds = 10
+const jwt =require('jsonwebtoken')
+
+//databaseへのコネクト
+const db = mysql.createConnection({
+    host:'localhost',
+    user: 'root',
+    password: 'XonurO',
+    database: 'comic_list'
+  })
+  db.connect((err)=>{
+    if(err){
+      console.error('error connecting: ' + err.stack)
+      return
+    }
+    console.log('Connected id: ' + db.threadId)
+  })
 
 
 // kokokara
@@ -100,7 +119,7 @@ app.post("/cw/send",function(req,res,next){
         })
 })
 
-
+db.end()
 
 module.exports = {
     path: "/api/",
