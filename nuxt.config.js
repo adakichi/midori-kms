@@ -6,6 +6,11 @@ export default {
     host: '0.0.0.0' // デフォルト: localhost
   },
 
+  //auth middleware設定
+  router:{
+    // middleware:['auth']
+  },
+
   //auth情報追加
   auth: {
     strategies: {
