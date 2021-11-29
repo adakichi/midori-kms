@@ -51,7 +51,7 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-            User:{{$auth.user.name ? $auth.user.name : 'ゲスト'}}
+            User:{{$auth.user ? $auth.user.name : 'ゲスト'}}
       <v-spacer />
       <v-menu offset-y dense>
         <template v-slot:activator="{ on, attrs }">
