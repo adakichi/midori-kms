@@ -81,21 +81,23 @@ app.post('/auth/login',(req,res)=>{
         console.log(payload)
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret')
-        res.json({token,'message':'やったね！成功'})
+        res.status(200)
       }))
     })
   })
   
 //tokenが正しいかの問い合わせ
   app.get('/auth/user/',(req,res) => {
-  
+    console.log('\n--- auth user ---')
     const bearToken = req.headers['authorization']
     const bearer = bearToken.split(' ')
     const token = bearer[1]
     jwt.verify(token,'secret',(err,user)=>{
       if(err){
-        return res.sendStatus(403)
+        console.log('auth user denied\n---x---x---x---')
+        return res.json({message:"error:token is undefined"})
       }else{
+        console.log('auth user admitted\n---------------')
         return res.json({
               user
             })
@@ -104,8 +106,9 @@ app.post('/auth/login',(req,res)=>{
   })
 
 //ログアウト後の動作
-  app.post('/auth/logout',(req,res)=>{
-    console.log('\n--- post /auth/logout/ ---\n' + req.body.user.name + ' がログアウトしました。\n--- --- --- ---')
+  app.get('\n/auth/logout',(req,res)=>{
+    console.log(req.body)
+    console.log('\n--- post /auth/logout/ ---\n' + req.body + ' がログアウトしました。\n--- --- --- ---')
   })
   
 //新規登録
