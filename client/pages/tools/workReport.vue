@@ -13,7 +13,9 @@
                 filled
                 :items="division"
                 label="所属"
-                v-model="selectedDivision"></v-select>
+                v-model="selectedDivision"
+                :options="$auth.user ? $auth.user.division : null"
+                ></v-select>
                 </v-card-title>
             <v-card-text>
                 <v-form ref="form" @submit.prevent>
