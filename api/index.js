@@ -212,10 +212,12 @@ app.post("/cw/send",function(req,res,next){
 })
 
 //BIZTEL CTIの連携用API
+
+//顧客番号でSAIZOのURLを返す関数
+
 //検索用エンドポイント
 app.post('/biztel/search',(req,res)=>{
   console.log('\n--- BIZTEL search ---')
-  console.log('tel:' + req.body.tel)
   const sql = 'SELECT jyuninNumber FROM saizoSearch WHERE phoneNumber = ?'
   db.query(sql, req.body.tel,(err,num,fields)=>{
     console.log()
@@ -238,12 +240,20 @@ app.post('/biztel/search',(req,res)=>{
 //応答時エンドポイント
 app.post('/biztel/pickup',(req,res)=>{
   console.log('\n--- BIZTEL pickup ---')
-  console.log(req.body.tel)
-  console.log(req.body.called)
-  res.set('Content-Type: text/csv; charset=us-ascii')
-  res.set('Content-Type', 'text/csv; charset=us-ascii')
-  res.send(Buffer.from('OK'))
-  console.log('---x---x---x---x---')
+  const sql = 'SELECT kokyakuId FROM saizoSearch WHERE phoneNumber = ?'
+  db.query(sql, req.body.tel,(err,num,fields)=>{
+    console.log()
+    let saizoUrl = ''
+    if(!num){
+      console.log('該当無し')
+      saizoUrl = 'http://172.16.12.38/saizo/'
+    } else {
+      saizoUrl = 'http://172.16.12.38/saizo/customerInfoList/customerInfo/' + num[0].kokyakuId
+    }
+    console.log(saizoUrl)
+    res.redirect(saizoUrl)
+    console.log('---x---x---x---x---')  
+  })
 })
 
 //切断時エンドポイント
