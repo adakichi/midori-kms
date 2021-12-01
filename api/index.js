@@ -213,25 +213,34 @@ app.post("/cw/send",function(req,res,next){
 
 //BIZTEL CTIの連携用API
 //検索用エンドポイント
-app.get('/biztel/search',(req,res)=>{
+app.post('/biztel/search',(req,res)=>{
   console.log('\n--- BIZTEL search ---')
   console.log(req.body)
   res.set('Content-Type: text/csv; charset=us-ascii')
   res.set('Content-Type', 'text/csv; charset=us-ascii')
   res.send(Buffer.from('test太郎,リードユー'))
+  console.log('---x---x---x---x---')
 })
 
 //応答時エンドポイント
-app.get('/biztel/pickup',(req,res)=>{
+app.post('/biztel/pickup',(req,res)=>{
   console.log('\n--- BIZTEL pickup ---')
-  console.log(req.body)
+  console.log(req.body.tel)
+  console.log(req.body.called)
+  res.set('Content-Type: text/csv; charset=us-ascii')
+  res.set('Content-Type', 'text/csv; charset=us-ascii')
+  res.send(Buffer.from('OK'))
   console.log('---x---x---x---x---')
 })
 
 //切断時エンドポイント
-app.get('/biztel/hangup',(req,res)=>{
+app.post('/biztel/hangup',(req,res)=>{
   console.log('\n--- BIZTEL hangup ---')
-  console.log(req.body)
+  console.log(req.body.tel)
+  console.log(req.body.called)
+  res.set('Content-Type: text/csv; charset=us-ascii')
+  res.set('Content-Type', 'text/csv; charset=us-ascii')
+  res.send(Buffer.from('OK'))
   console.log('---x---x---x---x---')
 })
 
