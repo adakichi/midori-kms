@@ -4,6 +4,9 @@ const mysql = require('mysql')
 const bcrypt = require("bcrypt")
 const saltRounds = 10
 const jwt =require('jsonwebtoken')
+const cors = require('cors')
+
+app.use(cors())
 
 //databaseへのコネクト
 const db = mysql.createConnection({
