@@ -259,10 +259,8 @@ app.post('/biztel/pickup',(req,res)=>{
 //切断時エンドポイント
 app.post('/biztel/hangup',(req,res)=>{
   console.log('\n--- BIZTEL hangup ---')
-  console.log(req.body.tel)
-  console.log(req.body.called)
-  res.set('Content-Type: text/csv; charset=us-ascii')
-  res.set('Content-Type', 'text/csv; charset=us-ascii')
+  console.log(req.body.called + 'is HangUp')
+  
   res.send(Buffer.from('OK'))
   console.log('---x---x---x---x---')
 })
