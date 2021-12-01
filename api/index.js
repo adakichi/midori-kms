@@ -215,11 +215,24 @@ app.post("/cw/send",function(req,res,next){
 //検索用エンドポイント
 app.post('/biztel/search',(req,res)=>{
   console.log('\n--- BIZTEL search ---')
-  console.log(req.body)
-  res.set('Content-Type: text/csv; charset=us-ascii')
-  res.set('Content-Type', 'text/csv; charset=us-ascii')
-  res.send(Buffer.from('test太郎,リードユー'))
-  console.log('---x---x---x---x---')
+  console.log('tel:' + req.body.tel)
+  const sql = 'SELECT jyuninNumber FROM saizoSearch WHERE phoneNumber = ?'
+  db.query(sql, req.body.tel,(err,num,fields)=>{
+    console.log()
+    let jyuninNum = ''
+    if(!num){
+      console.log('該当無し')
+      jyuninNum = '該当無し'
+    } else {
+      console.log('該当あり')
+      jyuninNum = '受任：' + num[0].jyuninNumber
+    }
+    console.log(num)
+    res.set('Content-Type: text/csv; charset=us-ascii')
+    res.set('Content-Type', 'text/csv; charset=us-ascii')
+    res.send(Buffer.from(jyuninNum))
+    console.log('---x---x---x---x---')  
+  })
 })
 
 //応答時エンドポイント
