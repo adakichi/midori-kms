@@ -72,7 +72,7 @@ import axios from 'axios'
       createUser(){
         console.log('--post create user---')
         const data = {name:this.name,password:this.password}
-        axios.post('http://localhost:3000/api/auth/register/', data)
+        axios.post('/api/auth/register/', data)
         .then((res)=>{
           if(res.data.message){alert(res.data.message)}
           console.log(res)
