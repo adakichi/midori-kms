@@ -117,17 +117,17 @@ export default {
         {
           icon: 'mdi-cash-fast',
           title: '入金実績',
-          to: '/payment_agency/come_in_record/'
+          to: '/payment_agency/come_in_records/'
         },
         {
           icon: 'mdi-cash-fast',
           title: '入金予定',
-          to: '/payment_agency/put_out_record/'
+          to: '/payment_agency/put_out_records/'
         },
         {
           icon: 'mdi-account',
           title: '顧客毎',
-          to: '/payment_agency/customer/'
+          to: '/payment_agency/customers/'
         },
       ],
       miniVariant: false,
