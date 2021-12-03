@@ -5,16 +5,12 @@ const bcrypt = require("bcrypt")
 const saltRounds = 10
 const jwt =require('jsonwebtoken')
 const cors = require('cors')
+import {dbConfig,chatworkConf} from '../midori-kms_config'
 
 app.use(cors())
 
 //databaseへのコネクト
-const db = mysql.createConnection({
-    host:'127.0.0.1',
-    user: 'root',
-    password: 'XonurO',
-    database: 'mkms'
-  })
+const db = mysql.createConnection(dbConfig)
   db.connect((err)=>{
     if(err){
       console.error('error connecting: ' + err.stack)
@@ -33,9 +29,6 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 // kokomade
-
-
-import {chatworkConf} from '../midori-kms_config'
 
 
 app.get("/", function(req,res){
