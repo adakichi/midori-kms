@@ -29,8 +29,13 @@ export default {
                     to:"/tools/workReport",
                     description:"Chatwork宛の業務報告書",
                     icon:"mdi-clipboard-account-outline"
+                },
+                {
+                    title:"シフト表",
+                    to:"/tools/shiftSchedule",
+                    description:"シフト表です。\n25日移行は編集できません",
+                    icon:"mdi-clipboard-account-outline"
                 }
-
             ],
             item:{title:"tesuto", to:"to",description:"せつめい", icon:"mdi-phone"}
         }
