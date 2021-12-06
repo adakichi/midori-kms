@@ -1,6 +1,6 @@
 
 export const state = ()=>({
-    comeInRecords:{text: 'hello'}
+    comeInRecords:[{text: 'hello'}]
 })
 
 export const getters = {
