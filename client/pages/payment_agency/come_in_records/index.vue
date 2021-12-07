@@ -1,9 +1,17 @@
 <template>
     <v-container>
+        <h1>come in records</h1>
         <v-row>
             <v-col>
-                <h1>come in records</h1>
+                <v-app-bar>
+                    <v-spacer></v-spacer>
+                <v-btn @click="goImport">インポート</v-btn>
                 <v-btn @click="upda">こうしん</v-btn>
+                </v-app-bar>
+            </v-col>
+        </v-row>    
+        <v-row>
+            <v-col>
                 <v-data-table
                 :headers="headers"
                 :items="comeInRecordsList"
@@ -23,13 +31,13 @@
                 >
                 </v-text-field>
                 </template>
-                <template v-slot:item.delete_flag="{item}">
-                    <v-simple-checkbox
-                    v-model="item.delete_flag === 0 ?false:true"
-                    disabled
-                    >
-                    </v-simple-checkbox>
-                </template>
+                    <template v-slot:item.delete_flag="{item}">
+                        <v-simple-checkbox
+                        v-model="item.delete_flag === 0 ?false:true"
+                        disabled
+                        >
+                        </v-simple-checkbox>
+                    </template>
                 </v-data-table>
             </v-col>
         </v-row>
@@ -41,6 +49,7 @@ export default {
     layout : 'pa',
     data(){
         return{
+            cirl:[{name:'testtarou'}],
             search:'',
             headers:[
                 {
@@ -62,13 +71,21 @@ export default {
     },
     computed:{
         comeInRecordsList(){
+            console.log(this.$store.getters['pa/getCIR'])
             return this.$store.getters['pa/getCIR']
         }
     },
     methods:{
         upda(){
+            console.log('upda')
             this.$store.dispatch('pa/actComeInRecords')
+        },
+        goImport(){
+            this.$router.push('/payment_agency/come_in_records/import')
         }
+    },  
+    created(){
+        this.upda()
     }
 }
 </script>
