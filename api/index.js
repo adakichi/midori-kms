@@ -79,7 +79,8 @@ app.post('/auth/login',(req,res)=>{
         }
         const payload = {
           id:user[0].id,
-          name:user[0].user_id
+          userId:user[0].user_id,
+          name:user[0].name
         }
         console.log(payload)
         console.log('---Done post login process---')
@@ -117,9 +118,10 @@ app.post('/auth/login',(req,res)=>{
 //新規登録
   app.post('/auth/register/',(req,res)=>{
     console.log('\n--- request(POST) auth/register/ start---\n' + Date())
-    const insertSql = 'INSERT INTO USERS (user_id, password) VALUES (?,?)'
+    console.log(req.body.userId)
+    const insertSql = 'INSERT INTO USERS (name, user_id, password) VALUES (?,?,?)'
     bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
-      db.query(insertSql, [req.body.userId, hash],(err)=>{
+      db.query(insertSql, [req.body.name, req.body.userId, hash],(err)=>{
         if(err){
           console.log(' db.query Error\n err: ' + err.message + '\n--- Done process ---')
           return res.json({"message": "登録できませんでした。\nError : " + err.message})
@@ -271,6 +273,19 @@ app.post('/biztel/hangup',(req,res)=>{
 //---- issuesのDB通信用 ----//
 app.get('/issues/',(req,res)=>{
   console.log('\n--- get /issues/ ---')
+  const sql = 'SELECT * FROM issues;'
+  db.query(sql,(err,rows,fields)=>{
+    if(err){return console.log(err)}
+    res.send(rows)
+    console.log('---x---x---x---x---')
+  })
+})
+
+app.post('/issues/',(req,res)=>{
+  console.log('\n--- post /issues/ ---')
+  const title = req.body.title
+  const description = req.body.description
+  const auth = req.body.auth
   const sql = 'SELECT * FROM issues;'
   db.query(sql,(err,rows,fields)=>{
     if(err){return console.log(err)}
