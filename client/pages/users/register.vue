@@ -10,8 +10,15 @@
                 <v-card-text>
                     <v-text-field
                       v-model="user.userId"
-                      :counter="20"
+                      :counter="5"
                       label="ID"
+                      clearable
+                      required
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="user.name"
+                      :counter="20"
+                      label="Name"
                       clearable
                       required
                     ></v-text-field>
@@ -38,6 +45,7 @@ import axios from 'axios'
     data(){
       return {
         user:{
+          name:'',
           userId:'',
           password:''
         },
@@ -47,7 +55,7 @@ import axios from 'axios'
     methods:{
       createUser(){
         console.log('--post create user---')
-        const data = {name:this.name,password:this.password}
+        const data = {name:this.user.name,userId:this.user.userId, password:this.user.password}
         axios.post('http://localhost:3000/api/auth/register/', data)
         .then((res)=>{
           if(res.data.message){alert(res.data.message)}
