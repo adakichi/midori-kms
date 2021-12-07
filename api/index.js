@@ -268,6 +268,17 @@ app.post('/biztel/hangup',(req,res)=>{
   console.log('---x---x---x---x---')
 })
 
+//---- issuesのDB通信用 ----//
+app.get('/issues/',(req,res)=>{
+  console.log('\n--- get /issues/ ---')
+  const sql = 'SELECT * FROM issues;'
+  db.query(sql,(err,rows,fields)=>{
+    if(err){return console.log(err)}
+    res.send(rows)
+    console.log('---x---x---x---x---')
+  })
+})
+
 // データベースのendは不要です。
 // db.end()
 
