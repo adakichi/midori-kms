@@ -261,14 +261,14 @@ app.post('/biztel/hangup',(req,res)=>{
   console.log('---x---x---x---x---')
 })
 
-//以下payment Agency用
+
+////以下payment Agency用////
 //get come_in_records
 app.get('/payment_agency/cir/',(err,res)=>{
   const sql = 'SELECT * FROM come_in_records'
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}
-    console.log('api server:')
-    console.log(rows)
+    console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
   })
 })

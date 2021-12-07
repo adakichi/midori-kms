@@ -12,7 +12,6 @@ export const getters = {
 export const mutations = {
     updateComeInRecords(state,data){
         console.log('vuex store:mutetions')
-        console.log(data)
         state.comeInRecords = data
     }
 }
@@ -21,7 +20,6 @@ export const actions = {
     async actComeInRecords(context){
         const cir = await this.$axios.$get('api/payment_agency/cir/')
             console.log('vuex store:')
-            console.log(cir)
         context.commit('updateComeInRecords',cir)
     }
 }
