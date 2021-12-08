@@ -304,7 +304,7 @@ app.get('/issue',(req,res)=>{
   console.log('\n--- get /issues/ id:' + id + '---')
   let sql = 'SELECT msg.*, name from issues_messages as msg '
       sql = sql + 'inner join users on msg.author = users.user_id '
-      sql = sql + 'WHERE issue_id = ?;'
+      sql = sql + 'WHERE issue_id = ? ORDER BY msg.created_at;'
   db.query(sql,id,(err,rows,fields)=>{
     if(err){
       console.log(err)

@@ -32,7 +32,7 @@ export default {
             return marked.marked(str)
         },
         sendMessage(){
-            if(this.newMessage.length > 300){ return alert('文字数が多いです。\n300文字まで。')}
+            if(this.newMessage.length > 1000){ return alert('文字数が多いです。\n1000文字まで。')}
             if(!this.$auth.user){ return alert('ログインしてから送って')}            
             const data = {id:this.issuesData.issue_id, author:this.$auth.user.userId, message:this.newMessage}
             console.log('おくるよ')
