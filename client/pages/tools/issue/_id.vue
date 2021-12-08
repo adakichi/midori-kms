@@ -2,14 +2,14 @@
     <v-container>
         <v-row>
             <v-col>
-                <h1>title: {{issuesData.title}}</h1>
-                <p>{{issuesData.description}}</p>
+                <h1>title: {{issuesData?issuesData.title:'一旦もどってね。'}}</h1>
+                <p>{{issuesData?issuesData.description:'直リンクは無効にしてます。'}}</p>
                 <v-btn to="/tools/issues">戻る</v-btn>
                 <v-row v-for="item in messages" :key="item.issues_messages_id"><v-col>
                 <v-card>
                     <v-card-subtitle>{{item.name}} : {{item.created_at}}</v-card-subtitle>
                     <v-divider></v-divider>
-                    <v-card-text>{{item.message}}</v-card-text>
+                    <v-card-text v-html="convMarked(item.message)"></v-card-text>
                 </v-card>
                 </v-col></v-row>
                 <v-textarea counter v-model="newMessage"></v-textarea>
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+const marked = require('marked')
 export default {
     data(){
         return {
@@ -27,6 +28,9 @@ export default {
         }
     },
     methods:{
+        convMarked(str){
+            return marked.marked(str)
+        },
         sendMessage(){
             if(this.newMessage.length > 300){ return alert('文字数が多いです。\n300文字まで。')}
             if(!this.$auth.user){ return alert('ログインしてから送って')}            
@@ -53,6 +57,9 @@ export default {
     created(){
         const id = this.$route.params.id
         this.$store.dispatch('issues/dbGetIssueMessages',id)
+        if(this.$store.getters['issues/getIssues']){
+            this.$store.dispatch('issues/dbGetIssues')
+        }
     },
     validate({params}){
         return /^\d+$/.test(params.id)
