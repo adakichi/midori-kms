@@ -271,6 +271,7 @@ app.post('/biztel/hangup',(req,res)=>{
 })
 
 //---- issuesのDB通信用 ----//
+//issues取得
 app.get('/issues/',(req,res)=>{
   console.log('\n--- get /issues/ ---')
   const sql = 'SELECT * FROM issues;'
@@ -281,16 +282,56 @@ app.get('/issues/',(req,res)=>{
   })
 })
 
+//issues登録
 app.post('/issues/',(req,res)=>{
   console.log('\n--- post /issues/ ---')
-  const title = req.body.title
-  const description = req.body.description
-  const auth = req.body.auth
-  const sql = 'SELECT * FROM issues;'
-  db.query(sql,(err,rows,fields)=>{
+  const data = [
+    req.body.data.title,
+    req.body.data.description,
+    req.body.data.author  
+  ]
+  const sql = 'INSERT INTO issues (title, description, author) values (?,?,?) ;'
+  db.query(sql, data, (err,rows,fields)=>{
     if(err){return console.log(err)}
-    res.send(rows)
-    console.log('---x---x---x---x---')
+    console.log(' 新規登録成功\n---x---x---x---x---')
+    return res.send('OK')
+  })
+})
+
+//issue取得
+app.get('/issue',(req,res)=>{
+  const id = parseInt(req.query.id,10)
+  console.log('\n--- get /issues/ id:' + id + '---')
+  let sql = 'SELECT msg.*, name from issues_messages as msg '
+      sql = sql + 'inner join users on msg.author = users.user_id '
+      sql = sql + 'WHERE issue_id = ?;'
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){
+      console.log(err)
+      return res.send(err)
+    }
+    console.log(' 取得成功\n---x---x---x---x---')
+    return res.send(rows)
+  })
+})
+
+//issueにNew Message投稿
+app.post('/issue',(req,res)=>{
+  console.log(req.body)
+  const issueId = parseInt(req.body.id,10)
+  console.log('\n--- post /issues/ id:' + issueId + '---')
+  const author = req.body.author
+  const message = req.body.message
+  const data = [issueId, author, message]
+  console.log(data)
+  let sql = 'INSERT INTO issues_messages (issue_id, author, message) VALUES (?,?,?);'
+    db.query(sql,data,(err,rows,fields)=>{
+    if(err){
+      console.log(err)
+      return res.send(err)
+    }
+    console.log(' 取得成功\n---x---x---x---x---')
+    return res.send(rows)
   })
 })
 
