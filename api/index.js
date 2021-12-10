@@ -343,7 +343,6 @@ app.put('/issue',(req,res)=>{
   console.log('\n--- put /issues/ issue:' + issueId + ', message id:' + messageId + '---')
   const message = req.body.message
   const data = [message, issueId, messageId]
-  console.log(data)
   let sql = 'UPDATE issues_messages SET message = ? WHERE issue_id = ? AND issues_messages_id = ?;'
     db.query(sql,data,(err,rows,fields)=>{
     if(err){
