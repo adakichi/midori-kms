@@ -43,5 +43,11 @@ export const actions = {
         const response = await this.$axios.post('api/issue/',data)
         console.log(response)
         context.dispatch('dbGetIssueMessages',data.id)
+    },
+    async updateMessage(context,data){
+        console.log('action updatemessage')
+        const response = await this.$axios.put('api/issue/',data)
+        console.log(response)
+        context.dispatch('dbGetIssueMessages',data.issueId)
     }
 }

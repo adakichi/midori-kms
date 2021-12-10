@@ -335,6 +335,26 @@ app.post('/issue',(req,res)=>{
   })
 })
 
+//issueのメッセージ更新
+app.put('/issue',(req,res)=>{
+  console.log(req.body)
+  const issueId = parseInt(req.body.issueId,10)
+  const messageId = parseInt(req.body.messageId,10)
+  console.log('\n--- put /issues/ issue:' + issueId + ', message id:' + messageId + '---')
+  const message = req.body.message
+  const data = [message, issueId, messageId]
+  console.log(data)
+  let sql = 'UPDATE issues_messages SET message = ? WHERE issue_id = ? AND issues_messages_id = ?;'
+    db.query(sql,data,(err,rows,fields)=>{
+    if(err){
+      console.log(err)
+      return res.send(err)
+    }
+    console.log(' 取得成功\n---x---x---x---x---')
+    return res.send(rows)
+  })
+})
+
 // データベースのendは不要です。
 // db.end()
 
