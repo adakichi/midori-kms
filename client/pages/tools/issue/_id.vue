@@ -31,6 +31,11 @@
                     <v-btn @click="updateIssue">更新</v-btn>
                 </v-card-actions>
             </v-card>
+            <v-card>
+                <v-divider></v-divider>
+                <v-card-title>プレビュー</v-card-title>
+                <v-card-text v-html="convMarked(editMessage.text)"></v-card-text>
+            </v-card>
         </v-dialog>
     </v-container>
 </template>
