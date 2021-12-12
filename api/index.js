@@ -264,7 +264,7 @@ app.post('/biztel/hangup',(req,res)=>{
 })
 
 
-////以下payment Agency用////
+////---- 以下payment Agency用 ----////
 //get come_in_records
 app.get('/payment_agency/cir/',(err,res)=>{
   const sql = 'SELECT * FROM come_in_records'
@@ -274,6 +274,59 @@ app.get('/payment_agency/cir/',(err,res)=>{
     res.send(rows)
   })
 })
+
+//post come_in_records
+app.post('/payment_agency/cir/', (req,res)=>{
+  console.log('\n --- post pa/cir ---')
+  const importfileSql = ' insert into importfile_for_come_in_records (name, download_date, total_amount, count, bankname) values (?,?,?,?,?);'
+  const cirSql = ' insert into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id) VALUES (?,?,?,?,?);'
+  console.log(req.body.fileinfo)
+  const fileinfoArray =[
+    req.body.fileinfo.name,
+    req.body.fileinfo.downloadDate,
+    req.body.fileinfo.totalAmount,
+    req.body.fileinfo.count,
+    req.body.fileinfo.bankName
+  ] 
+  console.log(fileinfoArray)
+  db.beginTransaction((err)=>{
+    if(err){console.log(err); throw err }
+    db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
+      if(err){
+        console.log(err)
+        return db.rollback(()=>{
+          throw err
+        })
+      }
+      console.log(row)
+      const insertValArray = [
+        req.body.customer_id,
+        req.body.come_in_name,
+        req.body.actual_deposit_amount,
+        req.body.actual_deposit_date,
+        1
+      ]
+      db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
+        if(err2){
+          console.log(err)
+          return db.rollback(()=>{
+            throw err2
+          })
+        }
+        db.commit((err)=>{
+          if(err){
+            return db.rollback(()=>{
+              throw err
+            })
+          }
+          console.log('success!')
+          res.send('OK')
+        })
+      })
+    })
+  })
+})
+
 
 //---- issuesのDB通信用 ----//
 //issues取得

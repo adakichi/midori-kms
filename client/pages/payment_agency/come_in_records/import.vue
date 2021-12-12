@@ -16,11 +16,22 @@
                 <v-spacer></v-spacer>
                 <v-btn @click="goIndex">戻る</v-btn>
                 </v-app-bar>
-                <p>{{fileResult}}</p>
             </v-col>
         </v-row>    
         <v-row>
             <v-col>
+                <v-card>
+                    <v-card-title>
+                        <v-text-field
+                        v-model="search"
+                        label="Search(まだうごかんばい)"
+                        class="mx-4"
+                        >
+                        </v-text-field>
+                        <v-spacer></v-spacer>
+                        <v-btn @click="submitData">登録</v-btn>
+                    </v-card-title>
+
                 <v-data-table
                 :headers="headers"
                 :items="fileResult"
@@ -32,14 +43,6 @@
                 show-group-by
                 dense
                 >
-                <template v-slot:top>
-                <v-text-field
-                v-model="search"
-                label="Search(まだうごかんばい)"
-                class="mx-4"
-                >
-                </v-text-field>
-                </template>
                     <template v-slot:item.delete_flag="{item}">
                         <v-simple-checkbox
                         v-model="item.delete_flag === 0 ?false:true"
@@ -48,18 +51,22 @@
                         </v-simple-checkbox>
                     </template>
                 </v-data-table>
+                </v-card>
             </v-col>
         </v-row>
     </v-container>
 </template>
 
 <script>
+const warekiToSeireki=function(wareki){
+    return String(2018 + parseInt(wareki.substr(0,1),10))+ '-' +wareki.substr(1,2) + "-" +wareki.substr(3,2)
+}
 export default {
     layout : 'pa',
     data(){
         return{
             loading:false,
-            fileinfo:'',
+            fileInfo:{name:'',downloadDate:'',totalAmount:0,count:0,bankName:''},
             fileResult:[],
             search:'',
             headers:[
@@ -96,7 +103,6 @@ export default {
             if(!e){ 
                 return this.fileResult = ''
             }
-            this.fileinfo = e
             console.log(e)
             let reader = new FileReader()
             reader.readAsText(e,'shift-jis')
@@ -107,10 +113,16 @@ export default {
                     return line.split(',')
                 })
                 // let ftexts = txt.match(/.{120}/g)
-                console.log(ftexts)
+                ftexts.pop()
+                const trailerRecord = ftexts[ftexts.length-2]
+                    this.fileInfo.name = e.name
+                    this.fileInfo.downloadDate = warekiToSeireki(ftexts[0][3])
+                    this.fileInfo.totalAmount = trailerRecord[2]
+                    this.fileInfo.count = trailerRecord[1]
+                    this.fileInfo.bankName = ftexts[0][7]
+
+                ftexts = ftexts.filter(row=>{ return row[0] == '2'})
                 let resultArray = []
-                let date = ftexts[0][5]
-                    date = String(2018 + parseInt(date.substr(0,1),10))+ '-' +date.substr(1,2) + "-" +date.substr(3,2)
                 this.fileResult = ftexts.forEach((arr)=>{
                     let obj = {}
                     const name = String(arr[14]).replace(/[0-9]/g,"")
@@ -118,12 +130,15 @@ export default {
                     obj.customer_id = customerId
                     obj.come_in_name = name
                     obj.actual_deposit_amount = arr[6]
-                    obj.actual_deposit_date = date
+                    obj.actual_deposit_date = warekiToSeireki(arr[2])
                     resultArray.push(obj)
                 })
                 this.fileResult = resultArray
                 this.loading=false
             }
+        },
+        submitData(){
+            this.$store.dispatch('pa/postImportfile',{fileinfo:this.fileInfo,data:this.fileResult})
         }
     }
 }
