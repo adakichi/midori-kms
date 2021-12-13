@@ -35,6 +35,12 @@ export default {
                     to:"/tools/shiftSchedule",
                     description:"シフト表です。\n25日移行は編集できません",
                     icon:"mdi-clipboard-account-outline"
+                },
+                {
+                    title:"問題解決掲示板",
+                    to:"/tools/issues",
+                    description:"問題提起等の掲示板",
+                    icon:"mdi-forum"
                 }
             ],
             item:{title:"tesuto", to:"to",description:"せつめい", icon:"mdi-phone"}

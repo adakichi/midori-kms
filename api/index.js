@@ -79,7 +79,8 @@ app.post('/auth/login',(req,res)=>{
         }
         const payload = {
           id:user[0].id,
-          name:user[0].user_id
+          userId:user[0].user_id,
+          name:user[0].name
         }
         console.log(payload)
         console.log('---Done post login process---')
@@ -117,9 +118,10 @@ app.post('/auth/login',(req,res)=>{
 //新規登録
   app.post('/auth/register/',(req,res)=>{
     console.log('\n--- request(POST) auth/register/ start---\n' + Date())
-    const insertSql = 'INSERT INTO USERS (user_id, password) VALUES (?,?)'
+    console.log(req.body.userId)
+    const insertSql = 'INSERT INTO USERS (name, user_id, password) VALUES (?,?,?)'
     bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
-      db.query(insertSql, [req.body.userId, hash],(err)=>{
+      db.query(insertSql, [req.body.name, req.body.userId, hash],(err)=>{
         if(err){
           console.log(' db.query Error\n err: ' + err.message + '\n--- Done process ---')
           return res.json({"message": "登録できませんでした。\nError : " + err.message})
@@ -266,6 +268,90 @@ app.post('/biztel/hangup',(req,res)=>{
   
   res.send(Buffer.from('OK'))
   console.log('---x---x---x---x---')
+})
+
+//---- issuesのDB通信用 ----//
+//issues取得
+app.get('/issues/',(req,res)=>{
+  console.log('\n--- get /issues/ ---')
+  const sql = 'SELECT * FROM issues;'
+  db.query(sql,(err,rows,fields)=>{
+    if(err){return console.log(err)}
+    res.send(rows)
+    console.log('---x---x---x---x---')
+  })
+})
+
+//issues登録
+app.post('/issues/',(req,res)=>{
+  console.log('\n--- post /issues/ ---')
+  const data = [
+    req.body.data.title,
+    req.body.data.description,
+    req.body.data.author  
+  ]
+  const sql = 'INSERT INTO issues (title, description, author) values (?,?,?) ;'
+  db.query(sql, data, (err,rows,fields)=>{
+    if(err){return console.log(err)}
+    console.log(' 新規登録成功\n---x---x---x---x---')
+    return res.send('OK')
+  })
+})
+
+//issue取得
+app.get('/issue',(req,res)=>{
+  const id = parseInt(req.query.id,10)
+  console.log('\n--- get /issues/ id:' + id + '---')
+  let sql = 'SELECT msg.*, name from issues_messages as msg '
+      sql = sql + 'inner join users on msg.author = users.user_id '
+      sql = sql + 'WHERE issue_id = ? ORDER BY msg.created_at;'
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){
+      console.log(err)
+      return res.send(err)
+    }
+    console.log(' 取得成功\n---x---x---x---x---')
+    return res.send(rows)
+  })
+})
+
+//issueにNew Message投稿
+app.post('/issue',(req,res)=>{
+  console.log(req.body)
+  const issueId = parseInt(req.body.id,10)
+  console.log('\n--- post /issues/ id:' + issueId + '---')
+  const author = req.body.author
+  const message = req.body.message
+  const data = [issueId, author, message]
+  console.log(data)
+  let sql = 'INSERT INTO issues_messages (issue_id, author, message) VALUES (?,?,?);'
+    db.query(sql,data,(err,rows,fields)=>{
+    if(err){
+      console.log(err)
+      return res.send(err)
+    }
+    console.log(' 取得成功\n---x---x---x---x---')
+    return res.send(rows)
+  })
+})
+
+//issueのメッセージ更新
+app.put('/issue',(req,res)=>{
+  console.log(req.body)
+  const issueId = parseInt(req.body.issueId,10)
+  const messageId = parseInt(req.body.messageId,10)
+  console.log('\n--- put /issues/ issue:' + issueId + ', message id:' + messageId + '---')
+  const message = req.body.message
+  const data = [message, issueId, messageId]
+  let sql = 'UPDATE issues_messages SET message = ? WHERE issue_id = ? AND issues_messages_id = ?;'
+    db.query(sql,data,(err,rows,fields)=>{
+    if(err){
+      console.log(err)
+      return res.send(err)
+    }
+    console.log(' 取得成功\n---x---x---x---x---')
+    return res.send(rows)
+  })
 })
 
 // データベースのendは不要です。
