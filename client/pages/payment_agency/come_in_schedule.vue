@@ -1,9 +1,11 @@
 <template>
     <v-container>
-        <h1>Come In Schedules</h1>
         <v-row>
             <v-col>
                 <v-app-bar>
+                    <v-app-bar-title>
+                        入金予定:Come In Schedules
+                    </v-app-bar-title>
                     <v-spacer></v-spacer>
                 <v-btn @click="test">test</v-btn>
                 <v-btn @click="openNewDialog">新規登録</v-btn>
