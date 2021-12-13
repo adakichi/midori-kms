@@ -9,7 +9,7 @@
                 persistent-hint
                 accept=".txt, .csv"
                 @click="startloading"
-                @click:clear="stoploading"
+                @click:clear.prevent="stoploading"
                 @change="inputFile"
                 :loading="loading"
                 ></v-file-input>
@@ -61,6 +61,9 @@
 const warekiToSeireki=function(wareki){
     return String(2018 + parseInt(wareki.substr(0,1),10))+ '-' +wareki.substr(1,2) + "-" +wareki.substr(3,2)
 }
+const selectDataColumns= function(lines){
+    return lines.filter(line => { return line[0] == '2'})
+}
 export default {
     layout : 'pa',
     data(){
@@ -70,17 +73,10 @@ export default {
             fileResult:[],
             search:'',
             headers:[
-                // {
-                //     text:'id',
-                //     align:'start',
-                //     sortable:false,
-                //     value:'come_in_records_id',
-                //     groupable:false
-                // },
-                { text:'受任番号', value:'customer_id'},
-                { text:'名前', value:'come_in_name'},
-                { text:'金額', value:'actual_deposit_amount', groupable:false},
-                { text:'日付', value:'actual_deposit_date'},
+                { text:'受任番号',  value:'customer_id'},
+                { text:'名前',      value:'come_in_name'},
+                { text:'金額',      value:'actual_deposit_amount', groupable:false},
+                { text:'日付',      value:'actual_deposit_date'},
                 // { text:'come_in_schedule_id', value:'come_in_schedule_id', groupable:false},
                 // { text:'delete_flag', value:'delete_flag'},
                 // { text:'created_at', value:'created_at'}
@@ -101,7 +97,7 @@ export default {
         },
         inputFile(e){
             if(!e){ 
-                return this.fileResult = ''
+                return this.fileResult = []
             }
             console.log(e)
             let reader = new FileReader()
@@ -121,9 +117,9 @@ export default {
                     this.fileInfo.count = trailerRecord[1]
                     this.fileInfo.bankName = ftexts[0][7]
 
-                ftexts = ftexts.filter(row=>{ return row[0] == '2'})
+                const dataColumns = selectDataColumns(ftexts)
                 let resultArray = []
-                this.fileResult = ftexts.forEach((arr)=>{
+                this.fileResult = dataColumns.forEach((arr)=>{
                     let obj = {}
                     const name = String(arr[14]).replace(/[0-9]/g,"")
                     const customerId = String(arr[14]).replace(/[^0-9]/g,"")
