@@ -1,7 +1,8 @@
 
 export const state = ()=>({
     comeInRecords:[{text: 'hello'}],
-    comeInSchedules:[{text:'hello cis'}]
+    comeInSchedules:[{text:'hello cis'}],
+    customers:[{name:'みどり太郎'}]
 })
 
 export const getters = {
@@ -10,6 +11,9 @@ export const getters = {
     },
     getCIS(state){
         return state.comeInSchedules
+    },
+    getCustomers(state){
+        return state.customers
     }
 }
 
@@ -19,6 +23,9 @@ export const mutations = {
     },
     updateComeInSchedules(state,data){
         state.comeInSchedules = data
+    },
+    updateCustomers(state,data){
+        state.customers = data
     }
 }
 
@@ -45,6 +52,19 @@ export const actions = {
     async postcomeInSchedules(context,data){
         const dbResult = await this.$axios.post('api/payment_agency/cis',data)
         console.log(dbResult)
+    },
+
+    //customers 用
+    //検索
+    async searchCustomers(context,targetText){
+        console.log('actions:'+targetText)
+        const customers = await this.$axios.get('api/payment_agency/customers',{
+            params:{
+                text:targetText
+            }
+        })
+        console.log(customers)
+        context.commit('updateCustomers',customers.data)
     },
 
 }

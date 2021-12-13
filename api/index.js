@@ -274,7 +274,9 @@ app.post('/biztel/hangup',(req,res)=>{
 ////---- 以下payment Agency用 ----////
 //get come_in_records
 app.get('/payment_agency/cir/',(err,res)=>{
-  const sql = 'SELECT * FROM come_in_records'
+  let sql = 'SELECT come_in_records_id, customer_id, come_in_name,'
+      sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedule_id '
+      sql = sql + 'delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id FROM come_in_records'
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
@@ -372,6 +374,19 @@ app.post('/payment_agency/cis/',(req,res)=>{
   db.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
     console.log('--- sucess pg/cis ---')
+    res.send(rows)
+  })
+})
+
+//customers の検索
+app.get('/payment_agency/customers/',(req,res)=>{
+  console.log('\n--- get/customers---')
+  const sql = 'SELECT * FROM customers WHERE customer_id = ?'
+  const value = req.query.text
+  console.log(value)
+  db.query(sql,value,(err,rows,fields)=>{
+    if(err){throw err}
+    console.log('--- sucess ---')
     res.send(rows)
   })
 })
