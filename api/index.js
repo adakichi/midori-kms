@@ -148,7 +148,7 @@ app.get("/cw/send",function(req,res,next){
 })
 
 //転送api用にreq.body.divisionで送信先を変える関数
-　function forwardingAddress (division){
+  function forwardingAddress (division){
     let toRoomId = []
     let from = ''
     switch (division){
@@ -209,6 +209,10 @@ app.post("/cw/send",function(req,res,next){
         })
 })
 
+
+
+
+
 //BIZTEL CTIの連携用API
 
 //顧客番号でSAIZOのURLを返す関数
@@ -264,6 +268,9 @@ app.post('/biztel/hangup',(req,res)=>{
 })
 
 
+
+
+
 ////---- 以下payment Agency用 ----////
 //get come_in_records
 app.get('/payment_agency/cir/',(err,res)=>{
@@ -276,10 +283,25 @@ app.get('/payment_agency/cir/',(err,res)=>{
 })
 
 //post come_in_records
+//まず関数
+const convertInsertValArray = function(objData){
+  return objData.map(obj=>{
+    const customerId = obj.customer_id === ''? null : obj.customer_id
+    return [
+      customerId,
+      obj.come_in_name,
+      obj.actual_deposit_amount,
+      obj.actual_deposit_date,
+      1
+    ]
+  })
+}
+
+//
 app.post('/payment_agency/cir/', (req,res)=>{
   console.log('\n --- post pa/cir ---')
   const importfileSql = ' insert into importfile_for_come_in_records (name, download_date, total_amount, count, bankname) values (?,?,?,?,?);'
-  const cirSql = ' insert into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id) VALUES (?,?,?,?,?);'
+  console.log('fileinfo:')
   console.log(req.body.fileinfo)
   const fileinfoArray =[
     req.body.fileinfo.name,
@@ -288,7 +310,6 @@ app.post('/payment_agency/cir/', (req,res)=>{
     req.body.fileinfo.count,
     req.body.fileinfo.bankName
   ] 
-  console.log(fileinfoArray)
   db.beginTransaction((err)=>{
     if(err){console.log(err); throw err }
     db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
@@ -298,16 +319,20 @@ app.post('/payment_agency/cir/', (req,res)=>{
           throw err
         })
       }
-      console.log(row)
-      const insertValArray = [
-        req.body.customer_id,
-        req.body.come_in_name,
-        req.body.actual_deposit_amount,
-        req.body.actual_deposit_date,
-        1
-      ]
+      console.log(' > insert fileinfo is OK')
+      const insertValArray = convertInsertValArray(req.body.data)
+      console.log(' > insert val ->')
+
+      //※バルクインサートの方が早いらしいのでSQLの[(?)]を追記するループを作成。
+      let cirSql = ' insert into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id) VALUES (?)'
+      for(let i = 1; i < insertValArray.length ; i++){
+        cirSql = cirSql + ',(?)'
+      }
+      cirSql = cirSql + ';'
+      console.log(cirSql)
       db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
         if(err2){
+          console.log('failed insrtVal')
           console.log(err)
           return db.rollback(()=>{
             throw err2
@@ -315,6 +340,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
         }
         db.commit((err)=>{
           if(err){
+            console.log('failed Commit!!')
             return db.rollback(()=>{
               throw err
             })
@@ -326,6 +352,9 @@ app.post('/payment_agency/cir/', (req,res)=>{
     })
   })
 })
+
+
+
 
 
 //---- issuesのDB通信用 ----//

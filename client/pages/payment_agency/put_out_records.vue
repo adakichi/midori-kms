@@ -2,7 +2,7 @@
     <v-container>
         <v-row>
             <v-col>
-                <h1>come in record</h1>
+                <h1>Put Out record</h1>
             </v-col>
         </v-row>
     </v-container>

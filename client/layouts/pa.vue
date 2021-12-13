@@ -121,7 +121,7 @@ export default {
         },
         {
           icon: 'mdi-cash-fast',
-          title: '入金予定',
+          title: '出金予定',
           to: '/payment_agency/put_out_records/'
         },
         {
