@@ -58,12 +58,40 @@
 </template>
 
 <script>
+//各処理から関係性が低いものを抜き出して関数化（できるだけメインの処理を読みやすくする為）
+
+//令和を西暦へ
 const warekiToSeireki=function(wareki){
     return String(2018 + parseInt(wareki.substr(0,1),10))+ '-' +wareki.substr(1,2) + "-" +wareki.substr(3,2)
 }
+
+//CSVを展開する
+const parseCsv = function(blocktext){
+    const lines = blocktext.split('\r\n')
+    return lines.map(line =>{
+        return line.split(',')
+    })
+}
+
+//fileInfoにデータを入れる部分
+const setFileInfo =function(name,parsedCsv,thisObj){
+    const trailerRecord = parsedCsv[parsedCsv.length-2]
+    thisObj.fileInfo.name = name
+    thisObj.fileInfo.downloadDate = warekiToSeireki(parsedCsv[0][3])
+    thisObj.fileInfo.totalAmount = trailerRecord[2]
+    thisObj.fileInfo.count = trailerRecord[1]
+    thisObj.fileInfo.bankName = parsedCsv[0][7]
+
+}
+
+//インポートしたCSVからデータカラムのみ抽出
 const selectDataColumns= function(lines){
     return lines.filter(line => { return line[0] == '2'})
 }
+
+
+//^/^/^/^/^/^/^/^/^//
+
 export default {
     layout : 'pa',
     data(){
@@ -99,25 +127,14 @@ export default {
             if(!e){ 
                 return this.fileResult = []
             }
-            console.log(e)
             let reader = new FileReader()
             reader.readAsText(e,'shift-jis')
             reader.onload = ()=>{
-                let txt = reader.result
-                    txt = txt.split('\r\n')
-                let ftexts = txt.map(line =>{
-                    return line.split(',')
-                })
+                const parsedCsv = parseCsv(reader.result)
                 // let ftexts = txt.match(/.{120}/g)
-                ftexts.pop()
-                const trailerRecord = ftexts[ftexts.length-2]
-                    this.fileInfo.name = e.name
-                    this.fileInfo.downloadDate = warekiToSeireki(ftexts[0][3])
-                    this.fileInfo.totalAmount = trailerRecord[2]
-                    this.fileInfo.count = trailerRecord[1]
-                    this.fileInfo.bankName = ftexts[0][7]
-
-                const dataColumns = selectDataColumns(ftexts)
+                parsedCsv.pop()
+                setFileInfo(e.name,parsedCsv,this)
+                const dataColumns = selectDataColumns(parsedCsv)
                 let resultArray = []
                 this.fileResult = dataColumns.forEach((arr)=>{
                     let obj = {}
