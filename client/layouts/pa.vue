@@ -101,7 +101,7 @@ export default {
     return {
       phonebook:phonejson.book,
       clipped: false,
-      drawer: true,
+      drawer: false,
       fixed: false,
       items: [
         {
