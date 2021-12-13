@@ -1,9 +1,11 @@
 <template>
     <v-container>
-        <h1>come in records</h1>
         <v-row>
             <v-col>
                 <v-app-bar>
+                    <v-app-bar-title>
+                        入金実績：come in records
+                    </v-app-bar-title>
                     <v-spacer></v-spacer>
                 <v-btn @click="goImport">インポート</v-btn>
                 <v-btn @click="upda">こうしん</v-btn>
