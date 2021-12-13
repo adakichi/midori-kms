@@ -5,6 +5,7 @@
             <v-col>
                 <v-app-bar>
                     <v-spacer></v-spacer>
+                <v-btn @click="test">test</v-btn>
                 <v-btn @click="openNewDialog">新規登録</v-btn>
                 </v-app-bar>
             </v-col>
@@ -14,7 +15,7 @@
                 <v-data-table
                 :headers="headers"
                 :items="comeInSchedulesList"
-                item-key="come_in_records_id"
+                item-key="come_in_schedules_id"
                 :items-per-page="5"
                 class="elevation-1"
                 :search="search"
@@ -40,9 +41,20 @@
                 </v-data-table>
             </v-col>
         </v-row>
-        <v-dialog v-model="openNewDialog">
+        <v-dialog v-model="newDialog">
             <v-card>
-                <v-text-field></v-text-field>
+                <v-card-text>
+                    <v-row><v-col>
+                <v-date-picker v-model="newSchedule.payment_day"></v-date-picker>
+                    </v-col>
+                    <v-col>
+                <v-text-field v-model="newSchedule.customer_id" label="受任番号"></v-text-field>
+                <v-text-field v-model="newSchedule.expected_amount" type="number" lable="金額"></v-text-field>
+                </v-col></v-row>
+                </v-card-text>
+                <v-card-actions>
+                    <v-btn @click="postNewSchedule">登録</v-btn>
+                </v-card-actions>
             </v-card>
         </v-dialog>
     </v-container>
@@ -53,35 +65,43 @@ export default {
     layout : 'pa',
     data(){
         return{
-            comeInSchedulesList:[{name:'test'}],
-            openNewDialog:false,
+            newDialog:false,
+            newSchedule:{
+                customer_id:'',
+                payment_day:null,
+                expected_amount:0
+            },
             search:'',
             headers:[
-                {
-                    text:'id',
-                    align:'start',
-                    sortable:false,
-                    value:'come_in_records_id',
-                    groupable:false
-                },
                 { text:'customer_id', value:'customer_id'},
-                { text:'come_in_name', value:'come_in_name'},
-                { text:'actual_deposit_amount', value:'actual_deposit_amount', groupable:false},
-                { text:'actual_deposit_date', value:'actual_deposit_date'},
-                { text:'come_in_schedule_id', value:'come_in_schedule_id', groupable:false},
-                { text:'delete_flag', value:'delete_flag'},
-                { text:'created_at', value:'created_at'}
+                { text:'payment_day', value:'payment_day', groupable:false},
+                { text:'expected_amount', value:'expected_amount'},
+                { text:'come_in_records_id', value:'come_in_records_id', groupable:false}
             ]
         }
     },
     computed:{
+        comeInSchedulesList(){
+            return this.$store.getters['pa/getCIS']
+        }
     },
     methods:{
-        CreateSchedule(){
-            this.openNewDialog = true
+        test(){
+            console.log(this.comeInSchedulesList[0].payment_day)
+        },
+        openNewDialog(){
+            this.newDialog = true
+        },
+        postNewSchedule(){
+            this.$store.dispatch('pa/postcomeInSchedules',this.newSchedule)
+            .then(()=>{
+                this.newDialog = false
+                this.$store.dispatch('pa/actComeInSchedules')
+            })
         }
     },  
     created(){
+        this.$store.dispatch('pa/actComeInSchedules')
     }
 }
 </script>

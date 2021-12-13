@@ -353,9 +353,28 @@ app.post('/payment_agency/cir/', (req,res)=>{
   })
 })
 
+//get come in schedules
+app.get('/payment_agency/cis/',(req,res)=>{
+  const sql = 'SELECT customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules'
+  db.query(sql,(err,rows,fields)=>{
+    if(err){res.send(err)}
+    console.log('\n--- /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
+    res.send(rows)
+  })
+})
 
-
-
+//post come_in_schedules
+app.post('/payment_agency/cis/',(req,res)=>{
+  console.log('\n--- pg cis ---')
+  const values = Object.entries(req.body).map(([key,value])=>{ return value })
+  console.log(values)
+  const sql = 'INSERT INTO come_in_schedules (customer_id, payment_day, expected_amount) VALUES (?,?,?);'
+  db.query(sql,values,(err,rows,fields)=>{
+    if(err){ throw err}
+    console.log('--- sucess pg/cis ---')
+    res.send(rows)
+  })
+})
 
 //---- issuesのDB通信用 ----//
 //issues取得
