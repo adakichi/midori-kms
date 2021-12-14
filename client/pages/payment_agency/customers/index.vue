@@ -5,10 +5,11 @@
                 <v-app-bar>
                     <v-app-bar-title>Customers</v-app-bar-title>
                     <v-spacer></v-spacer>
-                    <v-text-field v-model="targetText" label="search"></v-text-field>
+                    <v-text-field v-model="targetText" label="search" @keydown.enter="searchCustomer"></v-text-field>
                     <v-btn @click="searchCustomer">検索</v-btn>
                 </v-app-bar>
                 <v-data-table
+                v-show="customers[0]"
                 :headers="headers"
                 :items="customers"
                 item-key="customer_id"
@@ -38,6 +39,9 @@
                 </v-data-table>
             </v-col>
         </v-row>
+                <v-row v-show="!customers[0]"><v-col>
+                <v-sheet class="text-center" color="grey darken-3">該当無し</v-sheet>
+                </v-col></v-row>
     </v-container>
 </template>
 
@@ -62,10 +66,13 @@ export default {
     methods:{
         searchCustomer(){
             this.$store.dispatch('pa/searchCustomers',this.targetText)
+            .then(()=>{if(this.customers.length === 1){
+                this.$router.push('/payment_agency/customers/'+ Number(this.customers[0].customer_id))
+            }})
         },
         goCustomerPage(e){
             console.log(e)
-            // this.$router.push('/payment_agency/customers/'+e.customer_id)
+            this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
         }
     }
 }

@@ -1,8 +1,8 @@
 
 export const state = ()=>({
-    comeInRecords:[{text: 'hello'}],
-    comeInSchedules:[{text:'hello cis'}],
-    customers:[{name:'みどり太郎'}]
+    comeInRecords:[],
+    comeInSchedules:[],
+    customers:[]
 })
 
 export const getters = {
