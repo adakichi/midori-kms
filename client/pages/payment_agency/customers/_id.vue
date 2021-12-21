@@ -188,7 +188,7 @@
                                         <v-select v-model="bankname" item-text="bankname" item-value="bankcode" :items="accounts" label="銀行名"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select v-model="bankcode" item-text="bankname" item-value="bankcode" :items="accounts" label="銀行コード"></v-select>
+                                        <v-select v-model="bankcode" item-text="bankcode" item-value="bankcode" :items="accounts" label="銀行コード"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -196,7 +196,7 @@
                                         <v-select v-model="branchname" item-text="branchname" item-value="branchcode" :items="accounts" label="支店名"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select v-model="branchcode" item-text="branchname" item-value="branchcode" :items="accounts" label="支店コード"></v-select>
+                                        <v-select v-model="branchcode" item-text="branchcode" item-value="branchcode" :items="accounts" label="支店コード"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -220,6 +220,71 @@
                         </v-card-actions>         
                     </v-card>
                 </v-dialog>
+            </v-col>
+        </v-row>
+        <!-- ここから和解内容表示 -->
+        <v-row>
+            <v-col v-for="(settle,index) in contentsOfSettlements" :key="index">
+                <v-card>
+                    <v-card-text>
+                        <v-row>
+                            <v-col>
+                                {{settle.creditor_name}}
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                総額：{{settle.total_amount}}円
+                                月額：{{settle.monthly_amount}}円
+                                初回：{{settle.first_amount}}
+                                毎月：{{settle.monthly_payment_due_date}}
+                                回数：{{settle.number_of_payments}}回
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                メモ：{{settle.account_comment}}
+                            </v-col>
+                        </v-row>
+                        <v-divider></v-divider>
+                        <v-row>
+                            <v-col>
+                                イレギュラー
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                <v-system-bar>
+                                    <v-checkbox
+                                        v-model="settle.irregular"
+                                        label="イレギュラー"
+                                        disabled
+                                    ></v-checkbox>
+                                    <v-checkbox
+                                        v-model="settle.pension"
+                                        label="年金"
+                                        disabled
+                                    ></v-checkbox>
+                                    <v-checkbox
+                                        v-model="settle.interest"
+                                        label="将来利息"
+                                        disabled
+                                    ></v-checkbox>
+                                    <v-checkbox
+                                        v-model="settle.bonus"
+                                        label="ボーナス"
+                                        disabled
+                                    ></v-checkbox>
+                                    <v-checkbox
+                                        v-model="settle.addition"
+                                        label="合算"
+                                        disabled
+                                    ></v-checkbox>
+                                </v-system-bar>
+                            </v-col>
+                        </v-row>                               
+                    </v-card-text>
+                </v-card>
             </v-col>
         </v-row>
     </v-container>
@@ -271,12 +336,12 @@ export default {
             //items
             dueDate:['末日',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
             banks:[],
-            bankcodes:['0123','0456','0789'],
-            branchnames:['東京支店','駅前支店'],
-            branchcodes:['123','234','567'],
             kinds:['普通','当座'],
             summer:[4,5,6,7,8,9],
             winter:[10,11,12,1,2,3],
+
+            // ここから和解内容
+            
 
             //validate rules
             required: value => !!value || "必ず入力してください",
@@ -292,10 +357,13 @@ export default {
             return this.$store.getters['getCreditors']
         },
         accounts(){
-            // const data = this.banks.filter((account)=>{
-            //     return account.creditor_id == this.creditor
-            // })
-            return this.banks
+            const data = this.banks.filter((account)=>{
+                return account.creditor_id == this.creditor
+            })
+            return data
+        },
+        contentsOfSettlements(){
+            return this.$store.getters['pa/getContentsOfSettlements']
         }
     },
     methods:{
@@ -337,6 +405,11 @@ export default {
             ]
             this.$axios.post('/api/payment_agency/new_account',data).then(response =>{
                 console.log(response)
+                if(response.data.errno){
+                    return alert('DB Error: \nCode: '+ response.data.code +'\neErrNo: '+ response.data.errno +'\nMes: '+ response.data.sqlMessage)
+                }
+                this.dialog = false
+                alert('登録が終わりました!')
             })
         }
     },
@@ -344,8 +417,8 @@ export default {
             this.customer = this.$store.getters['pa/getCustomers'][0]
             this.$store.dispatch('getDbCreditors')
             this.$store.dispatch('pa/getDbCreditorsAccounts')
+            this.$store.dispatch('pa/getDbContentsOfSettlements',this.customer.customer_id)
             this.banks = this.$store.getters['pa/getCreditorsAccounts']
-            
     }
 }
 </script>

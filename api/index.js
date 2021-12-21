@@ -409,6 +409,18 @@ app.post('/payment_agency/new_account',(req,res)=>{
   })
 })
 
+//顧客ごとの和解内容
+app.get('/payment_agency/settlements',(req,res)=>{
+  console.log('\n--- get settlements ---')
+  const id = req.query.id
+  let sql = 'select * from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)
+  })
+})
+
 // ---- Creditors 債権者情報   -------
 app.get('/creditors/',(req,res)=>{
   console.log('\n---- get creditors ----')
@@ -518,10 +530,10 @@ app.put('/issue',(req,res)=>{
 // データベースのendは不要です。
 // db.end()
 
-
 //Error handoler
 app.use(function(err,req,res,next){
   console.log('domain Error : ' + err)
+  res.send(err)
 })
 
 module.exports = {

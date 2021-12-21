@@ -3,7 +3,8 @@ export const state = ()=>({
     comeInRecords:[],
     comeInSchedules:[],
     customers:[],
-    creditorsAccounts:[]
+    creditorsAccounts:[],
+    contentsOfSettlements:[]
 })
 
 export const getters = {
@@ -18,6 +19,9 @@ export const getters = {
     },
     getCreditorsAccounts(state){
         return state.creditorsAccounts
+    },
+    getContentsOfSettlements(state){
+        return state.contentsOfSettlements
     }
 }
 
@@ -33,6 +37,9 @@ export const mutations = {
     },
     updateCreditorsAccounts(state,data){
         state.creditorsAccounts = data
+    },
+    updateContentsOfSettlements(state,data){
+        state.contentsOfSettlements = data
     }
 }
 
@@ -58,25 +65,30 @@ export const actions = {
     //come in schedulesの DB 新規登録用
     async postcomeInSchedules(context,data){
         const dbResult = await this.$axios.post('api/payment_agency/cis',data)
-        console.log(dbResult)
     },
 
     //customers 用
     //検索
     async searchCustomers(context,targetText){
-        console.log('actions:'+targetText)
         const customers = await this.$axios.get('api/payment_agency/customers',{
             params:{
                 text:targetText
             }
         })
-        console.log(customers)
         context.commit('updateCustomers',customers.data)
     },
     //債権者の口座候補リスト
     async getDbCreditorsAccounts(context){
         const creditorsAccounts = await this.$axios.get('api/creditors_accounts/')
         context.commit('updateCreditorsAccounts',creditorsAccounts.data)
+    },
+
+    //債権者の和解リスト
+    async getDbContentsOfSettlements(context,id){
+        console.log('getDbcontents of settlements' + id)
+        const settlements = await this.$axios.get('api/payment_agency/settlements',{params:{id:id}})
+        console.log(settlements)
+        context.commit('updateContentsOfSettlements',settlements.data)
     }
 }
 

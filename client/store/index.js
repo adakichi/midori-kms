@@ -20,7 +20,6 @@ export const actions = {
     async getDbCreditors(context){
         const dbResult = await this.$axios.get('api/creditors')
         context.commit('updateCreditors',dbResult.data)
-        console.log(dbResult)
     }
 }
 
