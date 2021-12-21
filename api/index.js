@@ -7,8 +7,10 @@ const jwt =require('jsonwebtoken')
 const cors = require('cors')
 import { isBuffer } from 'util';
 import {dbConfig,chatworkConf} from '../midori-kms_config'
+const domain = require('express-domain-middleware')
 
 app.use(cors())
+app.use(domain)
 
 //databaseへのコネクト
 const db = mysql.createConnection(dbConfig)
@@ -515,6 +517,12 @@ app.put('/issue',(req,res)=>{
 
 // データベースのendは不要です。
 // db.end()
+
+
+//Error handoler
+app.use(function(err,req,res,next){
+  console.log('domain Error : ' + err)
+})
 
 module.exports = {
     path: "/api/",
