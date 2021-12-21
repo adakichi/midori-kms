@@ -30,7 +30,11 @@
                             <v-container>
                             <v-row>
                                 <v-col>
-                                    <v-select v-model="creditor" :items="creditors" label="債権者"></v-select>
+                                    <v-autocomplete v-model="creditor"
+                                    item-value="creditor_id"
+                                    item-text="creditor_name"
+                                    :items="creditors"
+                                    label="債権者"></v-autocomplete>
                                 </v-col>
                             </v-row>
                             <v-row>
@@ -64,21 +68,28 @@
                                     ></v-text-field>
                                 </v-col>
                                 <v-col>
-                                    <v-select
-                                    v-model="fraction"
-                                    :items="fractions"
-                                    label="端数"
-                                    ></v-select>
+                                    <v-text-field
+                                    v-model="firstAmount"
+                                    type="number"
+                                    label="初回支払い金額"
+                                    suffix="　円"
+                                    ></v-text-field>
                                 </v-col>
                             </v-row>
                             <v-row>
+                                <v-col>
+                                    <v-select
+                                    v-model="monthlyPaymentDueDate"
+                                    label="支払日"
+                                    :items="dueDate"
+                                    ></v-select>
+                                </v-col>
                                 <v-col>
                                     <v-text-field
                                     v-model="startDate"
                                     label="開始日"
                                     >
                                     <template v-slot:append >
-                                        <div>
                                             <v-menu>
                                             <template v-slot:activator="{on, attrs}">
                                             <v-icon v-bind="attrs" v-on="on">
@@ -87,7 +98,6 @@
                                             </template>
                                             <v-date-picker v-model="startDate"></v-date-picker>
                                             </v-menu>
-                                        </div>
                                     </template>
                                     </v-text-field>
                                 </v-col>
@@ -105,12 +115,50 @@
                                     <v-checkbox
                                     label="年金(偶数月入金)"
                                     v-model="pension"></v-checkbox>
-                                    <v-checkbox
+                                    <v-text-field
                                     label="将来利息がつく"
-                                    v-model="interest"></v-checkbox>
+                                    type="number"
+                                    suffix=" %"
+                                    v-model="interest"></v-text-field>
                                     <v-checkbox
                                     label="ボーナス払いがある"
                                     v-model="bonus"></v-checkbox>
+                                    <v-row v-show="bonus">
+                                    <v-col>
+                                        <v-select
+                                        v-model="summerBonusDate"
+                                        label="夏の支払い日"
+                                        :items="summer"
+                                        suffix="　月"
+                                        >
+                                        </v-select>
+                                    </v-col>
+                                    <v-col>
+                                    <v-text-field
+                                    label="ボーナス夏"
+                                    type="number"
+                                    suffix=" 円"
+                                    v-model="summerBonusAmount"></v-text-field>
+                                    </v-col>
+                                    </v-row>
+                                    <v-row v-show="bonus">
+                                    <v-col>
+                                        <v-select
+                                        v-model="winterBonusDate"
+                                        label="夏の支払い日"
+                                        :items="winter"
+                                        suffix="　月"
+                                        >
+                                        </v-select>
+                                    </v-col>
+                                    <v-col>
+                                    <v-text-field
+                                    label="ボーナス冬"
+                                    type="number"
+                                    suffix=" 円"
+                                    v-model="winterBonusAmount"></v-text-field>
+                                    </v-col>
+                                    </v-row>
                                     <v-checkbox
                                     label="別和解と合算がある"
                                     v-model="addition"></v-checkbox>
@@ -118,32 +166,37 @@
                             </v-row>
                             <v-row>
                                 <v-col>
-                                    <v-checkbox
-                                    label="代行手数料をもらう"
-                                    v-model="commission"></v-checkbox>
-                                    <v-checkbox
-                                    label="顧問料をもらう"
-                                    v-model="advisoryFee"></v-checkbox>
+                                    <v-text-field
+                                    label="代行手数料の金額"
+                                    type="number"
+                                    suffix="　円"
+                                    v-model="commission"></v-text-field>
+                                    <v-text-field
+                                    type="number"
+                                    label="顧問料の金額"
+                                    suffix="　円"
+                                    v-model="advisoryFee"></v-text-field>
                                 </v-col>
                             </v-row>
+                            <v-textarea outlined v-model="accountComment" label="メモ"></v-textarea>
                         </v-container>
                         </v-tab-item>
                         <v-tab-item>
                             <v-container>
                                 <v-row>
                                     <v-col>
-                                        <v-select v-model="bankname" :items="banknames" label="銀行名"></v-select>
+                                        <v-select v-model="bankname" item-text="bankname" item-value="bankcode" :items="accounts" label="銀行名"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select v-model="bankcode" :items="bankcodes" label="銀行コード"></v-select>
+                                        <v-select v-model="bankcode" item-text="bankname" item-value="bankcode" :items="accounts" label="銀行コード"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-select v-model="branchname" :items="branchnames" label="支店名"></v-select>
+                                        <v-select v-model="branchname" item-text="branchname" item-value="branchcode" :items="accounts" label="支店名"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select v-model="branchcode" :items="branchcodes" label="支店コード"></v-select>
+                                        <v-select v-model="branchcode" item-text="branchname" item-value="branchcode" :items="accounts" label="支店コード"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -163,7 +216,7 @@
                         <v-divider></v-divider>
                         <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn>登録</v-btn>
+                            <v-btn @click="postNewAccount">登録</v-btn>
                         </v-card-actions>         
                     </v-card>
                 </v-dialog>
@@ -173,6 +226,7 @@
 </template>
 
 <script>
+
 export default {
     layout : 'pa',
     data(){
@@ -188,14 +242,17 @@ export default {
             totalAmount:null,
             monthlyAmount:null,
             numberOfPayments:null,
-            fraction:'初回',
+            monthlyPaymentDueDate:'',
+            firstAmount:'初回',
+            //irregular
             irregular:false,
             pension:false,
             interest:false,
             bonus:false,
             addition:false,
-            commission:true,
-            advisoryFee:true,
+            commission:1000,
+            advisoryFee:500,
+            accountComment:'',
             //口座部分
             bankname:'',
             bankcode:null,
@@ -205,18 +262,21 @@ export default {
             accountNumber:'',
             accountHolder:'',
 
+            //Bonus詳細
+            summerBonusAmount:null,
+            summerBonusDate:null,
+            winterBonusAmount:null,
+            winterBonusDate:null,
 
             //items
-            creditors:[
-                'アコム',
-                'プロミス'
-            ],
-            fractions:['初回','最終回'],
-            banknames:['三菱東京UFJ','三井住友'],
+            dueDate:['末日',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+            banks:[],
             bankcodes:['0123','0456','0789'],
             branchnames:['東京支店','駅前支店'],
             branchcodes:['123','234','567'],
             kinds:['普通','当座'],
+            summer:[4,5,6,7,8,9],
+            winter:[10,11,12,1,2,3],
 
             //validate rules
             required: value => !!value || "必ず入力してください",
@@ -227,6 +287,15 @@ export default {
     computed:{
         customers(){
             return this.$store.getters['pa/getCustomers']
+        },
+        creditors(){
+            return this.$store.getters['getCreditors']
+        },
+        accounts(){
+            // const data = this.banks.filter((account)=>{
+            //     return account.creditor_id == this.creditor
+            // })
+            return this.banks
         }
     },
     methods:{
@@ -234,15 +303,49 @@ export default {
             this.$store.dispatch('pa/searchCustomers',this.targetText)
         },
         goCustomerPage(e){
-            console.log(e)
-            this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
+           this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
         },
         goback(){
             this.$router.push('/payment_agency/customers')
+        },
+        postNewAccount(){
+            const data = [
+                parseInt(this.customer.customer_id,10),
+                this.creditor,
+                this.totalAmount,
+                this.monthlyAmount,
+                this.numberOfPayments,
+                this.monthlyPaymentDueDate,
+                this.firstAmount,
+                this.irregular,
+                this.pension,
+                this.interest,
+                this.bonus,
+                this.addition,
+                this.commission,
+                this.advisoryFee,
+                this.accountComment,
+                this.bankcode,
+                this.branchcode,
+                this.kind,
+                this.accountNumber,
+                this.accountHolder,
+                this.summerBonusAmount,
+                this.summerBonusDate,
+                this.winterBonusAmount,
+                this.winterBonusDate
+            ]
+            this.$axios.post('/api/payment_agency/new_account',data).then(response =>{
+                console.log(response)
+            })
         }
     },
     created(){
             this.customer = this.$store.getters['pa/getCustomers'][0]
+            this.$store.dispatch('getDbCreditors')
+            this.$store.dispatch('pa/getDbCreditorsAccounts')
+            this.banks = this.$store.getters['pa/getCreditorsAccounts']
+            
     }
 }
 </script>
