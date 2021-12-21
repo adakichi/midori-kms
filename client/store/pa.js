@@ -2,7 +2,8 @@
 export const state = ()=>({
     comeInRecords:[],
     comeInSchedules:[],
-    customers:[]
+    customers:[],
+    creditorsAccounts:[]
 })
 
 export const getters = {
@@ -14,6 +15,9 @@ export const getters = {
     },
     getCustomers(state){
         return state.customers
+    },
+    getCreditorsAccounts(state){
+        return state.creditorsAccounts
     }
 }
 
@@ -26,6 +30,9 @@ export const mutations = {
     },
     updateCustomers(state,data){
         state.customers = data
+    },
+    updateCreditorsAccounts(state,data){
+        state.creditorsAccounts = data
     }
 }
 
@@ -66,6 +73,10 @@ export const actions = {
         console.log(customers)
         context.commit('updateCustomers',customers.data)
     },
-
+    //債権者の口座候補リスト
+    async getDbCreditorsAccounts(context){
+        const creditorsAccounts = await this.$axios.get('api/creditors_accounts/')
+        context.commit('updateCreditorsAccounts',creditorsAccounts.data)
+    }
 }
 
