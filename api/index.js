@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt")
 const saltRounds = 10
 const jwt =require('jsonwebtoken')
 const cors = require('cors')
+import { isBuffer } from 'util';
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 
 app.use(cors())
@@ -387,6 +388,43 @@ app.get('/payment_agency/customers/',(req,res)=>{
   db.query(sql,value,(err,rows,fields)=>{
     if(err){throw err}
     console.log('--- sucess ---')
+    res.send(rows)
+  })
+})
+
+//post NewAccount 支払いの新件登録
+app.post('/payment_agency/new_account',(req,res)=>{
+  console.log('\n--- post new account ---')
+  console.log(req.body)
+  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, '
+      sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
+      sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
+      sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+  db.query(sql,req.body,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)
+  })
+})
+
+// ---- Creditors 債権者情報   -------
+app.get('/creditors/',(req,res)=>{
+  console.log('\n---- get creditors ----')
+  const sql = 'select * from creditors'
+  db.query(sql,(err,rows,fields)=>{
+    if(err){throw err}
+    console.log('---success get creditors ---')
+    res.send(rows)
+  })
+})
+
+//債権者の口座情報
+app.get('/creditors_accounts/',(req,res)=>{
+  console.log('\n---- get creditors_accounts ----')
+  const sql = 'select * from creditors_accounts'
+  db.query(sql,(err,rows,fields)=>{
+    if(err){throw err}
+    console.log('---success get creditors_accounts ---')
     res.send(rows)
   })
 })
