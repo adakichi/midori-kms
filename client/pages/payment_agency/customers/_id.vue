@@ -15,17 +15,17 @@
                         <v-app-bar flat>
                             和解登録
                             <v-spacer></v-spacer>
-                            <v-icon @click="dialog = false">mdi-close</v-icon>
+                            <v-icon @click.stop="dialog = false">mdi-close</v-icon>
                         </v-app-bar>
                         <v-tabs
-                        v-model="tabs"
+                        v-model="registerTabs"
                         grow
                         background-color="transparent">
                         <v-tab>和解内容</v-tab>
                         <v-tab>イレギュラー</v-tab>
                         <v-tab>口座情報</v-tab>
                         </v-tabs>
-                        <v-tabs-items v-model="tabs">
+                        <v-tabs-items v-model="registerTabs">
                         <v-tab-item>
                             <v-container>
                             <v-row>
@@ -223,8 +223,16 @@
             </v-col>
         </v-row>
         <!-- ここから和解内容表示 -->
-        <v-row>
-            <v-col v-for="(settle,index) in contentsOfSettlements" :key="index">
+        <v-tabs v-model="tabs">
+            <v-tab>和解一覧</v-tab>
+            <v-tab>支払い予定</v-tab>
+            <v-tab>入金予定</v-tab>
+        </v-tabs>
+        <v-tabs-items v-model="tabs">
+        <v-tab-item>
+        <v-container>
+        <v-row v-for="(settle,index) in contentsOfSettlements" :key="index">
+            <v-col>
                 <v-card>
                     <v-card-text>
                         <v-row>
@@ -239,6 +247,10 @@
                                 初回：{{settle.first_amount}}
                                 毎月：{{settle.monthly_payment_due_date}}
                                 回数：{{settle.number_of_payments}}回
+                                日付：{{settle.start_date}}
+                            </v-col>
+                            <v-col>
+                                <v-btn @click="createPaymentSchedules(index)">予定作成</v-btn>
                             </v-col>
                         </v-row>
                         <v-row>
@@ -287,20 +299,76 @@
                 </v-card>
             </v-col>
         </v-row>
+        <!-- 支払い計画作成のdialog -->
+        <v-dialog max-width="800" v-model="createScheduleDialog" persistent>
+            <v-card>
+                <v-app-bar flat>
+                    予定作成
+                    <v-spacer></v-spacer>
+                    <v-btn @click="registerPaymentSchedules()">確定</v-btn>
+                    <v-spacer></v-spacer>
+                    <v-icon @click.stop="createScheduleDialog = false; schedules = []">mdi-close</v-icon>
+                </v-app-bar>
+                <v-card-text>
+                <v-row v-for="(schedule,index) in schedules" :key="index">
+                    <v-col>
+                    金額：{{schedule.amount}}
+                    日付：{{schedule.date}}
+                    </v-col>
+                </v-row>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+        </v-container>
+        <!-- 支払い予定の部分 -->
+        </v-tab-item>
+        <v-tab-item>
+            <v-container>
+                <v-row>
+                    <v-col>
+                        <v-app-bar>
+                            <v-btn>予定作成</v-btn>
+                            <v-btn>確定</v-btn>
+                        </v-app-bar>
+                        <v-row v-for="(schedule,index) in paymentSchedules" :key="index">
+                            <v-col>
+                                債権者ID：{{schedule.creditor_id}}
+                                金額：{{schedule.amount}}
+                                日付：{{schedule.date}}
+                            </v-col>
+                        </v-row>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-tab-item>
+        <v-tab-item>
+            <v-container>
+                <v-row v-for="(cir,index) in customerCir" :key="index">
+                    <v-col>
+                        日付：{{cir.payment_day}}
+                        金額：{{cir.expected_amount}}
+                        入金：{{cir.come_in_recprds_id ? true : false}}
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-tab-item>
+        </v-tabs-items>
     </v-container>
 </template>
 
 <script>
-
+const moment = require('moment')
 export default {
     layout : 'pa',
     data(){
         return{
             dialog:false,
+            createScheduleDialog:false,
             targetText:'',
             activePicker:false,
             startDate:'',
             tabs:null,
+            registerTabs:null,
             //Form data
             customer:{},
             creditor:'',
@@ -341,8 +409,10 @@ export default {
             winter:[10,11,12,1,2,3],
 
             // ここから和解内容
-            
 
+
+            //支払い予定の部分用
+            schedules:[],
             //validate rules
             required: value => !!value || "必ず入力してください",
             limit_length: value => value.length <= 10 || "10文字以内です。",
@@ -364,6 +434,12 @@ export default {
         },
         contentsOfSettlements(){
             return this.$store.getters['pa/getContentsOfSettlements']
+        },
+        customerCir(){
+            return this.$store.getters['pa/getCustomerCir']
+        },
+        paymentSchedules(){
+            return this.arr = this.$store.getters['pa/getPaymentSchedules']
         }
     },
     methods:{
@@ -411,6 +487,48 @@ export default {
                 this.dialog = false
                 alert('登録が終わりました!')
             })
+        },
+        createPaymentSchedules(index){
+            this.createScheduleDialog = true
+            const settle = this.contentsOfSettlements[index]
+            let schedules =[{paymentAccountId:settle.payment_account_id,amount:settle.first_amount,date:moment(settle.start_date).format('YYYY/MM/DD')}]
+            const duedate = settle.monthly_payment_due_date === '末日'? 31 : baseDate.monthly_payment_due_date
+            let baseDate = moment(settle.start_date)
+            const year = baseDate.year()
+            const month = baseDate.month()+1
+            let nextDate = moment(year+'/'+month+'/'+duedate).format('YYYY/MM/DD')
+            for(let i = 2; i <= settle.number_of_payments; i++){
+                nextDate = moment(baseDate).add(i-1,'month').format('YYYY/MM/DD')
+                schedules.push(
+                    {
+                        paymentAccountId:settle.payment_account_id,
+                        amount:settle.monthly_amount,
+                        date:nextDate
+                    }
+                )
+            }
+            console.log(schedules)
+            //最終回だけ端数計算して数字を変更する。
+            const total = settle.total_amount
+            const num = settle.number_of_payments-2
+            const subtotal = settle.monthly_amount * num + settle.first_amount
+            console.log(subtotal)
+            const lastAmount = total - subtotal
+            schedules[schedules.length-1].amount = lastAmount
+            this.schedules = schedules
+        },
+        registerPaymentSchedules(){
+            //登録して良いかのValidation組む必要があるが、まず  は登録する。最悪あとから編集の方を先に作ればOKのはず。
+            // let data = this.schedules.map(ele => [ele.paymentAccountId,ele.amount,ele.date])
+            // console.log(data)
+            this.$axios.post('api/payment_agency/customer/register_payment_schedules',this.schedules)
+            .then(response =>{
+                if(response.data.errno){
+                    return alert('DB Error: \nCode: '+ response.data.code +'\neErrNo: '+ response.data.errno +'\nMes: '+ response.data.sqlMessage)
+                }
+                alert('登録が終わりました!')
+                this.$store.dispatch('pa/getDbPaymentSchedules',this.customer.customer_id)
+            })
         }
     },
     created(){
@@ -418,6 +536,8 @@ export default {
             this.$store.dispatch('getDbCreditors')
             this.$store.dispatch('pa/getDbCreditorsAccounts')
             this.$store.dispatch('pa/getDbContentsOfSettlements',this.customer.customer_id)
+            this.$store.dispatch('pa/getDbCustomerCir',this.customer.customer_id)
+            this.$store.dispatch('pa/getDbPaymentSchedules',this.customer.customer_id)
             this.banks = this.$store.getters['pa/getCreditorsAccounts']
     }
 }

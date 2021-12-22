@@ -386,7 +386,7 @@ app.get('/payment_agency/customers/',(req,res)=>{
   console.log('\n--- get/customers---')
   const sql = 'SELECT * FROM customers WHERE customer_id = ?'
   const value = req.query.text
-  console.log(value)
+  console.log(' ID:'+value)
   db.query(sql,value,(err,rows,fields)=>{
     if(err){throw err}
     console.log('--- sucess ---')
@@ -398,10 +398,10 @@ app.get('/payment_agency/customers/',(req,res)=>{
 app.post('/payment_agency/new_account',(req,res)=>{
   console.log('\n--- post new account ---')
   console.log(req.body)
-  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, '
+  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, start_date'
       sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
-      sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+      sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
   db.query(sql,req.body,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')
@@ -410,16 +410,59 @@ app.post('/payment_agency/new_account',(req,res)=>{
 })
 
 //顧客ごとの和解内容
-app.get('/payment_agency/settlements',(req,res)=>{
-  console.log('\n--- get settlements ---')
+app.get('/payment_agency/customer/settlements',(req,res)=>{
+  console.log('\n--- get Customer settlements ---')
   const id = req.query.id
-  let sql = 'select * from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
+  let sql = 'SELECT payment_account_id, customer_id, pa.creditor_id, creditors.creditor_name, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, DATE_FORMAT(start_date,"%Y/%m/%d %H:%i:%s") as start_date, '
+      sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
+      sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month '
+      sql = sql + 'from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
   db.query(sql,id,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
 })
+
+//顧客毎の入金予定
+app.get('/payment_agency/customer/cir',(req,res)=>{
+  console.log('\n---get Customer Cir ---')
+  const id = req.query.id
+  const sql = 'SELECT customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ?'
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)    
+  })
+})
+
+//顧客毎ページでの支払い予定登録
+app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
+  console.log('\n--- register_payment_schedules ---')
+  console.log(req.body)
+  console.log('------------')
+  const values = req.body.map((obj)=>[obj.paymentAccountId,obj.amount,obj.date])
+  console.log(values)
+  const sql = 'INSERT INTO payment_schedules (payment_account_id, amount, date) VALUES ?;'
+  db.query(sql,[values],(err,rows,fields)=>{
+    if(err){ throw err}
+    console.log('--- sucess ---')
+    res.send(rows)
+  })
+})
+
+//payment_agency/customer/payment_schedules
+app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
+  console.log('\n---get Customer payment_schedules ---')
+  const id = req.query.id
+  const sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, ps.paid_flag, pa.creditor_id FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE customer_id = ? ORDER BY date;'
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)    
+  })
+})
+
 
 // ---- Creditors 債権者情報   -------
 app.get('/creditors/',(req,res)=>{

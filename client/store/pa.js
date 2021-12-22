@@ -4,7 +4,9 @@ export const state = ()=>({
     comeInSchedules:[],
     customers:[],
     creditorsAccounts:[],
-    contentsOfSettlements:[]
+    contentsOfSettlements:[],
+    customerCir:[],
+    paymentSchedules:[]
 })
 
 export const getters = {
@@ -22,6 +24,12 @@ export const getters = {
     },
     getContentsOfSettlements(state){
         return state.contentsOfSettlements
+    },
+    getCustomerCir(state){
+        return state.customerCir
+    },
+    getPaymentSchedules(state){
+        return state.paymentSchedules
     }
 }
 
@@ -40,6 +48,12 @@ export const mutations = {
     },
     updateContentsOfSettlements(state,data){
         state.contentsOfSettlements = data
+    },
+    updateCustomerCir(state,data){
+        state.customerCir = data
+    },
+    updatePaymentSchedules(state,data){
+        state.paymentSchedules = data
     }
 }
 
@@ -70,11 +84,7 @@ export const actions = {
     //customers 用
     //検索
     async searchCustomers(context,targetText){
-        const customers = await this.$axios.get('api/payment_agency/customers',{
-            params:{
-                text:targetText
-            }
-        })
+        const customers = await this.$axios.get('api/payment_agency/customers',{params:{text:targetText}})
         context.commit('updateCustomers',customers.data)
     },
     //債権者の口座候補リスト
@@ -83,12 +93,24 @@ export const actions = {
         context.commit('updateCreditorsAccounts',creditorsAccounts.data)
     },
 
+
+    //顧客毎ぺーじ用　債権者の和解リスト
     //債権者の和解リスト
     async getDbContentsOfSettlements(context,id){
-        console.log('getDbcontents of settlements' + id)
-        const settlements = await this.$axios.get('api/payment_agency/settlements',{params:{id:id}})
-        console.log(settlements)
+        const settlements = await this.$axios.get('api/payment_agency/customer/settlements',{params:{id:id}})
         context.commit('updateContentsOfSettlements',settlements.data)
-    }
+    },
+    //顧客IDでのcome in records取得
+    async getDbCustomerCir(context,id){
+        console.log('getDbCustomer CIR:' + id)
+        const cirs = await this.$axios.get('api/payment_agency/customer/cir',{params:{id:id}})
+        console.log(cirs)
+        context.commit('updateCustomerCir',cirs.data)
+    },
+    async getDbPaymentSchedules(context,id){
+        const schedules = await this.$axios.get('api/payment_agency/customer/payment_schedules',{params:{id:id}})
+        context.commit('updatePaymentSchedules',schedules.data)
+    },
+    
 }
 
