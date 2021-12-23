@@ -222,6 +222,7 @@
                 </v-dialog>
             </v-col>
         </v-row>
+
         <!-- ここから和解内容表示 -->
         <v-tabs v-model="tabs">
             <v-tab>和解一覧</v-tab>
@@ -299,6 +300,8 @@
                 </v-card>
             </v-col>
         </v-row>
+
+
         <!-- 支払い計画作成のdialog -->
         <v-dialog max-width="800" v-model="createScheduleDialog" persistent>
             <v-card>
@@ -310,16 +313,55 @@
                     <v-icon @click.stop="createScheduleDialog = false; schedules = []">mdi-close</v-icon>
                 </v-app-bar>
                 <v-card-text>
-                <v-row v-for="(schedule,index) in schedules" :key="index">
-                    <v-col>
-                    金額：{{schedule.amount}}
-                    日付：{{schedule.date}}
-                    </v-col>
-                </v-row>
+                    <v-data-table
+                    :headers="schedulesHeaders"
+                    :items="schedules"
+                    >
+                    <template v-slot:item.date="props">
+                      <v-edit-dialog
+                      :return-value.sync="props.item.date"
+                      @save="save"
+                      @cancel="cancel"
+                      @open="open"
+                      @close="close"
+                    >
+                      {{ props.item.date }}
+                      <template v-slot:input>
+                        <v-text-field
+                          v-model="props.item.date"
+                          label="日付"
+                          single-line
+                        ></v-text-field>
+                      </template>
+                    </v-edit-dialog>
+                    </template>
+
+                    <template v-slot:item.amount="props">
+                      <v-edit-dialog
+                      :return-value.sync="props.item.amount"
+                      @save="save"
+                      @cancel="cancel"
+                      @open="open"
+                      @close="close"
+                    >
+                      {{ props.item.amount }}
+                      <template v-slot:input>
+                        <v-text-field
+                          v-model="props.item.amount"
+                          label="金額"
+                          single-line
+                        ></v-text-field>
+                      </template>
+                    </v-edit-dialog>
+                    </template>
+
+                    </v-data-table>
                 </v-card-text>
             </v-card>
         </v-dialog>
         </v-container>
+
+
         <!-- 支払い予定の部分 -->
         </v-tab-item>
         <v-tab-item>
@@ -413,6 +455,10 @@ export default {
 
             //支払い予定の部分用
             schedules:[],
+            schedulesHeaders:[
+                {text:'日付',   value:'date'},
+                {text:'金額',   value:'amount'},
+            ],
             //validate rules
             required: value => !!value || "必ず入力してください",
             limit_length: value => value.length <= 10 || "10文字以内です。",
