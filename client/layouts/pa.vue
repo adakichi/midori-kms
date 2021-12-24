@@ -106,6 +106,11 @@ export default {
       items: [
         {
           icon: 'mdi-apps',
+          title: 'Index',
+          to: '/payment_agency/'
+        },
+        {
+          icon: 'mdi-apps',
           title: 'Back',
           to: '/'
         },

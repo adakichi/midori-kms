@@ -573,7 +573,8 @@ export default {
                     return alert('DB Error: \nCode: '+ response.data.code +'\neErrNo: '+ response.data.errno +'\nMes: '+ response.data.sqlMessage)
                 }
                 alert('登録が終わりました!')
-                this.$store.dispatch('pa/getDbPaymentSchedules',this.customer.customer_id)
+                const option ={id:this.customer.customer_id,from:null,until:null}
+                this.$store.dispatch('pa/getDbPaymentSchedules',option)
             })
         }
     },
@@ -583,7 +584,8 @@ export default {
             this.$store.dispatch('pa/getDbCreditorsAccounts')
             this.$store.dispatch('pa/getDbContentsOfSettlements',this.customer.customer_id)
             this.$store.dispatch('pa/getDbCustomerCir',this.customer.customer_id)
-            this.$store.dispatch('pa/getDbPaymentSchedules',this.customer.customer_id)
+                const option ={id:this.customer.customer_id,from:null,until:null}
+            this.$store.dispatch('pa/getDbPaymentSchedules',option)
             this.banks = this.$store.getters['pa/getCreditorsAccounts']
     }
 }

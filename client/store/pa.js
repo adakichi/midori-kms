@@ -107,8 +107,14 @@ export const actions = {
         console.log(cirs)
         context.commit('updateCustomerCir',cirs.data)
     },
-    async getDbPaymentSchedules(context,id){
-        const schedules = await this.$axios.get('api/payment_agency/customer/payment_schedules',{params:{id:id}})
+    async getDbPaymentSchedules(context,option){
+        const schedules = await this.$axios.get('api/payment_agency/customer/payment_schedules',{
+            params:{
+                id:option.id,
+                from:option.from,
+                until:option.until
+            }
+        })
         context.commit('updatePaymentSchedules',schedules.data)
     },
     

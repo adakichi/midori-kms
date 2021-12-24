@@ -455,15 +455,23 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
 app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   console.log('\n---get Customer payment_schedules ---')
   const id = req.query.id
+  const from = req.query.from
+  const until = req.query.until
   let sql = ''
+  let values = []
   if(id == 0){
-    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name FROM payment_schedules as ps '
+    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
+    sql = sql + 'bankcode, branchcode, kind, account_number, account_holder FROM payment_schedules as ps '
     sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
-    sql = sql + 'WHERE ps.date < DATE_ADD(now(),INTERVAL 30 DAY) ORDER BY date;'
+    sql = sql + 'WHERE ps.date BETWEEN ? AND ? ORDER BY date;'
+    values.push(from)
+    values.push(until)
   } else {
     sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, pa.creditor_id FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE customer_id = ? ORDER BY date;'
+    values.push(id)
   }
-  db.query(sql,id,(err,rows,fields)=>{
+  console.log(values)
+  db.query(sql,values,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')
     res.send(rows)    
