@@ -6,8 +6,8 @@
                 <v-app-bar flat>
                     <v-app-bar-title>出金予定：Put Out record</v-app-bar-title>
                     <v-spacer></v-spacer>
-                    <a href="file" download>だうんろーどA</a>
                     <v-btn @click="downloadCsv">だうんろーど</v-btn>
+                    <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
                     <v-spacer></v-spacer>
                     <div>
                     <v-menu
@@ -62,6 +62,7 @@
 </template>
 
 <script>
+import { NULL } from 'mysql/lib/protocol/constants/types'
 // methods:DounloadCsv用の関数色々
   //selectedの配列の支払い総額を計算
 function totalAmount (arr){
@@ -110,6 +111,13 @@ function createDownloadATag(exportText){
     return link
 }
 
+  //selectedからIDを取り出して配列にする
+  function getIds(selected){
+      return selected.map(item=>{
+          return item.payment_schedule_id
+      })
+  }
+
 const {Parser} = require('json2csv')
 export default {
     layout : 'pa',
@@ -148,7 +156,23 @@ export default {
             let exportText = json2csvParser.parse(this.selected)
             exportText = exportText + '\n"2",,,,,' + this.selected.length + ',' + total + ',' 
             const link = createDownloadATag(exportText)
-            link.click()
+            // link.click()
+            //ダウンロードしたら仮で出金したことにする必要がある。
+            console.log('こうしん')
+            const ids = getIds(this.selected)
+            let today = new Date()
+            const formatedDate = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate()
+            this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:formatedDate})
+            .then(response =>{
+                this.searchRecords()
+            })
+        },
+        deleteExpectedDate(){
+            const ids = getIds(this.selected)
+            this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:null})
+            .then(response =>{
+                this.searchRecords()
+            })
         }
     },
     created(){
