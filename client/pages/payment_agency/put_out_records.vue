@@ -6,9 +6,6 @@
                 <v-app-bar flat>
                     <v-app-bar-title>出金予定：Put Out record</v-app-bar-title>
                     <v-spacer></v-spacer>
-                    <v-btn @click="downloadCsv">だうんろーど</v-btn>
-                    <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
-                    <v-spacer></v-spacer>
                     <div>
                     <v-menu
                      ref="menu"
@@ -45,6 +42,13 @@
                     </v-menu>
                     </div>
                     <v-btn @click="searchRecords">検索</v-btn>
+                </v-app-bar>
+                <v-app-bar>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="downloadCsv">だうんろーど</v-btn>
+                    <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
+                    <v-btn @click="confirmPayments">出金確定</v-btn>
+                    <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
                 </v-app-bar>
                 <v-data-table
                 :headers="headers"
@@ -112,11 +116,17 @@ function createDownloadATag(exportText){
 }
 
   //selectedからIDを取り出して配列にする
-  function getIds(selected){
-      return selected.map(item=>{
-          return item.payment_schedule_id
-      })
-  }
+function getIds(selected){
+    return selected.map(item=>{
+        return item.payment_schedule_id
+    })
+}
+
+  //今日の日付をフォーマットして出力(String)
+function todayString(){
+    const today = new Date()
+    return today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate()
+}
 
 const {Parser} = require('json2csv')
 export default {
@@ -126,6 +136,7 @@ export default {
             menu:false,
             dateRange:[],
             selected:[],
+            isAdmin:false,
             headers:[
                 {text:'名前',   value:'name'},
                 {text:'日付',   value:'date'},
@@ -160,19 +171,26 @@ export default {
             //ダウンロードしたら仮で出金したことにする必要がある。
             console.log('こうしん')
             const ids = getIds(this.selected)
-            let today = new Date()
-            const formatedDate = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate()
-            this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:formatedDate})
-            .then(response =>{
-                this.searchRecords()
-            })
+            const today = todayString()
+            this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:today})
+            .then(response =>{this.searchRecords()})
         },
         deleteExpectedDate(){
             const ids = getIds(this.selected)
             this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:null})
-            .then(response =>{
-                this.searchRecords()
-            })
+            .then(response =>{this.searchRecords()})
+        },
+        confirmPayments(){
+            const ids = getIds(this.selected)
+            const today = todayString()
+            console.log('confirm')
+            this.$axios.put('/api/payment_agency/confirm_payment_schedules',{ids:ids,date:today})
+            .then(response =>{this.searchRecords()})
+        },
+        cancelConfirmPayments(){
+            const ids = getIds(this.selected)
+            this.$axios.put('/api/payment_agency/confirm_payment_schedules',{ids:ids,date:null})
+            .then(response =>{this.searchRecords()})
         }
     },
     created(){

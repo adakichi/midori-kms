@@ -479,7 +479,7 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
 })
 
 
-//支払い予定を仮出金にする。
+//支払い予定を仮出金にする。OR　取り消し
 app.put('/payment_agency/payment_schedules',(req,res)=>{
   console.log('\n---Put payment_schedules ---')
   const ids = req.body.ids
@@ -493,6 +493,18 @@ app.put('/payment_agency/payment_schedules',(req,res)=>{
   })
 })
 
+//出金予定を確定させる OR 取り消し
+app.put('/payment_agency/confirm_payment_schedules',(req,res)=>{
+  console.log('\n---Put Confirm payment_schedules ---')
+  const ids = req.body.ids
+  const date = req.body.date
+  const sql = ' UPDATE payment_schedules SET paid_date = ? WHERE payment_schedule_id IN (?);'
+  db.query(sql,[date,ids],(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)    
+  })
+})
 
 // ---- Creditors 債権者情報   -------
 app.get('/creditors/',(req,res)=>{
