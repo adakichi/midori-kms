@@ -1,6 +1,5 @@
 <template>
     <v-container>
-        {{selected}}
         <v-row>
             <v-col>
                 <v-app-bar flat>
@@ -167,7 +166,7 @@ export default {
             let exportText = json2csvParser.parse(this.selected)
             exportText = exportText + '\n"2",,,,,' + this.selected.length + ',' + total + ',' 
             const link = createDownloadATag(exportText)
-            // link.click()
+            link.click()
             //ダウンロードしたら仮で出金したことにする必要がある。
             console.log('こうしん')
             const ids = getIds(this.selected)
