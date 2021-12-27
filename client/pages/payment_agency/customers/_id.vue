@@ -408,7 +408,17 @@
                                                 <v-date-picker v-model="newSchedule.payment_day"></v-date-picker>
                                             </v-col>
                                             <v-col>
-                                                <v-text-field v-model="newSchedule.expected_amount" type="number" lable="金額"></v-text-field>
+                                                <v-text-field v-model="newSchedule.amount" type="number" label="金額" suffix="　円"></v-text-field>
+                                            </v-col>
+                                            <v-col>
+                                                <v-text-field v-model="newSchedule.repeat_count" type="number" label="繰り返し" suffix="　回"></v-text-field>
+                                            </v-col>
+                                            <v-col>
+                                                <v-select
+                                                v-model="newSchedule.due_date"
+                                                label="支払日"
+                                                :items="dueDate"
+                                                ></v-select>
                                             </v-col>
                                         </v-row>
                                     </v-card-text>
@@ -500,9 +510,10 @@ export default {
 
             //入金予定の部分用
             newSchedule:{
-                customer_id:'',
                 payment_day:null,
-                expected_amount:0
+                repeat_count:1,
+                due_date:'末日',
+                amount:0
             },
 
             //validate rules
@@ -624,7 +635,31 @@ export default {
             })
         },
         postNewSchedule(){
-            this.$store.dispatch('pa/postcomeInSchedules',this.newSchedule)
+            const newSchedule = this.newSchedule
+            //予定を回数分作る
+            let schedules =[{
+                id:this.customer.customer_id,
+                amount:newSchedule.amount,
+                date:moment(newSchedule.date).format('YYYY/MM/DD')
+                }]
+            const duedate = newSchedule.due_date === '末日'? 31 : newSchedule.due_date
+            let baseDate = moment(newSchedule.date)
+            const year = baseDate.year()
+            const month = baseDate.month()+1
+            console.log(schedules)
+            let nextDate = moment(year+'/'+month+'/'+duedate).format('YYYY/MM/DD')
+                        for(let i = 2; i <= newSchedule.repeat_count; i++){
+                nextDate = moment(baseDate).add(i-1,'month').format('YYYY/MM/DD')
+                schedules.push(
+                    {
+                        id:this.customer.customer_id,
+                        amount:newSchedule.amount,
+                        date:nextDate
+                    }
+                )
+            }
+            console.log(schedules)
+            this.$axios.post('/api/payment_agency/customer/cis',schedules)
             .then(()=>{
                 this.registerComeInRecordsDialog = false
                 this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
