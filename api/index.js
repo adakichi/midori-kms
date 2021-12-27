@@ -76,7 +76,8 @@ app.post('/auth/login',(req,res)=>{
         const payload = {
           id:user[0].id,
           userId:user[0].user_id,
-          name:user[0].name
+          name:user[0].name,
+          isAdmin:user[0].admin
         }
         console.log(payload)
         console.log('---Done post login process---')
@@ -486,19 +487,31 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   const id = req.query.id
   const from = req.query.from
   const until = req.query.until
+  const isPaidDate = req.query.isPaidDate
+  const isExpectedDate = req.query.isExpectedDate
+  console.log(req.query)
   let sql = ''
   let values = []
   if(id == 0){
     sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
     sql = sql + 'bankcode, branchcode, kind, account_number, account_holder FROM payment_schedules as ps '
     sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
-    sql = sql + 'WHERE ps.date BETWEEN ? AND ? ORDER BY date;'
+    sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
     values.push(from)
     values.push(until)
+    console.log(isPaidDate)
+    console.log(isExpectedDate)
+    if(isPaidDate == 'true'){
+      sql = sql + 'AND ps.paid_date is NOT NULL '
+    } else if(isExpectedDate == 'true'){
+      sql = sql + 'AND ps.expected_date is NOT NULL AND ps.paid_date is NULL '
+    }
+    sql = sql + 'ORDER BY date;'
   } else {
     sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, pa.creditor_id FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE customer_id = ? ORDER BY date;'
     values.push(id)
   }
+  console.log(sql)
   console.log(values)
   db.query(sql,values,(err,rows,fields)=>{
     if(err){console.log(err); throw err}

@@ -2,8 +2,12 @@
     <v-container>
         <v-row>
             <v-col>
-                <v-app-bar flat>
+                <v-app-bar>
                     <v-app-bar-title>出金予定：Put Out record</v-app-bar-title>
+                </v-app-bar>
+                <v-app-bar flat>
+                    <v-checkbox v-model="isPaidDate" label="出金済のみ"></v-checkbox>
+                    <v-checkbox v-model="isExpectedDate" label="仮出金のみ"></v-checkbox>
                     <v-spacer></v-spacer>
                     <div>
                     <v-menu
@@ -47,7 +51,7 @@
                     <v-btn @click="downloadCsv">CSV出力</v-btn>
                     <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
                     <v-btn @click="confirmPayments">出金確定</v-btn>
-                    <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
+                    <v-btn v-show="this.$auth.user.isAdmin?true:false" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
                 </v-app-bar>
                 <v-data-table
                 :headers="headers"
@@ -132,6 +136,8 @@ export default {
     layout : 'pa',
     data(){
         return{
+            isPaidDate:false,
+            isExpectedDate:false,
             menu:false,
             dateRange:[],
             selected:[],
@@ -155,7 +161,9 @@ export default {
             const option = {
                 id:0,
                 from:this.dateRange[0],
-                until:this.dateRange[1]
+                until:this.dateRange[1],
+                isPaidDate:this.isPaidDate,
+                isExpectedDate:this.isExpectedDate
             }
             this.$store.dispatch('pa/getDbPaymentSchedules',option)
         },

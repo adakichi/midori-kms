@@ -119,7 +119,9 @@ export const actions = {
             params:{
                 id:option.id,
                 from:option.from,
-                until:option.until
+                until:option.until,
+                isPaidDate:option.isPaidDate,
+                isExpectedDate:option.isExpectedDate,
             }
         })
         context.commit('updatePaymentSchedules',schedules.data)
