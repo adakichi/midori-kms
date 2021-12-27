@@ -6,6 +6,7 @@ export const state = ()=>({
     creditorsAccounts:[],
     contentsOfSettlements:[],
     customerCir:[],
+    customerCis:[],
     paymentSchedules:[]
 })
 
@@ -27,6 +28,9 @@ export const getters = {
     },
     getCustomerCir(state){
         return state.customerCir
+    },
+    getCustomerCis(state){
+        return state.customerCis
     },
     getPaymentSchedules(state){
         return state.paymentSchedules
@@ -51,6 +55,9 @@ export const mutations = {
     },
     updateCustomerCir(state,data){
         state.customerCir = data
+    },
+    updateCustomerCis(state,data){
+        state.customerCis = data
     },
     updatePaymentSchedules(state,data){
         state.paymentSchedules = data
@@ -79,7 +86,7 @@ export const actions = {
     //come in schedulesの DB 新規登録用
     async postcomeInSchedules(context,data){
         const dbResult = await this.$axios.post('api/payment_agency/cis',data)
-    },
+        },
 
     //customers 用
     //検索
@@ -101,11 +108,11 @@ export const actions = {
         context.commit('updateContentsOfSettlements',settlements.data)
     },
     //顧客IDでのcome in records取得
-    async getDbCustomerCir(context,id){
-        console.log('getDbCustomer CIR:' + id)
-        const cirs = await this.$axios.get('api/payment_agency/customer/cir',{params:{id:id}})
-        console.log(cirs)
-        context.commit('updateCustomerCir',cirs.data)
+    async getDbCustomerCis(context,id){
+        console.log('getDbCustomer CIS:' + id)
+        const cises = await this.$axios.get('api/payment_agency/customer/cis',{params:{id:id}})
+        console.log(cises)
+        context.commit('updateCustomerCis',cises.data)
     },
     async getDbPaymentSchedules(context,option){
         const schedules = await this.$axios.get('api/payment_agency/customer/payment_schedules',{

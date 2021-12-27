@@ -425,10 +425,23 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
 })
 
 //顧客毎の入金予定
-app.get('/payment_agency/customer/cir',(req,res)=>{
-  console.log('\n---get Customer Cir ---')
+app.get('/payment_agency/customer/cis',(req,res)=>{
+  console.log('\n---get Customer Cis ---')
   const id = req.query.id
-  const sql = 'SELECT customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ?'
+  const sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ?'
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)    
+  })
+})
+
+//顧客毎の入金予定の削除
+app.delete('/payment_agency/customer/cis',(req,res)=>{
+  console.log('\n---Delete Customer Cis: ' + req.body.id + ' ---')
+  const id = req.body.id
+  console.log(id)
+  const sql = 'DELETE FROM come_in_schedules WHERE come_in_schedules_id = ?;'
   db.query(sql,id,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')

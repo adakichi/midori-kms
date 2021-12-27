@@ -7,6 +7,23 @@
                 </v-app-bar>
         <v-row>
             <v-col class="text-center">
+            </v-col>
+        </v-row>
+
+        <!-- ここから和解内容表示 -->
+        <v-tabs v-model="tabs">
+            <v-tab>和解一覧</v-tab>
+            <v-tab>支払い予定</v-tab>
+            <v-tab>入金予定</v-tab>
+        </v-tabs>
+        <v-tabs-items v-model="tabs">
+
+        <!-- 和解一覧タブ -->
+        <v-tab-item>
+        <v-container>
+                <v-row>
+                    <v-col>
+                        <v-app-bar>
                 <v-dialog max-width="800" v-model="dialog" persistent>
                     <template v-slot:activator="{ on, attrs }">
                     <v-btn v-bind="attrs" v-on="on">新規和解登録</v-btn>
@@ -220,87 +237,78 @@
                         </v-card-actions>         
                     </v-card>
                 </v-dialog>
+                        </v-app-bar>
+
+                <v-row v-for="(settle,index) in contentsOfSettlements" :key="index">
+                    <v-col>
+                        <v-card>
+                            <v-card-text>
+                                <v-row> 
+                                    <v-col>
+                                        {{settle.creditor_name}}
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        総額：{{settle.total_amount}}円
+                                        月額：{{settle.monthly_amount}}円
+                                        初回：{{settle.first_amount}}
+                                        毎月：{{settle.monthly_payment_due_date}}
+                                        回数：{{settle.number_of_payments}}回
+                                        日付：{{settle.start_date}}
+                                    </v-col>
+                                    <v-col>
+                                        <v-btn @click="createPaymentSchedules(index)">予定作成</v-btn>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        メモ：{{settle.account_comment}}
+                                    </v-col>
+                                </v-row>
+                                <v-divider></v-divider>
+                                <v-row>
+                                    <v-col>
+                                        イレギュラー
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        <v-system-bar>
+                                            <v-checkbox
+                                                v-model="settle.irregular"
+                                                label="イレギュラー"
+                                                disabled
+                                            ></v-checkbox>
+                                            <v-checkbox
+                                                v-model="settle.pension"
+                                                label="年金"
+                                                disabled
+                                            ></v-checkbox>
+                                            <v-checkbox
+                                                v-model="settle.interest"
+                                                label="将来利息"
+                                                disabled
+                                            ></v-checkbox>
+                                            <v-checkbox
+                                                v-model="settle.bonus"
+                                                label="ボーナス"
+                                                disabled
+                                            ></v-checkbox>
+                                            <v-checkbox
+                                                v-model="settle.addition"
+                                                label="合算"
+                                                disabled
+                                            ></v-checkbox>
+                                        </v-system-bar>
+                                    </v-col>
+                                </v-row>                               
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
             </v-col>
         </v-row>
-
-        <!-- ここから和解内容表示 -->
-        <v-tabs v-model="tabs">
-            <v-tab>和解一覧</v-tab>
-            <v-tab>支払い予定</v-tab>
-            <v-tab>入金予定</v-tab>
-        </v-tabs>
-        <v-tabs-items v-model="tabs">
-        <v-tab-item>
-        <v-container>
-        <v-row v-for="(settle,index) in contentsOfSettlements" :key="index">
-            <v-col>
-                <v-card>
-                    <v-card-text>
-                        <v-row>
-                            <v-col>
-                                {{settle.creditor_name}}
-                            </v-col>
-                        </v-row>
-                        <v-row>
-                            <v-col>
-                                総額：{{settle.total_amount}}円
-                                月額：{{settle.monthly_amount}}円
-                                初回：{{settle.first_amount}}
-                                毎月：{{settle.monthly_payment_due_date}}
-                                回数：{{settle.number_of_payments}}回
-                                日付：{{settle.start_date}}
-                            </v-col>
-                            <v-col>
-                                <v-btn @click="createPaymentSchedules(index)">予定作成</v-btn>
-                            </v-col>
-                        </v-row>
-                        <v-row>
-                            <v-col>
-                                メモ：{{settle.account_comment}}
-                            </v-col>
-                        </v-row>
-                        <v-divider></v-divider>
-                        <v-row>
-                            <v-col>
-                                イレギュラー
-                            </v-col>
-                        </v-row>
-                        <v-row>
-                            <v-col>
-                                <v-system-bar>
-                                    <v-checkbox
-                                        v-model="settle.irregular"
-                                        label="イレギュラー"
-                                        disabled
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="settle.pension"
-                                        label="年金"
-                                        disabled
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="settle.interest"
-                                        label="将来利息"
-                                        disabled
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="settle.bonus"
-                                        label="ボーナス"
-                                        disabled
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="settle.addition"
-                                        label="合算"
-                                        disabled
-                                    ></v-checkbox>
-                                </v-system-bar>
-                            </v-col>
-                        </v-row>                               
-                    </v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
-
 
         <!-- 支払い計画作成のdialog -->
         <v-dialog max-width="800" v-model="createScheduleDialog" persistent>
@@ -383,13 +391,42 @@
                 </v-row>
             </v-container>
         </v-tab-item>
+
+        <!-- 入金予定のタブ -->
         <v-tab-item>
             <v-container>
-                <v-row v-for="(cir,index) in customerCir" :key="index">
+                <v-row>
                     <v-col>
-                        日付：{{cir.payment_day}}
-                        金額：{{cir.expected_amount}}
-                        入金：{{cir.come_in_recprds_id ? true : false}}
+                        <v-app-bar>
+                            <v-btn @click="registerComeInRecordsDialog = true">入金予定登録</v-btn>
+                            <div>
+                                <v-dialog v-model="registerComeInRecordsDialog">
+                                <v-card>
+                                    <v-card-text>
+                                        <v-row>
+                                            <v-col>
+                                                <v-date-picker v-model="newSchedule.payment_day"></v-date-picker>
+                                            </v-col>
+                                            <v-col>
+                                                <v-text-field v-model="newSchedule.expected_amount" type="number" lable="金額"></v-text-field>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-text>
+                                    <v-card-actions>
+                                        <v-btn @click="postNewSchedule">登録</v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                                </v-dialog>
+                            </div>
+                        </v-app-bar>
+                        <v-row v-for="(cis,index) in customerCis" :key="index">
+                            <v-col>
+                                日付：{{cis.payment_day}}
+                                金額：{{cis.expected_amount}}
+                                入金：{{cis.come_in_recprds_id ? true : false}}
+                                <v-icon class="mx-10" @click="deleteCis(index)">mdi-close</v-icon>
+                            </v-col>
+                        </v-row>
                     </v-col>
                 </v-row>
             </v-container>
@@ -406,6 +443,7 @@ export default {
         return{
             dialog:false,
             createScheduleDialog:false,
+            registerComeInRecordsDialog:false,
             targetText:'',
             activePicker:false,
             startDate:'',
@@ -459,6 +497,14 @@ export default {
                 {text:'日付',   value:'date'},
                 {text:'金額',   value:'amount'},
             ],
+
+            //入金予定の部分用
+            newSchedule:{
+                customer_id:'',
+                payment_day:null,
+                expected_amount:0
+            },
+
             //validate rules
             required: value => !!value || "必ず入力してください",
             limit_length: value => value.length <= 10 || "10文字以内です。",
@@ -481,8 +527,8 @@ export default {
         contentsOfSettlements(){
             return this.$store.getters['pa/getContentsOfSettlements']
         },
-        customerCir(){
-            return this.$store.getters['pa/getCustomerCir']
+        customerCis(){
+            return this.$store.getters['pa/getCustomerCis']
         },
         paymentSchedules(){
             return this.arr = this.$store.getters['pa/getPaymentSchedules']
@@ -576,6 +622,22 @@ export default {
                 const option ={id:this.customer.customer_id,from:null,until:null}
                 this.$store.dispatch('pa/getDbPaymentSchedules',option)
             })
+        },
+        postNewSchedule(){
+            this.$store.dispatch('pa/postcomeInSchedules',this.newSchedule)
+            .then(()=>{
+                this.registerComeInRecordsDialog = false
+                this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+            })
+        },
+        deleteCis(index){
+            const target = this.customerCis
+            const id = target[index].come_in_schedules_id
+            console.log(id)
+            this.$axios.delete('/api/payment_agency/customer/cis',{data:{id:id}})
+            .then((response)=>{
+                this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+            })
         }
     },
     created(){
@@ -583,10 +645,11 @@ export default {
             this.$store.dispatch('getDbCreditors')
             this.$store.dispatch('pa/getDbCreditorsAccounts')
             this.$store.dispatch('pa/getDbContentsOfSettlements',this.customer.customer_id)
-            this.$store.dispatch('pa/getDbCustomerCir',this.customer.customer_id)
+            this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
                 const option ={id:this.customer.customer_id,from:null,until:null}
             this.$store.dispatch('pa/getDbPaymentSchedules',option)
             this.banks = this.$store.getters['pa/getCreditorsAccounts']
+            this.newSchedule.customer_id = this.customer.customer_id
     }
 }
 </script>

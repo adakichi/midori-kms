@@ -44,7 +44,7 @@
                 </v-app-bar>
                 <v-app-bar>
                     <v-spacer></v-spacer>
-                    <v-btn @click="downloadCsv">だうんろーど</v-btn>
+                    <v-btn @click="downloadCsv">CSV出力</v-btn>
                     <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
                     <v-btn @click="confirmPayments">出金確定</v-btn>
                     <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
@@ -168,7 +168,6 @@ export default {
             const link = createDownloadATag(exportText)
             link.click()
             //ダウンロードしたら仮で出金したことにする必要がある。
-            console.log('こうしん')
             const ids = getIds(this.selected)
             const today = todayString()
             this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:today})
