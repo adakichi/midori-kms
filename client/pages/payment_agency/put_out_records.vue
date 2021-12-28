@@ -51,7 +51,7 @@
                     <v-btn @click="downloadCsv">CSV出力</v-btn>
                     <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
                     <v-btn @click="confirmPayments">出金確定</v-btn>
-                    <v-btn v-show="this.$auth.user.isAdmin?true:false" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
+                    <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
                 </v-app-bar>
                 <v-data-table
                 :headers="headers"
