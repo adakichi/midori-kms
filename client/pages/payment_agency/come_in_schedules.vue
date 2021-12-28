@@ -7,8 +7,42 @@
                         入金予定:Come In Schedules
                     </v-app-bar-title>
                     <v-spacer></v-spacer>
-                <v-btn @click="test">test</v-btn>
-                <v-btn @click="openNewDialog">新規登録</v-btn>
+                    <div>
+                    <v-menu
+                     ref="menu"
+                     v-model="menu"
+                     :close-on-content-click="false"
+                     :return-value.sync="dateRange"
+                     transition="scale-transition"
+                     offset-y
+                     left
+                     min-width="auto"
+                    >
+                        <template v-slot:activator="{on, attrs}">
+                            <v-text-field
+                             v-model="dateRange"
+                             label="範囲を選択してください"
+                             prepend-icon="mdi-calendar"
+                             readonly
+                             v-bind="attrs"
+                             v-on="on"
+                             ></v-text-field>
+                        </template>
+                    <v-date-picker
+                     v-model="dateRange"
+                     range
+                    >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                     text
+                     color="primary"
+                     @click="$refs.menu.save(dateRange)"
+                     >OK
+                    </v-btn>
+                    </v-date-picker>
+                    </v-menu>
+                    </div>
+                    <v-btn @click="searchSchedules">検索</v-btn>
                 </v-app-bar>
             </v-col>
         </v-row>    
@@ -18,8 +52,9 @@
                 :headers="headers"
                 :items="comeInSchedulesList"
                 item-key="come_in_schedules_id"
-                :items-per-page="5"
+                :items-per-page="50"
                 class="elevation-1"
+                :footer-props="footerOptions"
                 :search="search"
                 show-select
                 show-group-by
@@ -43,22 +78,6 @@
                 </v-data-table>
             </v-col>
         </v-row>
-        <v-dialog v-model="newDialog">
-            <v-card>
-                <v-card-text>
-                    <v-row><v-col>
-                <v-date-picker v-model="newSchedule.payment_day"></v-date-picker>
-                    </v-col>
-                    <v-col>
-                <v-text-field v-model="newSchedule.customer_id" label="受任番号"></v-text-field>
-                <v-text-field v-model="newSchedule.expected_amount" type="number" lable="金額"></v-text-field>
-                </v-col></v-row>
-                </v-card-text>
-                <v-card-actions>
-                    <v-btn @click="postNewSchedule">登録</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </v-container>
 </template>
 
@@ -67,19 +86,18 @@ export default {
     layout : 'pa',
     data(){
         return{
-            newDialog:false,
-            newSchedule:{
-                customer_id:'',
-                payment_day:null,
-                expected_amount:0
-            },
+            menu:false,
+            dateRange:[],
             search:'',
             headers:[
                 { text:'customer_id', value:'customer_id'},
-                { text:'payment_day', value:'payment_day', groupable:false},
+                { text:'payment_day', value:'payment_day'},
                 { text:'expected_amount', value:'expected_amount'},
-                { text:'come_in_records_id', value:'come_in_records_id', groupable:false}
-            ]
+                { text:'come_in_records_id', value:'come_in_records_id'}
+            ],
+            footerOptions:{
+                itemsPerPageOptions:[30,50,100,-1]
+            }
         }
     },
     computed:{
@@ -88,22 +106,17 @@ export default {
         }
     },
     methods:{
-        test(){
-            console.log(this.comeInSchedulesList[0].payment_day)
+        searchSchedules(){
+            const option = {
+                id:0,
+                from:this.dateRange[0],
+                until:this.dateRange[1],
+            }
+            this.$store.dispatch('pa/actComeInSchedules',option)
         },
-        openNewDialog(){
-            this.newDialog = true
-        },
-        postNewSchedule(){
-            this.$store.dispatch('pa/postcomeInSchedules',this.newSchedule)
-            .then(()=>{
-                this.newDialog = false
-                this.$store.dispatch('pa/actComeInSchedules')
-            })
-        }
-    },  
+    },
     created(){
-        this.$store.dispatch('pa/actComeInSchedules')
-    }
+            this.$store.dispatch('pa/actComeInSchedules')
+    }  
 }
 </script>

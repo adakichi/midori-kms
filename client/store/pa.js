@@ -74,13 +74,11 @@ export const actions = {
     async postImportfile(context,{newSchedule}){
         const data = [newSchedule.customerId,payment_day, expected_amount]
         const dbResult = await this.$axios.post('api/payment_agency/cir',data)
-        console.log(dbResult)
     },
 
     //come in schedules用の DB select all用
-    async actComeInSchedules(context){
-        const cis = await this.$axios.$get('api/payment_agency/cis/')
-        console.log(cis)
+    async actComeInSchedules(context,option){
+        const cis = await this.$axios.$get('api/payment_agency/cis/',{params:option})
         context.commit('updateComeInSchedules',cis)
     },
     //come in schedulesの DB 新規登録用
@@ -111,7 +109,6 @@ export const actions = {
     async getDbCustomerCis(context,id){
         console.log('getDbCustomer CIS:' + id)
         const cises = await this.$axios.get('api/payment_agency/customer/cis',{params:{id:id}})
-        console.log(cises)
         context.commit('updateCustomerCis',cises.data)
     },
     async getDbPaymentSchedules(context,option){

@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt")
 const saltRounds = 10
 const jwt =require('jsonwebtoken')
 const cors = require('cors')
-import { isBuffer } from 'util';
+const moment = require('moment')
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
 
@@ -361,8 +361,20 @@ app.post('/payment_agency/cir/', (req,res)=>{
 
 //get come in schedules
 app.get('/payment_agency/cis/',(req,res)=>{
-  const sql = 'SELECT customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules'
-  db.query(sql,(err,rows,fields)=>{
+  console.log(req.query)
+  let from = ''
+  let until = ''
+  if(req.query.from || req.query.until){
+    console.log(req.query)
+    from = req.query.from
+    until = req.query.until
+  } else {
+    from = moment().format('YYYY-MM-DD')
+    until = moment().add(30,'days').format('YYYY-MM-DD')
+  }
+  let sql = 'SELECT customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules '
+      sql = sql + 'WHERE payment_day BETWEEN ? AND ?;'
+  db.query(sql,[from,until],(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
@@ -489,7 +501,6 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   const until = req.query.until
   const isPaidDate = req.query.isPaidDate
   const isExpectedDate = req.query.isExpectedDate
-  console.log(req.query)
   let sql = ''
   let values = []
   if(id == 0){
@@ -499,8 +510,6 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
     sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
     values.push(from)
     values.push(until)
-    console.log(isPaidDate)
-    console.log(isExpectedDate)
     if(isPaidDate == 'true'){
       sql = sql + 'AND ps.paid_date is NOT NULL '
     } else if(isExpectedDate == 'true'){
@@ -511,8 +520,6 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
     sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, pa.creditor_id FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE customer_id = ? ORDER BY date;'
     values.push(id)
   }
-  console.log(sql)
-  console.log(values)
   db.query(sql,values,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')

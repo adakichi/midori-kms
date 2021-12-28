@@ -69,7 +69,6 @@
 </template>
 
 <script>
-import { NULL } from 'mysql/lib/protocol/constants/types'
 // methods:DounloadCsv用の関数色々
   //selectedの配列の支払い総額を計算
 function totalAmount (arr){
