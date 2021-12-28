@@ -156,6 +156,12 @@ export default {
         }
     },
     methods:{
+        isAdmin(){
+            if(this.$auth.user){
+                return this.$auth.isAdmin
+            }
+            return false
+        },
         searchRecords(){
             const option = {
                 id:0,
