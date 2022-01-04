@@ -81,7 +81,8 @@ app.post('/auth/login',(req,res)=>{
           name:user[0].name,
           isAdmin:user[0].admin
         }
-        console.log(payload)
+        console.log('---compare sucess---\n')
+        console.log(moment().format('YYYY/MM/DD hh:mm:ss') + '>' + user[0].name + ' がログインしました。')
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret',{expiresIn:'12h'})
         res.json({token})
