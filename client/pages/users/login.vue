@@ -56,10 +56,11 @@ import axios from 'axios'
         this.$auth.loginWith('local',{
           data:this.user
         }).then((res)=>{
-          if(res.data.message){alert(res.data.message)}
-          console.log((res.data))
-        }).then(()=>{
-          this.$router.push('/')
+          if(res.data.message){
+            alert(res.data.message)
+            } else {
+              this.$router.push('/')
+            }
         })
       },
       // login(){
