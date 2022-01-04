@@ -7,6 +7,7 @@
                     <v-spacer></v-spacer>
                     <v-text-field v-model="targetText" label="search" @keydown.enter="searchCustomer"></v-text-field>
                     <v-btn @click="searchCustomer">検索</v-btn>
+                    <v-btn @click="allCustomer">全員表示</v-btn>
                 </v-app-bar>
                 <v-data-table
                 v-show="customers[0]"
@@ -70,9 +71,14 @@ export default {
                 this.$router.push('/payment_agency/customers/'+ Number(this.customers[0].customer_id))
             }})
         },
+        allCustomer(){
+            this.$store.dispatch('pa/searchCustomers',0)
+        },
         goCustomerPage(e){
-            console.log(e)
-            this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
+            this.$store.dispatch('pa/searchCustomers',Number(e.customer_id))
+            .then(()=>{if(this.customers.length === 1){
+                this.$router.push('/payment_agency/customers/'+ Number(this.customers[0].customer_id))
+            }})
         }
     }
 }

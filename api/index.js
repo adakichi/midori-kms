@@ -408,10 +408,14 @@ app.post('/payment_agency/cis/',(req,res)=>{
 //customers の検索
 app.get('/payment_agency/customers/',(req,res)=>{
   console.log('\n--- get/customers---')
-  const sql = 'SELECT * FROM customers WHERE customer_id = ?'
   const value = req.query.text
-  console.log(' ID:'+value)
-  db.query(sql,value,(err,rows,fields)=>{
+  let sql = ''
+  if(value == 0){
+    sql = 'SELECT * FROM customers'
+  } else {
+    sql = 'SELECT * FROM customers WHERE customer_id = ' + value + ';'
+  }
+  db.query(sql,(err,rows,fields)=>{
     if(err){throw err}
     console.log('--- sucess ---')
     res.send(rows)
