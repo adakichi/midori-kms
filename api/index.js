@@ -110,9 +110,8 @@ app.post('/auth/login',(req,res)=>{
 
 //ログアウト後の動作
   app.post('/auth/logout',(req,res)=>{
-    console.log(req)
     console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD hh:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。\n--- --- --- ---')
-    res.send('OK')
+    res.redirect('/user/login')
   })
   
 //新規登録
