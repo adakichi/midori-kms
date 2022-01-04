@@ -1,7 +1,10 @@
 <template>
     <v-container>
                 <v-app-bar>
-                    <v-app-bar-title>ID：{{customer? customer.customer_id:'No ID'}} {{customer?customer.name:'No Name'}}</v-app-bar-title>
+                    <v-app-bar-title>LUID：{{customer? customer.lu_id:'No ID'}}</v-app-bar-title>
+                </v-app-bar>
+                <v-app-bar>
+                    <v-app-bar-title>受：{{customer? customer.customer_id:'No ID'}} {{customer?customer.name:'No Name'}}</v-app-bar-title>
                     <v-spacer></v-spacer>
                     <v-btn @click="goback">戻る</v-btn>
                 </v-app-bar>
