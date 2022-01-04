@@ -88,8 +88,8 @@ app.post('/auth/login',(req,res)=>{
           isAdmin:user[0].admin
         }
         console.log('---compare sucess---\n')
-        logger.log(moment().format('YYYY/MM/DD hh:mm:ss') + '>' + user[0].name + ' がログインしました。')
-        console.log(moment().format('YYYY/MM/DD hh:mm:ss') + '>' + user[0].name + ' がログインしました。')
+        logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + '>' + user[0].name + ' がログインしました。')
+        console.log(moment().format('YYYY/MM/DD HH:mm:ss') + '>' + user[0].name + ' がログインしました。')
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret',{expiresIn:'12h'})
         res.json({token})
@@ -118,8 +118,8 @@ app.post('/auth/login',(req,res)=>{
 
 //ログアウト後の動作
   app.post('/auth/logout',(req,res)=>{
-    logger.log(moment().format('YYYY/MM/DD hh:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。')
-    console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD hh:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。\n--- --- --- ---')
+    logger.log(moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。')
+    console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。\n--- --- --- ---')
     res.redirect('/user/login')
   })
   
@@ -674,6 +674,13 @@ app.put('/issue',(req,res)=>{
 
 // データベースのendは不要です。
 // db.end()
+db.on('error',function(err){
+  if(err){
+    console.log(err)
+    logger.error(err)
+    throw err
+  }
+})
 
 //Error handoler
 app.use(function(err,req,res,next){
