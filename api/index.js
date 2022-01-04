@@ -6,11 +6,17 @@ const saltRounds = 10
 const jwt =require('jsonwebtoken')
 const cors = require('cors')
 const moment = require('moment')
+const fs = require('fs')
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
 
 app.use(cors())
 app.use(domain)
+
+//fs を使ってログファイル作成
+const out = fs.createWriteStream('info.log')
+const err = fs.createWriteStream('error.log')
+const logger = new console.Console(out,err)
 
 //databaseへのコネクト
 const db = mysql.createConnection(dbConfig)
@@ -82,6 +88,7 @@ app.post('/auth/login',(req,res)=>{
           isAdmin:user[0].admin
         }
         console.log('---compare sucess---\n')
+        logger.log(moment().format('YYYY/MM/DD hh:mm:ss') + '>' + user[0].name + ' がログインしました。')
         console.log(moment().format('YYYY/MM/DD hh:mm:ss') + '>' + user[0].name + ' がログインしました。')
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret',{expiresIn:'12h'})
@@ -111,6 +118,7 @@ app.post('/auth/login',(req,res)=>{
 
 //ログアウト後の動作
   app.post('/auth/logout',(req,res)=>{
+    logger.log(moment().format('YYYY/MM/DD hh:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。')
     console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD hh:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。\n--- --- --- ---')
     res.redirect('/user/login')
   })
