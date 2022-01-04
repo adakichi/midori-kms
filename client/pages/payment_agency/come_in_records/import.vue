@@ -62,7 +62,7 @@
 
 //令和を西暦へ
 const warekiToSeireki=function(wareki){
-    return String(2018 + parseInt(wareki.substr(0,1),10))+ '-' +wareki.substr(1,2) + "-" +wareki.substr(3,2)
+    return String((2018 + parseInt(wareki.substring(0,2),10)))+ '-' +wareki.substring(2,4) + "-" +wareki.substring(4,6)
 }
 
 //CSVを展開する
@@ -139,7 +139,12 @@ export default {
                 this.fileResult = dataColumns.forEach((arr)=>{
                     let obj = {}
                     const name = String(arr[14]).replace(/[0-9]/g,"")
-                    const customerId = String(arr[14]).replace(/[^0-9]/g,"")
+                    let customerId = ''
+                    if(arr[13]){
+                        customerId = arr[13]
+                    } else {
+                        customerId = String(arr[14]).replace(/[^0-9]/g,"")
+                    }
                     obj.customer_id = customerId
                     obj.come_in_name = name
                     obj.actual_deposit_amount = arr[6]
