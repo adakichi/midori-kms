@@ -14,10 +14,10 @@ app.use(cors())
 app.use(domain)
 
 //fs を使ってログファイル作成
-const out = fs.createWriteStream('info.log')
-const err = fs.createWriteStream('error.log')
+const out = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'info.log')
+const err = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'error.log')
 const logger = new console.Console(out,err)
-
+logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + ' サーバー起動')
 //databaseへのコネクト
 const db = mysql.createConnection(dbConfig)
   db.connect((err)=>{
@@ -677,6 +677,7 @@ app.put('/issue',(req,res)=>{
 
 //Error handoler
 app.use(function(err,req,res,next){
+  logger.error(new Error(err))
   console.log('domain Error : ' + err)
   res.send(err)
 })
