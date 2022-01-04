@@ -25,8 +25,9 @@ export default {
       }
     },
     redirect:{
-      login: '/users/login',
-      logout: '/users/login'
+      login:  '/users/login',
+      logout: '/users/login',
+      home:   '/'
     }
 },
 

@@ -70,7 +70,7 @@
           </v-list>
       </v-menu>
       <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/users/login')">ログイン</v-btn>
-      <v-btn v-else @click="$auth.logout()">ログアウト</v-btn>
+      <v-btn v-else @click="logout()">ログアウト</v-btn>
         <theme-toggle></theme-toggle>
       <v-btn
         icon
@@ -162,6 +162,12 @@ export default {
       right: true,
       rightDrawer: false,
       title: 'MIDORI-KMS'
+    }
+  },
+  methods:{
+    logout(){
+      const data = { auth: this.$auth.user.name}
+      this.$auth.logout({data:data})
     }
   }
 }
