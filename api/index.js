@@ -15,6 +15,7 @@ app.use(domain)
 //databaseへのコネクト
 const db = mysql.createConnection(dbConfig)
   db.connect((err)=>{
+    console.log('>db.connect')
     if(err){
       console.error('error connecting: ' + err.stack)
       return
@@ -51,6 +52,7 @@ app.post('/auth/login',(req,res)=>{
     const reqpass = req.body.password
     const sql = "SELECT * FROM users WHERE user_id = ?"
     db.query(sql, userId,(err,user,fields)=>{
+      console.log('>db.query (/auth/login/)')
       if(err){
         console.log('  query error\n---stop post login process---')
         return res.json({"message": err.message})
@@ -107,9 +109,9 @@ app.post('/auth/login',(req,res)=>{
   })
 
 //ログアウト後の動作
-  app.get('\n/auth/logout',(req,res)=>{
+  app.post('\n/auth/logout',(req,res)=>{
     console.log(req.body)
-    console.log('\n--- post /auth/logout/ ---\n' + req.body + ' がログアウトしました。\n--- --- --- ---')
+    console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD hh:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。\n--- --- --- ---')
   })
   
 //新規登録
@@ -411,10 +413,10 @@ app.get('/payment_agency/customers/',(req,res)=>{
 app.post('/payment_agency/new_account',(req,res)=>{
   console.log('\n--- post new account ---')
   console.log(req.body)
-  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, start_date'
+  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, start_date, delayed_interest_rate'
       sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
-      sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+      sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
   db.query(sql,req.body,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')

@@ -118,6 +118,14 @@
                                     </template>
                                     </v-text-field>
                                 </v-col>
+                                <v-col>
+                                    <v-text-field
+                                    type="number"
+                                    v-model="delayedInterestRate"
+                                    label="遅延利率"
+                                    suffix=" %"
+                                    ></v-text-field>
+                                </v-col>
                             </v-row>
                             </v-container>
                         </v-tab-item>
@@ -467,6 +475,7 @@ export default {
             numberOfPayments:null,
             monthlyPaymentDueDate:'',
             firstAmount:'初回',
+            delayedInterestRate:0,
             //irregular
             irregular:false,
             pension:false,
@@ -564,6 +573,8 @@ export default {
                 this.numberOfPayments,
                 this.monthlyPaymentDueDate,
                 this.firstAmount,
+                this.startDate,
+                this.delayedInterestRate,
                 this.irregular,
                 this.pension,
                 this.interest,
