@@ -58,6 +58,8 @@ import axios from 'axios'
         }).then((res)=>{
           if(res.data.message){alert(res.data.message)}
           console.log((res.data))
+        }).then(()=>{
+          this.$router.push('/')
         })
       },
       // login(){
