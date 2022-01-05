@@ -122,7 +122,6 @@ export const actions = {
                 isExpectedDate:option.isExpectedDate,
             }
         })
-        console.log(schedules)
         context.commit('updatePaymentSchedules',schedules.data)
     },
     

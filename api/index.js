@@ -544,7 +544,6 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
     sql = sql + 'WHERE customer_id = ? ORDER BY date;'
     values.push(id)
   }
-  console.log(sql)
   db.query(sql,values,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')

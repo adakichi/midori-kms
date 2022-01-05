@@ -339,10 +339,6 @@
                     <template v-slot:item.date="props">
                       <v-edit-dialog
                       :return-value.sync="props.item.date"
-                      @save="save"
-                      @cancel="cancel"
-                      @open="open"
-                      @close="close"
                     >
                       {{ props.item.date }}
                       <template v-slot:input>
@@ -358,10 +354,6 @@
                     <template v-slot:item.amount="props">
                       <v-edit-dialog
                       :return-value.sync="props.item.amount"
-                      @save="save"
-                      @cancel="cancel"
-                      @open="open"
-                      @close="close"
                     >
                       {{ props.item.amount }}
                       <template v-slot:input>
@@ -391,14 +383,13 @@
                             <v-btn>予定作成</v-btn>
                             <v-btn>確定</v-btn>
                         </v-app-bar>
-                        <v-row v-for="(schedule,index) in paymentSchedules" :key="index">
-                            <v-col>
-                                債権者ID：{{schedule.creditor_id}}
-                                債権者名：{{schedule.creditor_name}}
-                                金額：{{schedule.amount}}
-                                日付：{{schedule.date}}
-                            </v-col>
-                        </v-row>
+                        <v-data-table
+                        :headers="paymentSchedulesHeaders"
+                        :items="paymentSchedules"
+                        :items-per-page="30"
+                        show-group-by
+                        >
+                        </v-data-table>
                     </v-col>
                 </v-row>
             </v-container>
@@ -443,14 +434,35 @@
                                 </v-dialog>
                             </div>
                         </v-app-bar>
-                        <v-row v-for="(cis,index) in customerCis" :key="index">
-                            <v-col>
-                                日付：{{cis.payment_day}}
-                                金額：{{cis.expected_amount}}
-                                入金：{{cis.come_in_recprds_id ? true : false}}
-                                <v-icon class="mx-10" @click="deleteCis(index)">mdi-close</v-icon>
-                            </v-col>
-                        </v-row>
+                        <v-data-table
+                        :headers="customerCisHeaders"
+                        :items="customerCis"
+                        show-group-by
+                        >
+                            <!-- 編集機能部分 -->
+                            <template v-slot:item.actions="{item}">
+                                <v-icon @click="openEditDialog(item)">mdi-pen</v-icon>
+                                <v-icon @click="deleteCustomerCis(item)">mdi-delete</v-icon>
+                            </template>
+
+                            <!-- 編集スロット -->
+                            <template v-slot:item.payment_day="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialog"
+                                    :return-value.sync="item.payment_day"
+                                >   
+                                    {{item.payment_day}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            :value="updateValue"
+                                            label="支払日"
+                                            single-line
+                                            type="Date"
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
+                        </v-data-table>
                     </v-col>
                 </v-row>
             </v-container>
@@ -523,6 +535,12 @@ export default {
                 {text:'日付',   value:'date'},
                 {text:'金額',   value:'amount'},
             ],
+            paymentSchedulesHeaders:[
+                {text:'date',   value:'date'},
+                {text:'実入金日', value:'paid_date'},
+                {text:'債権者', value:'creditor_name'},
+                {text:'金額',   value:'amount'}
+            ],
 
             //入金予定の部分用
             newSchedule:{
@@ -531,6 +549,14 @@ export default {
                 due_date:'末日',
                 amount:0
             },
+            customerCisHeaders:[
+                {text:'予定日',     value:'payment_day'},
+                {text:'実入金',     value:'come_in_recprds_id'},
+                {text:'金額',       value:'expected_amount'},
+                {text:'操作',       value:'actions'},
+            ],
+            editDialog:false,
+            updateValue:{},
 
             //validate rules
             required: value => !!value || "必ず入力してください",
@@ -618,11 +644,11 @@ export default {
             let schedules =[{paymentAccountId:settle.payment_account_id,amount:settle.first_amount,date:moment(settle.start_date).format('YYYY/MM/DD')}]
             const duedate = settle.monthly_payment_due_date === '末日'? 31 : baseDate.monthly_payment_due_date
             let baseDate = moment(settle.start_date)
-            const year = baseDate.year()
-            const month = baseDate.month()+1
-            let nextDate = moment(year+'/'+month+'/'+duedate).format('YYYY/MM/DD')
             for(let i = 2; i <= settle.number_of_payments; i++){
-                nextDate = moment(baseDate).add(i-1,'month').format('YYYY/MM/DD')
+                let nextDate = moment(baseDate).add(i-1,'month').format('YYYY/MM/DD')
+                if(duedate == 31){
+                    nextDate = moment(nextDate).endOf('month').format('YYYY/MM/DD')
+                }
                 schedules.push(
                     {
                         paymentAccountId:settle.payment_account_id,
@@ -654,6 +680,7 @@ export default {
                 const option ={id:this.customer.customer_id,from:null,until:null}
                 this.$store.dispatch('pa/getDbPaymentSchedules',option)
                 this.createScheduleDialog = false
+                this.tabs = 1
             })
         },
         postNewSchedule(){
@@ -687,15 +714,22 @@ export default {
                 this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
             })
         },
-        deleteCis(index){
-            const target = this.customerCis
-            const id = target[index].come_in_schedules_id
-            console.log(id)
-            this.$axios.delete('/api/payment_agency/customer/cis',{data:{id:id}})
-            .then((response)=>{
-                this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
-            })
-        }
+        openEditDialog(item){
+            this.editDialog = true
+            this.updateValue = Object.assign({}, item)
+            alert('まだ編集機能はつくってないです。 ')
+        },
+        deleteCustomerCis(item){
+            const answer = confirm('本当に削除しますか？')
+            if(answer){
+                const id = item.come_in_schedules_id
+                console.log(id)
+                this.$axios.delete('/api/payment_agency/customer/cis',{data:{id:id}})
+                .then(()=>{
+                    this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+                })
+            }
+        },
     },
     created(){
         const id = this.$route.params.id
