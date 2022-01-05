@@ -73,8 +73,12 @@ export default {
     },
     computed:{
         comeInRecordsList(){
-            console.log(this.$store.getters['pa/getCIR'])
-            return this.$store.getters['pa/getCIR']
+            const data = this.$store.getters['pa/getCIR']
+            if(data.isArray){
+                return this.$store.getters['pa/getCIR']
+            } else {
+                return []
+            }
         }
     },
     methods:{

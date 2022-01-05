@@ -514,7 +514,7 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
 app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   console.log('\n---get Customer payment_schedules ---')
   const id = req.query.id
-  const from = req.query.from
+  const from = req.query.from 
   const until = req.query.until
   const isPaidDate = req.query.isPaidDate
   const isExpectedDate = req.query.isExpectedDate
@@ -526,7 +526,7 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
     sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
     sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
     sql = sql + 'INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
-    sql = sql + 'INNER JOIN creditors ON pa.creditor_id = ccreditors.customer_id '
+    sql = sql + 'INNER JOIN creditors ON pa.creditor_id = creditors.creditor_id '
     sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
     values.push(from)
     values.push(until)

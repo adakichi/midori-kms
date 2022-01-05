@@ -127,7 +127,7 @@ function getIds(selected){
   //今日の日付をフォーマットして出力(String)
 function todayString(){
     const today = new Date()
-    return today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate()
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
 }
 
 const {Parser} = require('json2csv')
@@ -143,6 +143,7 @@ export default {
             isAdmin:false,
             headers:[
                 {text:'名前',   value:'name'},
+                {text:'債権者', value:'creditor_name'},
                 {text:'日付',   value:'date'},
                 {text:'金額',   value:'amount',  groupable:false},
                 {text:'確定',   value:'paid_date'},
@@ -183,8 +184,10 @@ export default {
             //ダウンロードしたら仮で出金したことにする必要がある。
             const ids = getIds(this.selected)
             const today = todayString()
+            console.log(ids)
+            console.log(today)
             this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:today})
-            .then(response =>{this.searchRecords()})
+            .then(() =>{this.searchRecords()})
         },
         deleteExpectedDate(){
             const ids = getIds(this.selected)
