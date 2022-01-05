@@ -71,9 +71,10 @@ export const actions = {
         context.commit('updateComeInRecords',cir)
     },
     //come in recordsのimport用 銀行データ登録
-    async postImportfile(context,{newSchedule}){
-        const data = [newSchedule.customerId,payment_day, expected_amount]
-        const dbResult = await this.$axios.post('api/payment_agency/cir',data)
+    async postImportfile(context,newSchedule){
+        console.log(newSchedule)
+        // const data = [newSchedule.customer_id,payment_day, expected_amount]
+        const dbResult = await this.$axios.post('api/payment_agency/cir',newSchedule)
     },
 
     //come in schedules用の DB select all用

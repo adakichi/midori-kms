@@ -56,6 +56,7 @@
                 class="elevation-1"
                 :footer-props="footerOptions"
                 :search="search"
+                @click:row="goCustomerPage"
                 show-select
                 show-group-by
                 dense
@@ -114,9 +115,14 @@ export default {
             }
             this.$store.dispatch('pa/actComeInSchedules',option)
         },
+        goCustomerPage(e){
+            console.log(e)
+            const strToNum = parseInt(e.customer_id, 10)
+            this.$router.push('/payment_agency/customers/'+strToNum)
+        }
     },
     created(){
             this.$store.dispatch('pa/actComeInSchedules')
-    }  
+    }
 }
 </script>

@@ -471,7 +471,7 @@ export default {
             tabs:null,
             registerTabs:null,
             //Form data
-            customer:{},
+            // customer:{},
             creditor:'',
             totalAmount:null,
             monthlyAmount:null,
@@ -535,6 +535,9 @@ export default {
         }
     },
     computed:{
+        customer(){
+            return this.$store.getters['pa/getCustomers'][0]
+        },
         customers(){
             return this.$store.getters['pa/getCustomers']
         },
@@ -690,15 +693,17 @@ export default {
         }
     },
     created(){
-            this.customer = this.$store.getters['pa/getCustomers'][0]
-            this.$store.dispatch('getDbCreditors')
-            this.$store.dispatch('pa/getDbCreditorsAccounts')
-            this.$store.dispatch('pa/getDbContentsOfSettlements',this.customer.customer_id)
-            this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
-                const option ={id:this.customer.customer_id,from:null,until:null}
-            this.$store.dispatch('pa/getDbPaymentSchedules',option)
-            this.banks = this.$store.getters['pa/getCreditorsAccounts']
-            this.newSchedule.customer_id = this.customer.customer_id
+        const id = this.$route.params.id
+        console.log(id)
+        this.$store.dispatch('pa/searchCustomers',id)
+        this.$store.dispatch('getDbCreditors')
+        this.$store.dispatch('pa/getDbCreditorsAccounts')
+        this.$store.dispatch('pa/getDbContentsOfSettlements',id)
+        this.$store.dispatch('pa/getDbCustomerCis',id)
+            const option ={id:id,from:null,until:null}
+        this.$store.dispatch('pa/getDbPaymentSchedules',option)
+        this.banks = this.$store.getters['pa/getCreditorsAccounts']
+        this.newSchedule.customer_id = id
     }
 }
 </script>
