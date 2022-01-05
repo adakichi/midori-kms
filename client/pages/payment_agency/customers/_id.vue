@@ -4,7 +4,7 @@
                     <v-app-bar-title>LUID：{{customer? customer.lu_id:'No ID'}}</v-app-bar-title>
                 </v-app-bar>
                 <v-app-bar>
-                    <v-app-bar-title>受：{{customer? customer.customer_id:'No ID'}} {{customer?customer.name:'No Name'}}</v-app-bar-title>
+                    <v-app-bar-title>受：{{customerId}} {{customer?customer.name:'No Name'}}</v-app-bar-title>
                     <v-spacer></v-spacer>
                     <v-btn @click="goback">戻る</v-btn>
                 </v-app-bar>
@@ -415,16 +415,18 @@
                                 <v-card>
                                     <v-card-text>
                                         <v-row>
-                                            <v-col>
+                                            <v-col col="6" xs="6" md="12" lg="12">
                                                 <v-date-picker v-model="newSchedule.payment_day"></v-date-picker>
                                             </v-col>
-                                            <v-col>
+                                        </v-row>
+                                        <v-row>
+                                            <v-col col="12" xs="12" md="12" lg="12">
                                                 <v-text-field v-model="newSchedule.amount" type="number" label="金額" suffix="　円"></v-text-field>
                                             </v-col>
-                                            <v-col>
+                                            <v-col col="12" xs="12" md="12" lg="12">
                                                 <v-text-field v-model="newSchedule.repeat_count" type="number" label="繰り返し" suffix="　回"></v-text-field>
                                             </v-col>
-                                            <v-col>
+                                            <v-col col="12" xs="12" md="12" lg="12">
                                                 <v-select
                                                 v-model="newSchedule.due_date"
                                                 label="支払日"
@@ -462,6 +464,7 @@ export default {
     layout : 'pa',
     data(){
         return{
+            customerId:0,
             dialog:false,
             createScheduleDialog:false,
             registerComeInRecordsDialog:false,
@@ -657,10 +660,10 @@ export default {
             let schedules =[{
                 id:this.customer.customer_id,
                 amount:newSchedule.amount,
-                date:moment(newSchedule.date).format('YYYY/MM/DD')
-                }]
+                date:moment(newSchedule.payment_day).format('YYYY/MM/DD')
+            }]
             const duedate = newSchedule.due_date === '末日'? 31 : newSchedule.due_date
-            let baseDate = moment(newSchedule.date)
+            let baseDate = moment(newSchedule.payment_day)
             const year = baseDate.year()
             const month = baseDate.month()+1
             console.log(schedules)
@@ -694,7 +697,7 @@ export default {
     },
     created(){
         const id = this.$route.params.id
-        console.log(id)
+        this.customerId = id
         this.$store.dispatch('pa/searchCustomers',id)
         this.$store.dispatch('getDbCreditors')
         this.$store.dispatch('pa/getDbCreditorsAccounts')

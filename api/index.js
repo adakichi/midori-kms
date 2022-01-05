@@ -456,7 +456,7 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
 app.get('/payment_agency/customer/cis',(req,res)=>{
   console.log('\n---get Customer Cis ---')
   const id = req.query.id
-  const sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ?'
+  const sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ? ORDER BY payment_day'
   db.query(sql,id,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')
@@ -464,7 +464,7 @@ app.get('/payment_agency/customer/cis',(req,res)=>{
   })
 })
 
-//顧客毎の支払い予定　登録
+//顧客毎の入金予定　登録
 app.post('/payment_agency/customer/cis',(req,res)=>{
   console.log('\n--- POST customer cis ---')
   console.log(req.body)
