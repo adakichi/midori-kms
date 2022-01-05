@@ -441,7 +441,7 @@ app.post('/payment_agency/new_account',(req,res)=>{
 app.get('/payment_agency/customer/settlements',(req,res)=>{
   console.log('\n--- get Customer settlements ---')
   const id = req.query.id
-  let sql = 'SELECT payment_account_id, customer_id, pa.creditor_id, creditors.creditor_name, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, DATE_FORMAT(start_date,"%Y/%m/%d %H:%i:%s") as start_date, '
+  let sql = 'SELECT payment_account_id, customer_id, pa.creditor_id, creditors.creditor_name, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, DATE_FORMAT(start_date,"%Y/%m/%d") as start_date, '
       sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month '
       sql = sql + 'from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
@@ -456,7 +456,9 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
 app.get('/payment_agency/customer/cis',(req,res)=>{
   console.log('\n---get Customer Cis ---')
   const id = req.query.id
-  const sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ? ORDER BY payment_day'
+  let sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
+      sql = sql + 'expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ? '
+      sql = sql + 'ORDER BY payment_day'
   db.query(sql,id,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')
@@ -519,9 +521,12 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   let sql = ''
   let values = []
   if(id == 0){
-    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
-    sql = sql + 'bankcode, branchcode, kind, account_number, account_holder FROM payment_schedules as ps '
-    sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
+    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
+    sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
+    sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
+    sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
+    sql = sql + 'INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
+    sql = sql + 'INNER JOIN creditors ON pa.creditor_id = ccreditors.customer_id '
     sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
     values.push(from)
     values.push(until)
@@ -532,9 +537,14 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
     }
     sql = sql + 'ORDER BY date;'
   } else {
-    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, pa.creditor_id FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE customer_id = ? ORDER BY date;'
+    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
+    sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
+    sql = sql + 'pa.creditor_id , creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
+    sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
+    sql = sql + 'WHERE customer_id = ? ORDER BY date;'
     values.push(id)
   }
+  console.log(sql)
   db.query(sql,values,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')

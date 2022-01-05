@@ -394,6 +394,7 @@
                         <v-row v-for="(schedule,index) in paymentSchedules" :key="index">
                             <v-col>
                                 債権者ID：{{schedule.creditor_id}}
+                                債権者名：{{schedule.creditor_name}}
                                 金額：{{schedule.amount}}
                                 日付：{{schedule.date}}
                             </v-col>
@@ -652,6 +653,7 @@ export default {
                 alert('登録が終わりました!')
                 const option ={id:this.customer.customer_id,from:null,until:null}
                 this.$store.dispatch('pa/getDbPaymentSchedules',option)
+                this.createScheduleDialog = false
             })
         },
         postNewSchedule(){
