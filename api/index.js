@@ -378,12 +378,16 @@ app.get('/payment_agency/cis/',(req,res)=>{
   let sql = 'SELECT cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
       sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.lu_id FROM come_in_schedules as cis '
       sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
-  if(req.query.from){
+  if(req.query.from && req.query.until){
     from = req.query.from
-    sql = sql + 'WHERE cis.payment_day > "' + from + '" ORDER BY payment_day;'
+    until = req.query.until
+    sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '" ORDER BY payment_day;'
   } else if(req.query.until){
     until = req.query.until
     sql = sql + 'WHERE cis.payment_day < "' + until + '" ORDER BY payment_day;'
+  } else if(req.query.from){
+    from = req.query.from
+    sql = sql + 'WHERE cis.payment_day > "' + from + '" ORDER BY payment_day;'
   } else {
     from = moment().format('YYYY-MM-DD')
     until = moment().add(30,'days').format('YYYY-MM-DD')
