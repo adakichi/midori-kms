@@ -21,6 +21,7 @@
         <v-row>
             <v-col>
                 <v-card>
+                    {{selected}}
                     <v-card-title>
                         <v-text-field
                         v-model="search"
@@ -33,9 +34,10 @@
                     </v-card-title>
 
                 <v-data-table
+                v-model="selected"
                 :headers="headers"
                 :items="fileResult"
-                item-key="come_in_records_id"
+                item-key="id"
                 :items-per-page="5"
                 class="elevation-1"
                 :search="search"
@@ -68,8 +70,12 @@ const warekiToSeireki=function(wareki){
 //CSVを展開する
 const parseCsv = function(blocktext){
     const lines = blocktext.split('\r\n')
-    return lines.map(line =>{
+    const obj = lines.map(line =>{
         return line.split(',')
+    })
+    return obj.map((item, index) =>{
+        item.push(index)
+        return item
     })
 }
 
@@ -97,10 +103,12 @@ export default {
     data(){
         return{
             loading:false,
+            selected:[],
             fileInfo:{name:'',downloadDate:'',totalAmount:0,count:0,bankName:''},
             fileResult:[],
             search:'',
             headers:[
+                { text:'row',       value:'id'},
                 { text:'受任番号',  value:'customer_id'},
                 { text:'名前',      value:'come_in_name'},
                 { text:'金額',      value:'actual_deposit_amount', groupable:false},
@@ -149,6 +157,7 @@ export default {
                     obj.come_in_name = name
                     obj.actual_deposit_amount = arr[6]
                     obj.actual_deposit_date = warekiToSeireki(arr[2])
+                    obj.id = arr[20]
                     resultArray.push(obj)
                 })
                 this.fileResult = resultArray

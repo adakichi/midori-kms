@@ -379,7 +379,7 @@ app.get('/payment_agency/cis/',(req,res)=>{
       sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.lu_id FROM come_in_schedules as cis '
       sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
   if(req.query.from && req.query.until){
-    from = req.query.from
+    from  = req.query.from
     until = req.query.until
     sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '" ORDER BY payment_day;'
   } else if(req.query.until){
