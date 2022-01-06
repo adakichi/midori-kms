@@ -89,9 +89,17 @@ export const actions = {
 
     //customers 用
     //検索
-    async searchCustomers(context,targetText){
-        const customers = await this.$axios.get('api/payment_agency/customers',{params:{text:targetText}})
-        context.commit('updateCustomers',customers.data)
+    async searchCustomers(context,data){
+        const targetText = data.targetText
+        const options = data.options
+        const customers = await this.$axios.get('api/payment_agency/customers',{params:{text:targetText,options:options}})
+        console.log(customers)
+        //errorの場合の処理
+        if(customers.data.error){
+            alert(customers.data.message)
+        } else {
+            context.commit('updateCustomers',customers.data)
+        }
     },
     //債権者の口座候補リスト
     async getDbCreditorsAccounts(context){

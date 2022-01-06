@@ -384,7 +384,7 @@ app.get('/payment_agency/cis/',(req,res)=>{
     until = moment().add(30,'days').format('YYYY-MM-DD')
   }
   let sql = 'SELECT customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id FROM come_in_schedules '
-      sql = sql + 'WHERE payment_day BETWEEN ? AND ?;'
+      sql = sql + 'WHERE payment_day BETWEEN ? AND ? ORDER BY payment_day;'
   db.query(sql,[from,until],(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
@@ -406,15 +406,28 @@ app.post('/payment_agency/cis/',(req,res)=>{
 })
 
 //customers の検索
+//text に検索文字列 optionsにTYPE等
 app.get('/payment_agency/customers/',(req,res)=>{
   console.log('\n--- get/customers---')
   const value = req.query.text
+  const options = JSON.parse(req.query.options)
+  const searchType = options.searchType
+  if(value == '' && searchType !== 'all'){throw '検索文字無し'}
   let sql = ''
-  if(value == 0){
-    sql = 'SELECT * FROM customers'
-  } else {
-    sql = 'SELECT * FROM customers WHERE customer_id = ' + value + ';'
-  }
+  switch(searchType){
+    case 'all':
+      sql = 'SELECT * FROM customers'
+      break
+    case 'jyunin':
+      sql = 'SELECT * FROM customers WHERE customer_id = ' + value + ' ;'
+      break
+    case 'lu':
+      sql = 'SELECT * FROM customers WHERE lu_id = ' + value + ' ;'
+      break
+    case 'namae':
+      sql = 'SELECT * FROM customers WHERE name LIKE "%' + value + '%" ;'
+      break
+    }
   db.query(sql,(err,rows,fields)=>{
     if(err){throw err}
     console.log('--- sucess ---')
@@ -699,7 +712,11 @@ db.on('error',function(err){
 app.use(function(err,req,res,next){
   logger.error(new Error(err))
   console.log('domain Error : ' + err)
-  res.send(err)
+  const data = {
+    error:true,
+    message:'Error:\n' + err
+  }
+  res.send(data)
 })
 
 module.exports = {

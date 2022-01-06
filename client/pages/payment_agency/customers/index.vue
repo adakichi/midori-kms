@@ -4,10 +4,17 @@
             <v-col>
                 <v-app-bar>
                     <v-app-bar-title>Customers</v-app-bar-title>
+                </v-app-bar>
+                <v-app-bar>
+                    <v-radio-group v-model="searchType" mandatory row>
+                        <v-radio label="受任番号"   value="jyunin"></v-radio>
+                        <v-radio label="名前"       value="namae"></v-radio>
+                        <v-radio label="LU"         value="lu"></v-radio>
+                        <v-radio label="全表示"         value="all"></v-radio>
+                    </v-radio-group>
                     <v-spacer></v-spacer>
                     <v-text-field v-model="targetText" label="search" @keydown.enter="searchCustomer"></v-text-field>
                     <v-btn @click="searchCustomer">検索</v-btn>
-                    <v-btn @click="allCustomer">全員表示</v-btn>
                 </v-app-bar>
                 <v-data-table
                 v-show="customers[0]"
@@ -53,6 +60,7 @@ export default {
         return{
             targetText:'',
             search:'',
+            searchType:'namae',
             headers:[
                 { text:'customer_id', value:'customer_id'},
                 { text:'name', value:'name'}
@@ -66,13 +74,13 @@ export default {
     },
     methods:{
         searchCustomer(){
-            this.$store.dispatch('pa/searchCustomers',this.targetText)
+            const options = {
+                "searchType":this.searchType,
+            }
+            this.$store.dispatch('pa/searchCustomers',{targetText:this.targetText,options:options})
             .then(()=>{if(this.customers.length === 1){
                 this.$router.push('/payment_agency/customers/'+ Number(this.customers[0].customer_id))
             }})
-        },
-        allCustomer(){
-            this.$store.dispatch('pa/searchCustomers',0)
         },
         goCustomerPage(e){
             this.$store.dispatch('pa/searchCustomers',Number(e.customer_id))
