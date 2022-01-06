@@ -732,17 +732,23 @@ export default {
         },
     },
     created(){
+        (async()=>{
         const id = this.$route.params.id
         this.customerId = id
-        this.$store.dispatch('pa/searchCustomers',id)
-        this.$store.dispatch('getDbCreditors')
-        this.$store.dispatch('pa/getDbCreditorsAccounts')
-        this.$store.dispatch('pa/getDbContentsOfSettlements',id)
-        this.$store.dispatch('pa/getDbCustomerCis',id)
+        const options = {
+            searchType:'jyunin'
+        }
+        console.log('id:'+id)
+        await this.$store.dispatch('pa/searchCustomers',{targetText:id,options:options})
+        await this.$store.dispatch('getDbCreditors')
+        await this.$store.dispatch('pa/getDbCreditorsAccounts')
+        await this.$store.dispatch('pa/getDbContentsOfSettlements',id)
+        await this.$store.dispatch('pa/getDbCustomerCis',id)
             const option ={id:id,from:null,until:null}
-        this.$store.dispatch('pa/getDbPaymentSchedules',option)
-        this.banks = this.$store.getters['pa/getCreditorsAccounts']
+        await this.$store.dispatch('pa/getDbPaymentSchedules',option)
+        this.banks = await this.$store.getters['pa/getCreditorsAccounts']
         this.newSchedule.customer_id = id
+        })()
     }
 }
 </script>

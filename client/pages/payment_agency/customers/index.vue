@@ -83,10 +83,7 @@ export default {
             }})
         },
         goCustomerPage(e){
-            this.$store.dispatch('pa/searchCustomers',Number(e.customer_id))
-            .then(()=>{if(this.customers.length === 1){
-                this.$router.push('/payment_agency/customers/'+ Number(this.customers[0].customer_id))
-            }})
+                this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
         }
     }
 }
