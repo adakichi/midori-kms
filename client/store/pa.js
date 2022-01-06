@@ -107,7 +107,6 @@ export const actions = {
         context.commit('updateCreditorsAccounts',creditorsAccounts.data)
     },
 
-
     //顧客毎ぺーじ用　債権者の和解リスト
     //債権者の和解リスト
     async getDbContentsOfSettlements(context,id){

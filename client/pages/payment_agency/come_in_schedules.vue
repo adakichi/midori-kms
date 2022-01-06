@@ -92,6 +92,8 @@ export default {
             search:'',
             headers:[
                 { text:'customer_id', value:'customer_id'},
+                { text:'name', value:'name'},
+                { text:'LU', value:'lu_id'},
                 { text:'payment_day', value:'payment_day'},
                 { text:'expected_amount', value:'expected_amount'},
                 { text:'come_in_records_id', value:'come_in_records_id'}
