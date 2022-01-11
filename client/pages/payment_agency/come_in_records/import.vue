@@ -20,8 +20,8 @@
         </v-row>    
         <v-row>
             <v-col>
+                {{fileInfo}}
                 <v-card>
-                    {{selected}}
                     <v-card-title>
                         <v-text-field
                         v-model="search"
@@ -38,7 +38,7 @@
                 :headers="headers"
                 :items="fileResult"
                 item-key="id"
-                :items-per-page="5"
+                :items-per-page="100"
                 class="elevation-1"
                 :search="search"
                 show-select
@@ -64,6 +64,7 @@
 
 //令和を西暦へ
 const warekiToSeireki=function(wareki){
+    console.log(wareki)
     return String((2018 + parseInt(wareki.substring(0,2),10)))+ '-' +wareki.substring(2,4) + "-" +wareki.substring(4,6)
 }
 
@@ -81,12 +82,14 @@ const parseCsv = function(blocktext){
 
 //fileInfoにデータを入れる部分
 const setFileInfo =function(name,parsedCsv,thisObj){
-    const trailerRecord = parsedCsv[parsedCsv.length-2]
-    thisObj.fileInfo.name = name
-    thisObj.fileInfo.downloadDate = warekiToSeireki(parsedCsv[0][3])
-    thisObj.fileInfo.totalAmount = trailerRecord[2]
-    thisObj.fileInfo.count = trailerRecord[1]
-    thisObj.fileInfo.bankName = parsedCsv[0][7]
+
+    const headerRecord = parsedCsv.filter((ele)=>{ return (ele[0] == 1)})[0]
+    const trailerRecord = parsedCsv.filter((ele)=>{ return (ele[0] == 8)})[0]
+    thisObj.fileInfo.name         = name
+    thisObj.fileInfo.downloadDate = warekiToSeireki(headerRecord[3])
+    thisObj.fileInfo.totalAmount  = trailerRecord[2]
+    thisObj.fileInfo.count        = trailerRecord[1]
+    thisObj.fileInfo.bankName     = String(headerRecord[7]).replace(/[0-9"]/g,"")
 
 }
 
@@ -146,7 +149,7 @@ export default {
                 let resultArray = []
                 this.fileResult = dataColumns.forEach((arr)=>{
                     let obj = {}
-                    const name = String(arr[14]).replace(/[0-9]/g,"")
+                    const name = String(arr[14]).replace(/[0-9"]/g,"")
                     let customerId = ''
                     if(arr[13]){
                         customerId = arr[13]
@@ -165,7 +168,13 @@ export default {
             }
         },
         submitData(){
-            this.$store.dispatch('pa/postImportfile',{fileinfo:this.fileInfo,data:this.fileResult})
+            const selectedItems = this.selected
+            console.log(selectedItems)
+            this.$store.dispatch('pa/postImportfile',{fileinfo:this.fileInfo,data:selectedItems})
+            .then((response)=>{
+                console.log(response)
+                this.$router.push('/payment_agency/come_in_records/')
+                })
         }
     }
 }

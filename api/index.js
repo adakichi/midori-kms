@@ -301,7 +301,7 @@ app.get('/payment_agency/cir/',(err,res)=>{
 
 //post come_in_records
 //まず関数
-const convertInsertValArray = function(objData){
+const convertInsertValArray = function(objData,insertId){
   return objData.map(obj=>{
     const customerId = obj.customer_id === ''? null : obj.customer_id
     return [
@@ -309,7 +309,8 @@ const convertInsertValArray = function(objData){
       obj.come_in_name,
       obj.actual_deposit_amount,
       obj.actual_deposit_date,
-      1
+      insertId,
+      obj.id
     ]
   })
 }
@@ -337,16 +338,16 @@ app.post('/payment_agency/cir/', (req,res)=>{
         })
       }
       console.log(' > insert fileinfo is OK')
-      const insertValArray = convertInsertValArray(req.body.data)
-      console.log(' > insert val ->')
+      const insertValArray = convertInsertValArray(req.body.data, row.insertId)
+      console.log(' > insert val -> ' + row.insertId)
+      //insertValArrayにrow.insertIdを追加しないといけない。
 
       //※バルクインサートの方が早いらしいのでSQLの[(?)]を追記するループを作成。
-      let cirSql = ' insert into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id) VALUES (?)'
+      let cirSql = ' insert into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id, file_row_number) VALUES (?)'
       for(let i = 1; i < insertValArray.length ; i++){
         cirSql = cirSql + ',(?)'
       }
       cirSql = cirSql + ';'
-      console.log(cirSql)
       db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
         if(err2){
           console.log('failed insrtVal')

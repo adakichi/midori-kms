@@ -74,9 +74,12 @@ export default {
     computed:{
         comeInRecordsList(){
             const data = this.$store.getters['pa/getCIR']
-            if(data.isArray){
-                return this.$store.getters['pa/getCIR']
+            console.log(data)
+            if(Array.isArray(data)){
+                console.log('yes')
+                return data
             } else {
+                console.log('no')
                 return []
             }
         }

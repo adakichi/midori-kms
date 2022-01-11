@@ -75,6 +75,8 @@ export const actions = {
         console.log(newSchedule)
         // const data = [newSchedule.customer_id,payment_day, expected_amount]
         const dbResult = await this.$axios.post('api/payment_agency/cir',newSchedule)
+        console.log(dbResult)
+        context.commit('actComeInRecords')
     },
 
     //come in schedules用の DB select all用
