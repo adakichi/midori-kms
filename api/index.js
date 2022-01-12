@@ -376,8 +376,8 @@ app.get('/payment_agency/cis/',(req,res)=>{
   console.log(req.query)
   let from = ''
   let until = ''
-  let sql = 'SELECT cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
-      sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.lu_id FROM come_in_schedules as cis '
+  let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
+      sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.lu_id FROM come_in_schedules as cis '
       sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
   if(req.query.from && req.query.until){
     from  = req.query.from

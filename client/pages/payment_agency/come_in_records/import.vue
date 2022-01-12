@@ -38,7 +38,7 @@
                 :headers="headers"
                 :items="fileResult"
                 item-key="id"
-                :items-per-page="100"
+                :items-per-page="-1"
                 class="elevation-1"
                 :search="search"
                 show-select
