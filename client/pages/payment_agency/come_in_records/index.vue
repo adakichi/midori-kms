@@ -126,14 +126,13 @@ const matchCis = function(cis,cir){
             if(ele.come_in_schedules_id !== matchedCis.come_in_schedules_id){
                 return true
             } else {
-                console.log('del:'+index)
+                console.log('del cis id:'+ matchedCis.come_in_schedules_id)
             }
         })
     }
 
     let filtered = []
     cir.forEach((cirlItem)=>{
-        console.log(cirlItem)
 
         if(cirlItem.customer_id){
         //①入金に受任番号があるかないか。
@@ -151,7 +150,7 @@ const matchCis = function(cis,cir){
                 return
             } else {
             //受任番号がマッチしなかった場合はとりあえず、マッチングさせない。（数が増えてきたら検討する）
-
+                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
                 return
             }
         } else {
@@ -164,13 +163,13 @@ const matchCis = function(cis,cir){
 
                 if(amountMatched.length !== 0){
                 //金額もマッチングした場合filterdに追加。
-                    filtered.push({cirl:cirlItem,cis:amountMatched[0]})
+                    filtered.push({cir:cirlItem,cis:amountMatched[0]})
                     cis = matchedCisDelete(amountMatched[0],cis)
                 }
                 return
             } else {
             //カナがマッチしなかったら終了。
-                console.log('no matched')
+                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
                 return
             }
         }
@@ -192,13 +191,13 @@ export default {
                     value:'come_in_records_id',
                     groupable:false
                 },
-                { text:'customer_id', value:'customer_id'},
-                { text:'come_in_name', value:'come_in_name'},
+                { text:'customer_id',           value:'customer_id'},
+                { text:'come_in_name',          value:'come_in_name'},
                 { text:'actual_deposit_amount', value:'actual_deposit_amount', groupable:false},
-                { text:'actual_deposit_date', value:'actual_deposit_date'},
-                { text:'come_in_schedule_id', value:'come_in_schedule_id', groupable:false},
-                { text:'delete_flag', value:'delete_flag'},
-                { text:'created_at', value:'created_at'}
+                { text:'actual_deposit_date',   value:'actual_deposit_date'},
+                { text:'come_in_schedules_id',  value:'come_in_schedules_id', groupable:false},
+                { text:'delete_flag',           value:'delete_flag'},
+                { text:'created_at',            value:'created_at'}
             ]
         }
     },
@@ -227,6 +226,11 @@ export default {
             const cis  = this.cis
             const matched = matchCis(cis,cir)
             console.log(matched)
+            //マッチした配列をapi/indexに投げて、登録処理を作る。
+            this.$axios.put('api/payment_agency/matching',matched)
+            .then((response)=>{
+                console.log(response.data)
+            })
         }
     },  
     created(){

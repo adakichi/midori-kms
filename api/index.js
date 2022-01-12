@@ -289,9 +289,10 @@ app.post('/biztel/hangup',(req,res)=>{
 ////---- 以下payment Agency用 ----////
 //get come_in_records
 app.get('/payment_agency/cir/',(err,res)=>{
-  let sql = 'SELECT come_in_records_id, customer_id, come_in_name,'
-      sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedule_id '
+  let sql = 'SELECT come_in_records_id, customer_id, come_in_name, '
+      sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, '
       sql = sql + 'delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id FROM come_in_records'
+  console.log('payment_agency cir:',sql)
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
@@ -370,6 +371,67 @@ app.post('/payment_agency/cir/', (req,res)=>{
     })
   })
 })
+
+//CIS と CIRのマッチング処理
+app.put('/payment_agency/matching',(req,res)=>{
+//CISとCIRがくるので、
+ //CIRにはCISの[come_in_schedules_id]を登録 [customer_id]も登録しよう。
+ //CISにはCIRの[come_in_records_id]を登録
+  console.log(req.body.length)
+  Promise.all(req.body.map(arr=>{
+    return transaction(arr)
+  })).then((response)=>{
+    res.send(response)
+  })
+})
+
+  //繰り返し用のSQLのFunction
+  const transaction = function(data){
+    return new Promise((resolve,reject) => {
+      const cisId         = data.cis.come_in_schedules_id
+      const cisCustomerId = data.cis.customer_id
+      const cirId         = data.cir.come_in_records_id
+      const cisVal = [cirId,cisId]
+      const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = ?  WHERE come_in_schedules_id = ?;'
+      const cirVal = [cisId,cisCustomerId,cirId]
+      const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = ? ,customer_id = ? WHERE come_in_records_id = ?;'
+      console.log(cisVal)
+      console.log(cirVal)
+      db.beginTransaction((err)=>{
+        if(err){ throw err}
+        db.query(cisSql,cisVal,(err,row,fields)=>{
+          if(err){
+            console.log(err)
+            return db.rollback(()=>{
+              throw err
+            })
+          }
+        })
+        console.log('cis sucess: ' + cisVal)
+        console.log('next: ' + cirVal)
+        db.query(cirSql,cirVal,(err,row,fields)=>{
+          if(err){
+            console.log(err)
+            return db.rollback(()=>{
+              throw err
+            })
+          }
+          db.commit((err)=>{
+            if(err){
+              console.log('failed Commit!!')
+              return db.rollback(()=>{
+                throw err
+              })
+            }
+            console.log('success!')
+            resolve('success')
+          })
+        })
+      })
+  
+    })
+  }
+  ////ここまで--------------------
 
 //get come in schedules
 app.get('/payment_agency/cis/',(req,res)=>{

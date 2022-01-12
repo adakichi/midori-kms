@@ -68,6 +68,7 @@ export const actions = {
     //come in recordsのindex用　DBから最新情報Get
     async actComeInRecords(context){
         const cir = await this.$axios.$get('api/payment_agency/cir/')
+        console.log('actComeInRecords:',cir)
         context.commit('updateComeInRecords',cir)
     },
     //come in recordsのimport用 銀行データ登録
