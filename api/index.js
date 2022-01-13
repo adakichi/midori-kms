@@ -288,10 +288,22 @@ app.post('/biztel/hangup',(req,res)=>{
 
 ////---- 以下payment Agency用 ----////
 //get come_in_records
-app.get('/payment_agency/cir/',(err,res)=>{
+app.get('/payment_agency/cir/',(req,res)=>{
+  const data = JSON.parse(JSON.stringify(req.query))
+  const paid = data.paid
+  console.log(data.paid)
   let sql = 'SELECT come_in_records_id, customer_id, come_in_name, '
       sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, '
+      sql = sql + 'case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, '
       sql = sql + 'delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id FROM come_in_records'
+  switch(paid){
+    case 'false':
+      sql = sql + ' WHERE come_in_schedules_id IS NULL;'
+      break
+    case 'true':
+      sql = sql + ' WHERE come_in_schedules_id IS NOT NULL;'
+      break
+    }
   console.log('payment_agency cir:',sql)
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}

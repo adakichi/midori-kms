@@ -66,8 +66,8 @@ export const mutations = {
 
 export const actions = {
     //come in recordsのindex用　DBから最新情報Get
-    async actComeInRecords(context){
-        const cir = await this.$axios.$get('api/payment_agency/cir/')
+    async actComeInRecords(context,options){
+        const cir = await this.$axios.$get('api/payment_agency/cir/',{params:options})
         console.log('actComeInRecords:',cir)
         context.commit('updateComeInRecords',cir)
     },

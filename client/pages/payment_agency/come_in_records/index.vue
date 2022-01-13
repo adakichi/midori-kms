@@ -10,6 +10,13 @@
                 <v-btn @click="goImport">インポート</v-btn>
                 <v-btn @click="upda">こうしん</v-btn>
                 </v-app-bar>
+                <v-app-bar>
+                    <v-radio-group v-model="radioPaid" row>
+                        <v-radio label="未入金" value="false"></v-radio>
+                        <v-radio label="入金済" value="true"></v-radio>
+                        <v-radio label="両方" value="both"></v-radio>
+                    </v-radio-group>
+                </v-app-bar>
             </v-col>
         </v-row>
         <v-row>
@@ -39,6 +46,13 @@
                 >
                 </v-text-field>
                 </template>
+                    <template v-slot:item.matched="{item}">
+                        <v-simple-checkbox
+                        v-model="item.matched == 'TRUE' ? true : false"
+                        disabled
+                        >
+                        </v-simple-checkbox>
+                    </template>
                     <template v-slot:item.delete_flag="{item}">
                         <v-simple-checkbox
                         v-model="item.delete_flag === 0 ?false:true"
@@ -183,6 +197,8 @@ export default {
         return{
             search:'',
             selected:[],
+            //入金or未入金or両方
+            radioPaid:'false',
             headers:[
                 {
                     text:'id',
@@ -193,9 +209,9 @@ export default {
                 },
                 { text:'customer_id',           value:'customer_id'},
                 { text:'come_in_name',          value:'come_in_name'},
-                { text:'actual_deposit_amount', value:'actual_deposit_amount', groupable:false},
+                { text:'金額', value:'actual_deposit_amount', groupable:false},
                 { text:'actual_deposit_date',   value:'actual_deposit_date'},
-                { text:'come_in_schedules_id',  value:'come_in_schedules_id', groupable:false},
+                { text:'matched',               value:'matched'},
                 { text:'delete_flag',           value:'delete_flag'},
                 { text:'created_at',            value:'created_at'}
             ]
@@ -216,7 +232,10 @@ export default {
     },
     methods:{
         upda(){
-            this.$store.dispatch('pa/actComeInRecords')
+            const options = {
+                paid:this.radioPaid
+            }
+            this.$store.dispatch('pa/actComeInRecords',options)
         },
         goImport(){
             this.$router.push('/payment_agency/come_in_records/import')
