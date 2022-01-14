@@ -116,13 +116,13 @@ export default {
         },
         {
           icon: 'mdi-cash-fast',
-          title: '入金予定',
-          to: '/payment_agency/come_in_schedules/'
+          title: '入金実績',
+          to: '/payment_agency/come_in_records/'
         },
         {
           icon: 'mdi-cash-fast',
-          title: '入金実績',
-          to: '/payment_agency/come_in_records/'
+          title: '入金予定',
+          to: '/payment_agency/come_in_schedules/'
         },
         {
           icon: 'mdi-cash-fast',
