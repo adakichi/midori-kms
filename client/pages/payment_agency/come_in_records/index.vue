@@ -67,7 +67,7 @@
 </template>
 
 <script>
-function zenkana2Hankana(str) {
+function zenkana2BigHankana(str) {
     var kanaMap = {
          "ガ": "ｶﾞ", "ギ": "ｷﾞ", "グ": "ｸﾞ", "ゲ": "ｹﾞ", "ゴ": "ｺﾞ",
          "ザ": "ｻﾞ", "ジ": "ｼﾞ", "ズ": "ｽﾞ", "ゼ": "ｾﾞ", "ゾ": "ｿﾞ",
@@ -85,8 +85,8 @@ function zenkana2Hankana(str) {
          "ヤ": "ﾔ", "ユ": "ﾕ", "ヨ": "ﾖ",
          "ラ": "ﾗ", "リ": "ﾘ", "ル": "ﾙ", "レ": "ﾚ", "ロ": "ﾛ",
          "ワ": "ﾜ", "ヲ": "ｦ", "ン": "ﾝ",
-         "ァ": "ｧ", "ィ": "ｨ", "ゥ": "ｩ", "ェ": "ｪ", "ォ": "ｫ",
-         "ッ": "ｯ", "ャ": "ｬ", "ュ": "ｭ", "ョ": "ｮ",
+         "ァ": "ｱ", "ィ": "ｲ", "ゥ": "ｳ", "ェ": "ｴ", "ォ": "ｵ",
+         "ッ": "ﾂ", "ャ": "ﾔ", "ュ": "ﾕ", "ョ": "ﾖ",
          "。": "｡", "、": "､", "ー": "ｰ", "「": "｢", "」": "｣", "・": "･"
     }
     var reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
@@ -106,6 +106,13 @@ const getNextMonth = function(){
     return nextMonth
 }
 
+const getLastMonth = function(){
+    let today = new Date()
+    today.setDate(today.getDate()-27)
+    const lastMonth = today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate()
+    return lastMonth
+}
+
 const matchCis = function(cis,cir){
     //cisとcirのマッチング処理
     //１．cirに受任番号がある場合
@@ -123,7 +130,7 @@ const matchCis = function(cis,cir){
     //名前の間のスペースはトリミングする。※銀行によってスペースがあったりなかったりする為。
     const matcheName = function(name,cisArray){
         return cisArray.filter((ele)=>{
-            return zenkana2Hankana(name.replace(/\s+/g, "")) === zenkana2Hankana(String(ele.kana).replace(/\s+/g, ""))
+            return zenkana2BigHankana(name.replace(/\s+/g, "")) === zenkana2BigHankana(String(ele.kana).replace(/\s+/g, ""))
         })
     }
 
@@ -244,6 +251,8 @@ export default {
             const cir = this.comeInRecordsList
             const cis  = this.cis
             const matched = matchCis(cis,cir)
+            console.log(cir)
+            console.log(cis)
             console.log(matched)
             //マッチした配列をapi/indexに投げて、登録処理を作る。
             this.$axios.put('api/payment_agency/matching',matched)
@@ -255,9 +264,11 @@ export default {
     created(){
         this.upda()
         const nextMonth = getNextMonth()
+        const lastMonth = getLastMonth()
         const options = {
             id:0,
-            until:nextMonth,
+            from:lastMonth,
+            until:nextMonth
         }
         this.$store.dispatch('pa/actComeInSchedules',options)
     }
