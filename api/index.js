@@ -512,12 +512,28 @@ app.get('/payment_agency/customers/',(req,res)=>{
     case 'namae':
       sql = 'SELECT * FROM customers WHERE name LIKE "%' + value + '%" ;'
       break
+    case 'kana':
+      sql = 'SELECT * FROM customers WHERE kana LIKE "%' + value + '%" ;'
+      break
     }
   console.log(sql)
   db.query(sql,(err,rows,fields)=>{
     if(err){throw err}
     console.log('--- sucess ---')
     res.send(rows)
+  })
+})
+
+//customersの登録（新規顧客登録）
+app.post('/payment_agency/customers/',(req,res)=>{
+  console.log('\n--- post customers ---')
+  console.log(req.body)
+  const values = [req.body.customer_id,req.body.name,req.body.kana,req.body.lu_id]
+  let sql = 'INSERT INTO customers (customer_id,name,kana,lu_id) VALUES (?,?,?,?);'
+  db.query(sql,values,(err,row,fields)=>{
+    if(err){throw err}
+    console.log('---sucess---')
+    res.send('登録しました。')
   })
 })
 
