@@ -72,11 +72,12 @@ export const actions = {
         context.commit('updateComeInRecords',cir)
     },
     //come in recordsのimport用 銀行データ登録
-    async postImportfile(context,newSchedule){
-        // const data = [newSchedule.customer_id,payment_day, expected_amount]
-        const dbResult = await this.$axios.post('api/payment_agency/cir',newSchedule)
-        context.commit('actComeInRecords')
-    },
+    //2022.1.17普通にaxiosで直接やりとりすれば良い気がするのでコメントアウトします。
+    // async postImportfile(context,newSchedule){
+    //     // const data = [newSchedule.customer_id,payment_day, expected_amount]
+    //     const dbResult = await this.$axios.post('api/payment_agency/cir',newSchedule)
+    //     context.commit('actComeInRecords')
+    // },
 
     //come in schedules用の DB select all用
     async actComeInSchedules(context,option){

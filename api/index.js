@@ -9,6 +9,8 @@ const moment = require('moment')
 const fs = require('fs')
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
+import {sqls} from '../client/plugins/sqls.js'
+
 
 app.use(cors())
 app.use(domain)
@@ -289,22 +291,9 @@ app.post('/biztel/hangup',(req,res)=>{
 ////---- 以下payment Agency用 ----////
 //get come_in_records
 app.get('/payment_agency/cir/',(req,res)=>{
-  const data = JSON.parse(JSON.stringify(req.query))
-  const paid = data.paid
-  console.log(data.paid)
-  let sql = 'SELECT come_in_records_id, customer_id, come_in_name, '
-      sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, '
-      sql = sql + 'case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, '
-      sql = sql + 'delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id FROM come_in_records'
-  switch(paid){
-    case 'false':
-      sql = sql + ' WHERE come_in_schedules_id IS NULL;'
-      break
-    case 'true':
-      sql = sql + ' WHERE come_in_schedules_id IS NOT NULL;'
-      break
-    }
-  console.log('payment_agency cir:',sql)
+  console.log('\n ---get payment_agensy/cir ---')
+  const options = JSON.parse(JSON.stringify(req.query))
+  const sql = sqls.get_paymentAgency_cir(options)
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
@@ -313,34 +302,13 @@ app.get('/payment_agency/cir/',(req,res)=>{
 })
 
 //post come_in_records
-//まず関数
-const convertInsertValArray = function(objData,insertId){
-  return objData.map(obj=>{
-    const customerId = obj.customer_id === ''? null : obj.customer_id
-    return [
-      customerId,
-      obj.come_in_name,
-      obj.actual_deposit_amount,
-      obj.actual_deposit_date,
-      insertId,
-      obj.id
-    ]
-  })
-}
-
-//
 app.post('/payment_agency/cir/', (req,res)=>{
+  //最初にfileinfoの登録をしたあとにcirの登録。（fileinfoのId取得の為)
   console.log('\n --- post pa/cir ---')
-  const importfileSql = ' insert into importfile_for_come_in_records (name, download_date, total_amount, count, bankname) values (?,?,?,?,?);'
-  console.log('fileinfo:')
-  console.log(req.body.fileinfo)
-  const fileinfoArray =[
-    req.body.fileinfo.name,
-    req.body.fileinfo.downloadDate,
-    req.body.fileinfo.totalAmount,
-    req.body.fileinfo.count,
-    req.body.fileinfo.bankName
-  ] 
+  const convertedImportFile = sqls.post_paymentAgency_cir.convertImportFile(req.body.fileinfo)
+    const importfileSql = convertedImportFile.sql
+    const fileinfoArray = convertedImportFile.valuesArray
+  console.log('fileinfo:',convertedImportFile)
   db.beginTransaction((err)=>{
     if(err){console.log(err); throw err }
     db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
@@ -351,17 +319,14 @@ app.post('/payment_agency/cir/', (req,res)=>{
         })
       }
       console.log(' > insert fileinfo is OK')
-      const insertValArray = convertInsertValArray(req.body.data, row.insertId)
       console.log(' > insert val -> ' + row.insertId)
-      //insertValArrayにrow.insertIdを追加しないといけない。
-
-      //※バルクインサートの方が早いらしいのでSQLの[(?)]を追記するループを作成。
-      let cirSql = ' insert into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id, file_row_number) VALUES (?)'
-      for(let i = 1; i < insertValArray.length ; i++){
-        cirSql = cirSql + ',(?)'
-      }
-      cirSql = cirSql + ';'
+      const convertedCir   = sqls.post_paymentAgency_cir.convertCir(req.body.data, row.insertId)
+        const insertValArray = convertedCir.valuesArray
+        const cirSql         = convertedCir.sql
       db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
+        console.log('err2:',err2)
+        console.log('row2:',row2)
+        console.log('fields2:',fields2)
         if(err2){
           console.log('failed insrtVal')
           console.log(err)
@@ -377,7 +342,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
             })
           }
           console.log('success!')
-          res.send('OK')
+          res.send(row2)
         })
       })
     })
@@ -389,14 +354,32 @@ app.put('/payment_agency/matching',(req,res)=>{
 //CISとCIRがくるので、
  //CIRにはCISの[come_in_schedules_id]を登録 [customer_id]も登録しよう。
  //CISにはCIRの[come_in_records_id]を登録
-  console.log(req.body.length)
-  Promise.all(req.body.map(arr=>{
-    return transaction(arr)
-  })).then((response)=>{
-    res.send(response)
-  })
+ console.log(req.body)
+ const baseDate = Date()
+ const cis = beforeAndAfterCis(baseDate)
+ console.log(cis)
+  // console.log(req.body.length)
+  // Promise.all(req.body.map(arr=>{
+  //   return transaction(arr)
+  // })).then((response)=>{
+  //   res.send(response)
+  // })
 })
 
+  //app.put('/payment_agency/matching'用の関数
+  //cisの取得 マッチングさせたい日の1か月よりも前の予定を取得する
+  const beforeAndAfterCis = function(baseDate){
+    let today = new Date()
+    today.setDate(today.getDate()+27)
+    const until = today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate()
+    const options = {
+      id:0,
+      until:until
+    }
+    return this.$axios.get('api/payment_agency/cis/',options)
+  }
+
+  ////////////////////////////////////////////
   //繰り返し用のSQLのFunction
   const transaction = function(data){
     return new Promise((resolve,reject) => {

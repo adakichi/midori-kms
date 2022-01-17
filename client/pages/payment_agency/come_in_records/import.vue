@@ -17,7 +17,8 @@
                 <v-btn @click="goIndex">戻る</v-btn>
                 </v-app-bar>
             </v-col>
-        </v-row>    
+        </v-row>
+        <v-btn @click="match">matche</v-btn>
         <v-row>
             <v-col>
                 {{fileInfo}}
@@ -107,7 +108,7 @@ export default {
         return{
             loading:false,
             selected:[],
-            fileInfo:{name:'',downloadDate:'',totalAmount:0,count:0,bankName:''},
+            fileInfo:{name:'',downloadDate:'',totalAmount:0,count:0,bankName:'',imported:0},
             fileResult:[],
             search:'',
             headers:[
@@ -169,12 +170,32 @@ export default {
         },
         submitData(){
             const selectedItems = this.selected
+            this.fileInfo.imported = selectedItems.length
+            console.log(this.fileInfo)
+            console.log('length:',selectedItems.length)
             console.log(selectedItems)
-            this.$store.dispatch('pa/postImportfile',{fileinfo:this.fileInfo,data:selectedItems})
+            this.$axios.post('api/payment_agency/cir',{fileinfo:this.fileInfo,data:selectedItems})
             .then((response)=>{
-                console.log(response)
-                this.$router.push('/payment_agency/come_in_records/')
-                })
+                console.log('response:',response)
+                if(response.data.error){
+                    alert(response.data.message)
+                } else {
+                    console.log(response)
+                    alert('新規登録:'+ response.data.affectedRows + '\nResult:' + response.data.message)
+                }
+            })
+        },
+        match(){
+            console.log('cirArray:',this.selected)
+            const cirArray = this.selected
+            const answer = confirm('紐づけしますか？')
+            if(answer){
+                if(cirArray){
+                    this.$axios.put('api/payment_agency/matching',cirArray)
+                } else {
+                    alert('インポートデータがありません。')
+                }
+            }
         }
     }
 }
