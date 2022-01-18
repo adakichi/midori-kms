@@ -131,7 +131,7 @@ export default {
         csvDownload(){
             const json2csvParser = new Parser({header:true,withBOM:true})
             const exportText = json2csvParser.parse(this.comeInSchedulesList)
-            const link = createDownloadATag(exportText)
+            const link = createDownloadATag(exportText,'入金予定')
             link.click()
         }
     },

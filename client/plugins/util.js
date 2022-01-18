@@ -1,7 +1,8 @@
 
-export function createDownloadATag(exportText){
-    const textName = 'ExpCsv' + today + '.csv'
-    const today = Date(Date.now())
+function createDownloadATag(exportText,...csvTitle){
+    const today = new Date()
+    const todayStrings =today.getFullYear() + '_' + (today.getMonth()+1) + '_' + today.getDate() + ' ' + today.getHours() + today.getMinutes() + today.getSeconds()
+    const textName = 'ExpCsv ' + csvTitle + todayStrings + '.csv'
     const blob = new Blob([exportText],{type:'text/plain'})
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -9,7 +10,16 @@ export function createDownloadATag(exportText){
     return link
 }
 
-export function zenkana2Hankana(str) {
+
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+
+
+function zenkana2Hankana(str) {
     var kanaMap = {
          "ガ": "ｶﾞ", "ギ": "ｷﾞ", "グ": "ｸﾞ", "ゲ": "ｹﾞ", "ゴ": "ｺﾞ",
          "ザ": "ｻﾞ", "ジ": "ｼﾞ", "ズ": "ｽﾞ", "ゼ": "ｾﾞ", "ゾ": "ｿﾞ",
@@ -40,7 +50,7 @@ export function zenkana2Hankana(str) {
             .replace(/゜/g, 'ﾟ');
 };
 
-export function hankana2Zenkana(str) {
+function hankana2Zenkana(str) {
     var kanaMap = {
         'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ',
         'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ',
@@ -74,7 +84,7 @@ export function hankana2Zenkana(str) {
 
 
 //////////////銀行の変換用に小文字は大文字へ////////////////////////
-export function zenkana2BigHankana(str) {
+function zenkana2BigHankana(str) {
     var kanaMap = {
          "ガ": "ｶﾞ", "ギ": "ｷﾞ", "グ": "ｸﾞ", "ゲ": "ｹﾞ", "ゴ": "ｺﾞ",
          "ザ": "ｻﾞ", "ジ": "ｼﾞ", "ズ": "ｽﾞ", "ゼ": "ｾﾞ", "ゾ": "ｿﾞ",
@@ -104,3 +114,16 @@ export function zenkana2BigHankana(str) {
             .replace(/゛/g, 'ﾞ')
             .replace(/゜/g, 'ﾟ');
 };
+
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+export {
+    createDownloadATag,
+    zenkana2BigHankana,
+    zenkana2Hankana,   
+    hankana2Zenkana
+}

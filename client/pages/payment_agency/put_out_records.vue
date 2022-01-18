@@ -107,7 +107,7 @@ function convToOne(item){
 }
 
 //Dounload用のaタグ作成用関数
-import createDownloadATag from '/midori-kms/client/plugins/util.js'
+import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 
   //selectedからIDを取り出して配列にする
 function getIds(selected){
