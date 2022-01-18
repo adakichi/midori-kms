@@ -139,6 +139,8 @@ export default {
             if(!e){ 
                 return this.fileResult = []
             }
+            this.fileResult = []
+            this.selected = []
             let reader = new FileReader()
             reader.readAsText(e,'shift-jis')
             reader.onload = ()=>{
@@ -180,23 +182,27 @@ export default {
                 if(response.data.error){
                     alert(response.data.message)
                 } else {
-                    console.log(response)
+                    console.log('response:',response)
                     alert('新規登録:'+ response.data.affectedRows + '\nResult:' + response.data.message)
                     const doMatch = confirm('紐づけしますか？')
-                    if(doMatch){this.match(this.fileInfo.downloadDate)}
+                    if(doMatch){this.match(this.fileInfo.downloadDate,response.data.importfileId)}
                 }
             })
         },
-        match(importDate){
+        match(importDate,importfileId){
             console.log(importDate)
-            console.log('cirArray:',this.selected)
-            const cirArray = this.selected
-            if(cirArray){
-                this.$axios.post('api/payment_agency/matching',{cir:cirArray,baseDate:importDate})
-                .then(response=>{console.log(response);alert(response.data)})
-            } else {
-                alert('インポートデータがありません。')
-            }
+            console.log(importfileId)
+            this.$axios.post('api/payment_agency/matching',{importfileId:importfileId,baseDate:importDate})
+            .then(response=>{
+                console.log(response)
+                if(response.data.error){
+                    alert(response.data.message)
+                } else if(Array.isArray(response.data)) {
+                    const str = response.data.join(',')
+                    const count = response.data.length
+                    alert('成功:' + count + '件\nsucess row: ' + str)
+                }
+            })
         }
     }
 }

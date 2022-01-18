@@ -14,9 +14,13 @@ function createDownloadATag(exportText,...csvTitle){
 const matchCis = function(cis,cir){
     //cisとcirのマッチング処理
     //１．cirに受任番号がある場合
-        //受任番号マッチ　→　カナマッチ　→　filterd
-    //２．cirに受任番号が無い場合
-        //カナマッチ　    →　金額マッチ　→　filterd
+        //受任番号マッチ　
+            //カナマッチ
+                //日にちが　27日よりも以前であれば　→　filterd
+    //２．cirに受任番号が無い場合 もしくは１．でマッチしなかった場合
+        //カナマッチ
+            //金額マッチ
+                //日にちが　27日よりも以前であれば　→　filterd
 
     //受任番号でマッチ
     const matcheJyuninNum = function(jyuninNum,cisArray){
@@ -39,19 +43,32 @@ const matchCis = function(cis,cir){
         })
     }
 
+    //日付のマッチング。CIRの日付から27日後　よりも前の場合のみマッチングさせる
+    const matchDate = function(cirDate,cisDate){
+        const cirMoment = moment(cirDate)
+        const cisMoment = moment(cisDate).add(-27,'days')
+        //cisを27日減算した場合にcirよりも古い日付になればマッチしてOKにする（true)を返す。
+        return cisMoment.isBefore(cirMoment)
+    }
+
     //マッチングしたものをcisから削除する(重複をさける為)
     const matchedCisDelete = function(matchedCis,cisArray){
         return cisArray.filter((ele,index)=>{
             if(ele.come_in_schedules_id !== matchedCis.come_in_schedules_id){
                 return true
             } else {
-                console.log('del cis id:'+ matchedCis.come_in_schedules_id)
+
             }
         })
     }
 
     let filtered = []
     cir.forEach((cirlItem)=>{
+        //もしもCIS_IDにすでに登録があればマッチング処理はしない
+        if(cirlItem.come_in_schedules_id){ return }
+
+        //制御用です。
+        let isMatched = false
 
         if(cirlItem.customer_id){
         //①入金に受任番号があるかないか。
@@ -63,16 +80,17 @@ const matchCis = function(cis,cir){
 
                 if(nameMatchedArray.length !== 0){
                 //「カナ」もマッチした場合にfilterdに追加。
-                    filtered.push({cir:cirlItem,cis:nameMatchedArray[0]})
-                    cis = matchedCisDelete(nameMatchedArray[0],cis)
+                    console.log('matched:',cirlItem.actual_deposit_date,nameMatchedArray[0].payment_day)
+                    if(matchDate(cirlItem.actual_deposit_date,nameMatchedArray[0].payment_day)){
+                        filtered.push({cir:cirlItem,cis:nameMatchedArray[0]})
+                        cis = matchedCisDelete(nameMatchedArray[0],cis)    
+                    }
                 }
                 return
-            } else {
-            //受任番号がマッチしなかった場合はとりあえず、マッチングさせない。（数が増えてきたら検討する）
-                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
-                return
             }
-        } else {
+        } 
+        
+        if(isMatched === false ) {
             //②受任番号が無い場合
             const nameMatchedArray = matcheName(cirlItem.come_in_name,cis)
 
@@ -82,16 +100,21 @@ const matchCis = function(cis,cir){
 
                 if(amountMatched.length !== 0){
                 //金額もマッチングした場合filterdに追加。
-                    filtered.push({cir:cirlItem,cis:amountMatched[0]})
-                    cis = matchedCisDelete(amountMatched[0],cis)
+
+                console.log('is match?:',cirlItem.actual_deposit_date,amountMatched[0].payment_day)
+                   if(matchDate(cirlItem.actual_deposit_date,amountMatched[0])){
+                        filtered.push({cir:cirlItem,cis:amountMatched[0]})
+                        cis = matchedCisDelete(amountMatched[0],cis)
+                   }
                 }
                 return
             } else {
             //カナがマッチしなかったら終了。
-                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
+                // console.log('no matched [cir id]: ', cirlItem.come_in_records_id)
                 return
             }
         }
+
     })
     return filtered
 }

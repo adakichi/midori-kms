@@ -294,7 +294,7 @@ app.post('/biztel/hangup',(req,res)=>{
 app.get('/payment_agency/cir/',(req,res)=>{
   console.log('\n ---get payment_agensy/cir ---')
   const options = JSON.parse(JSON.stringify(req.query))
-  const sql = sqls.get_paymentAgency_cir(options)
+  const sql = sqls.get_payment_agency_cir(options)
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
@@ -306,12 +306,12 @@ app.get('/payment_agency/cir/',(req,res)=>{
 app.post('/payment_agency/cir/', (req,res)=>{
   //最初にfileinfoの登録をしたあとにcirの登録。（fileinfoのId取得の為)
   console.log('\n --- post pa/cir ---')
-  const convertedImportFile = sqls.post_paymentAgency_cir.convertImportFile(req.body.fileinfo)
+  const convertedImportFile = sqls.post_payment_agency_cir.convertImportFile(req.body.fileinfo)
     const importfileSql = convertedImportFile.sql
     const fileinfoArray = convertedImportFile.valuesArray
   console.log('fileinfo:',convertedImportFile)
   db.beginTransaction((err)=>{
-    if(err){console.log(err); throw err }
+    if(err){ throw err }
     db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
       if(err){
         console.log(err)
@@ -321,7 +321,8 @@ app.post('/payment_agency/cir/', (req,res)=>{
       }
       console.log(' > insert fileinfo is OK')
       console.log(' > insert val -> ' + row.insertId)
-      const convertedCir   = sqls.post_paymentAgency_cir.convertCir(req.body.data, row.insertId)
+      const fileNumber = row.insertId
+      const convertedCir   = sqls.post_payment_agency_cir.convertCir(req.body.data, row.insertId)
         const insertValArray = convertedCir.valuesArray
         const cirSql         = convertedCir.sql
       db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
@@ -343,6 +344,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
             })
           }
           console.log('success!')
+          row2.importfileId = fileNumber
           res.send(row2)
         })
       })
@@ -352,23 +354,38 @@ app.post('/payment_agency/cir/', (req,res)=>{
 
 //入金実績の読み込み時のCIS と CIRのマッチング処理
 app.post('/payment_agency/matching',(req,res)=>{
-  //cirとbaseDateがくる。
+  //insert したimportfile_idとbaseDateがくる。
   console.log('\n--- post payment_agency/matching ----')
   const baseDate = req.body.baseDate
-  const cir = req.body.cir
-  const options = {
+  const fileId = req.body.importfileId
+  const cisOptions = {
     until:moment(baseDate).add(27,'days').format('YYYY-MM-DD')
   }
-  const getCisSql = sqls.get_payment_agency_cis({options})
-  db.query(getCisSql,baseDate,(err,row,fields)=>{
+  const cirOptions = {
+    importfileId:fileId,
+    paid:'false'
+  }
+  const getCirSql = sqls.get_payment_agency_cir(cirOptions)
+  const getCisSql = sqls.get_payment_agency_cis(cisOptions)
+  console.log('cir sql:',getCirSql)
+  console.log('-------------------')
+  console.log('cis sql:',getCisSql)
+  db.query(getCirSql,(err,row,field)=>{
     if(err){throw err}
-    const cis = row
-    const matchedArray = matchCis(cis,cir)
-    Promise.all(req.body.map(arr=>{
-      return transaction(arr)
-    })).then((response)=>{
-      res.send(response)
-    })  
+    const cir = row
+    console.log('cir:',cir.length)
+    db.query(getCisSql,baseDate,(err2,row2,fields)=>{
+      if(err2){throw err2}
+      const cis = row2
+      console.log('cis:',cis.length)
+      const matchedArray = matchCis(cis,cir)
+      Promise.all(matchedArray.map(arr=>{
+        return transaction(arr)
+      })).then((response)=>{
+        console.log(response)
+        res.send(response)
+      })  
+    })
   })
 })
 
@@ -413,8 +430,6 @@ app.put('/payment_agency/matching',(req,res)=>{
       const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = ?  WHERE come_in_schedules_id = ?;'
       const cirVal = [cisId,cisCustomerId,cirId]
       const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = ? ,customer_id = ? WHERE come_in_records_id = ?;'
-      console.log('cisVal',cisVal)
-      console.log('cirVal',cirVal)
       db.beginTransaction((err)=>{
         if(err){ throw err}
         db.query(cisSql,cisVal,(err,row,fields)=>{
@@ -425,8 +440,6 @@ app.put('/payment_agency/matching',(req,res)=>{
             })
           }
         })
-        console.log('cis sucess: ' + cisVal)
-        console.log('next: ' + cirVal)
         db.query(cirSql,cirVal,(err,row,fields)=>{
           if(err){
             console.log(err)
@@ -442,7 +455,8 @@ app.put('/payment_agency/matching',(req,res)=>{
               })
             }
             console.log('success!')
-            resolve('success')
+            console.log(data.cir)
+            resolve(data.cir.file_row_number)
           })
         })
       })

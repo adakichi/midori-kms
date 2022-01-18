@@ -7,29 +7,34 @@ export const sqls = {
     /////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////
 
-    get_paymentAgency_cir : function(options){
+    get_payment_agency_cir : function(options){
         //optionsは
         //[paid] trueなら支払い済みを検索,falseならまだ支払いしてないものを。
+        //[importfileId]がある場合はimportfile_id検索追加
+        console.log('options:',options)
         let sql = 'SELECT come_in_records_id, customer_id, come_in_name, '
         sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, '
         sql = sql + 'case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, '
-        sql = sql + 'delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id FROM come_in_records'
+        sql = sql + 'delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id, file_row_number FROM come_in_records'
         
         const paid = options.paid
         //paid判定
         switch(paid){
             case 'false':
-              sql = sql + ' WHERE come_in_schedules_id IS NULL;'
+              sql = sql + ' WHERE come_in_schedules_id IS NULL'
               break
             case 'true':
-              sql = sql + ' WHERE come_in_schedules_id IS NOT NULL;'
+              sql = sql + ' WHERE come_in_schedules_id IS NOT NULL'
               break
             }
-
+        if(options.importfileId){
+          sql = sql + ' AND importfile_id = ' + options.importfileId
+        }
+        sql = sql + ';'
         return sql
     },
 
-    post_paymentAgency_cir:{
+    post_payment_agency_cir:{
       //2つの関数
       //importFile用　と　sir用
       //戻り値はsqlとvaluesArrayです。
@@ -95,10 +100,11 @@ export const sqls = {
   /////////////////////////////////////////////////////////
 
 
-  get_payment_agency_cis:function(...options){
+  get_payment_agency_cis:function(options){
     //optionにfromとuntilがある場合はその範囲
     //片方だけの場合は片方のみ。
     //無い場合には今日から30日で取得する。
+    console.log('get payment~ options:',options)
     let from = ''
     let until = ''
     let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
