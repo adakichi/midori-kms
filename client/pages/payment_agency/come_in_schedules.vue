@@ -44,6 +44,10 @@
                     </div>
                     <v-btn @click="searchSchedules">検索</v-btn>
                 </v-app-bar>
+                <v-app-bar>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="csvDownload">CSVダウンロード</v-btn>
+                </v-app-bar>
             </v-col>
         </v-row>    
         <v-row>
@@ -83,6 +87,8 @@
 </template>
 
 <script>
+import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
+const {Parser} = require('json2csv')
 export default {
     layout : 'pa',
     data(){
@@ -121,6 +127,14 @@ export default {
             console.log(e)
             const strToNum = parseInt(e.customer_id, 10)
             this.$router.push('/payment_agency/customers/'+strToNum)
+        },
+        csvDownload(){
+            const fields = ['customer_id','lu_id','name','payment_day','expected_amount']
+            // const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
+            const json2csvParser = new Parser({header:true,withBOM:true})
+            const exportText = json2csvParser.parse(this.comeInSchedulesList)
+            const link = createDownloadATag(exportText)
+            link.click()
         }
     },
     created(){

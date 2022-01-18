@@ -106,16 +106,8 @@ function convToOne(item){
     }
 }
 
-  //Dounload用のaタグ作成用関数
-function createDownloadATag(exportText){
-    const textName = 'ExpCsv' + today + '.csv'
-    const today = Date(Date.now())
-    const blob = new Blob([exportText],{type:'text/plain'})
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = textName
-    return link
-}
+//Dounload用のaタグ作成用関数
+import createDownloadATag from '/midori-kms/client/plugins/util.js'
 
   //selectedからIDを取り出して配列にする
 function getIds(selected){
@@ -176,7 +168,7 @@ export default {
         downloadCsv(){
             const total = totalAmount(this.selected)
             const fields = ['payment_schedule_id', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','name']
-            const json2csvParser = new Parser({transforms:[convToOne] ,fields:fields,header:false,withBOM:true})
+            const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
             let exportText = json2csvParser.parse(this.selected)
             exportText = exportText + '\n"2",,,,,' + this.selected.length + ',' + total + ',' 
             const link = createDownloadATag(exportText)
