@@ -9,8 +9,9 @@ const moment = require('moment')
 const fs = require('fs')
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
-import {sqls} from '../client/plugins/sqls.js'
 
+import {sqls} from '../client/plugins/sqls.js'
+import {matchCis} from '../client/plugins/util.js'
 
 app.use(cors())
 app.use(domain)
@@ -349,21 +350,43 @@ app.post('/payment_agency/cir/', (req,res)=>{
   })
 })
 
+//入金実績の読み込み時のCIS と CIRのマッチング処理
+app.post('/payment_agency/matching',(req,res)=>{
+  //cirとbaseDateがくる。
+  console.log('\n--- post payment_agency/matching ----')
+  const baseDate = req.body.baseDate
+  const cir = req.body.cir
+  const options = {
+    until:moment(baseDate).add(27,'days').format('YYYY-MM-DD')
+  }
+  const getCisSql = sqls.get_payment_agency_cis({options})
+  db.query(getCisSql,baseDate,(err,row,fields)=>{
+    if(err){throw err}
+    const cis = row
+    const matchedArray = matchCis(cis,cir)
+    Promise.all(req.body.map(arr=>{
+      return transaction(arr)
+    })).then((response)=>{
+      res.send(response)
+    })  
+  })
+})
+
 //CIS と CIRのマッチング処理
 app.put('/payment_agency/matching',(req,res)=>{
 //CISとCIRがくるので、
  //CIRにはCISの[come_in_schedules_id]を登録 [customer_id]も登録しよう。
  //CISにはCIRの[come_in_records_id]を登録
- console.log(req.body)
- const baseDate = Date()
- const cis = beforeAndAfterCis(baseDate)
- console.log(cis)
-  // console.log(req.body.length)
-  // Promise.all(req.body.map(arr=>{
-  //   return transaction(arr)
-  // })).then((response)=>{
-  //   res.send(response)
-  // })
+//  console.log(req.body)
+//  const baseDate = Date()
+//  const cis = beforeAndAfterCis(baseDate)
+//  console.log(cis)
+  console.log(req.body.length)
+  Promise.all(req.body.map(arr=>{
+    return transaction(arr)
+  })).then((response)=>{
+    res.send(response)
+  })
 })
 
   //app.put('/payment_agency/matching'用の関数
@@ -390,8 +413,8 @@ app.put('/payment_agency/matching',(req,res)=>{
       const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = ?  WHERE come_in_schedules_id = ?;'
       const cirVal = [cisId,cisCustomerId,cirId]
       const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = ? ,customer_id = ? WHERE come_in_records_id = ?;'
-      console.log(cisVal)
-      console.log(cirVal)
+      console.log('cisVal',cisVal)
+      console.log('cirVal',cirVal)
       db.beginTransaction((err)=>{
         if(err){ throw err}
         db.query(cisSql,cisVal,(err,row,fields)=>{
@@ -431,27 +454,7 @@ app.put('/payment_agency/matching',(req,res)=>{
 //get come in schedules
 app.get('/payment_agency/cis/',(req,res)=>{
   console.log(req.query)
-  let from = ''
-  let until = ''
-  let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
-      sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.lu_id FROM come_in_schedules as cis '
-      sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
-  if(req.query.from && req.query.until){
-    from  = req.query.from
-    until = req.query.until
-    sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '" ORDER BY payment_day;'
-  } else if(req.query.until){
-    until = req.query.until
-    sql = sql + 'WHERE cis.payment_day < "' + until + '" ORDER BY payment_day;'
-  } else if(req.query.from){
-    from = req.query.from
-    sql = sql + 'WHERE cis.payment_day > "' + from + '" ORDER BY payment_day;'
-  } else {
-    from = moment().format('YYYY-MM-DD')
-    until = moment().add(30,'days').format('YYYY-MM-DD')
-    sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '" ORDER BY payment_day;'
-  }
-  console.log(sql)
+  const sql = sqls.get_payment_agency_cis(req.query)
   db.query(sql,(err,rows,fields)=>{
     if(err){res.send(err)}
     console.log('\n--- /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')

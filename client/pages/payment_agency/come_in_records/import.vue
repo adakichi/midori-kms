@@ -18,7 +18,7 @@
                 </v-app-bar>
             </v-col>
         </v-row>
-        <v-btn @click="match">matche</v-btn>
+        <v-btn @click="match">match</v-btn>
         <v-row>
             <v-col>
                 {{fileInfo}}
@@ -182,19 +182,20 @@ export default {
                 } else {
                     console.log(response)
                     alert('新規登録:'+ response.data.affectedRows + '\nResult:' + response.data.message)
+                    const doMatch = confirm('紐づけしますか？')
+                    if(doMatch){this.match(this.fileInfo.downloadDate)}
                 }
             })
         },
-        match(){
+        match(importDate){
+            console.log(importDate)
             console.log('cirArray:',this.selected)
             const cirArray = this.selected
-            const answer = confirm('紐づけしますか？')
-            if(answer){
-                if(cirArray){
-                    this.$axios.put('api/payment_agency/matching',cirArray)
-                } else {
-                    alert('インポートデータがありません。')
-                }
+            if(cirArray){
+                this.$axios.post('api/payment_agency/matching',{cir:cirArray,baseDate:importDate})
+                .then(response=>{console.log(response);alert(response.data)})
+            } else {
+                alert('インポートデータがありません。')
             }
         }
     }

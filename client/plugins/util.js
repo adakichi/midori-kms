@@ -1,3 +1,4 @@
+const moment = require('moment')
 
 function createDownloadATag(exportText,...csvTitle){
     const today = new Date()
@@ -10,6 +11,90 @@ function createDownloadATag(exportText,...csvTitle){
     return link
 }
 
+const matchCis = function(cis,cir){
+    //cisとcirのマッチング処理
+    //１．cirに受任番号がある場合
+        //受任番号マッチ　→　カナマッチ　→　filterd
+    //２．cirに受任番号が無い場合
+        //カナマッチ　    →　金額マッチ　→　filterd
+
+    //受任番号でマッチ
+    const matcheJyuninNum = function(jyuninNum,cisArray){
+        return cisArray.filter((ele)=>{
+            return jyuninNum === ele.customer_id
+        })
+    }
+
+    //名前の間のスペースはトリミングする。※銀行によってスペースがあったりなかったりする為。
+    const matcheName = function(name,cisArray){
+        return cisArray.filter((ele)=>{
+            return zenkana2BigHankana(name.replace(/\s+/g, "")) === zenkana2BigHankana(String(ele.kana).replace(/\s+/g, ""))
+        })
+    }
+
+    //金額でマッチング
+    const matcheAmount = function(amount,cisArray){
+        return cisArray.filter((ele)=>{
+            return amount === ele.amount
+        })
+    }
+
+    //マッチングしたものをcisから削除する(重複をさける為)
+    const matchedCisDelete = function(matchedCis,cisArray){
+        return cisArray.filter((ele,index)=>{
+            if(ele.come_in_schedules_id !== matchedCis.come_in_schedules_id){
+                return true
+            } else {
+                console.log('del cis id:'+ matchedCis.come_in_schedules_id)
+            }
+        })
+    }
+
+    let filtered = []
+    cir.forEach((cirlItem)=>{
+
+        if(cirlItem.customer_id){
+        //①入金に受任番号があるかないか。
+
+            const customerIdMatchedArray = matcheJyuninNum(cirlItem.customer_id,cis)
+            if(customerIdMatchedArray.length !== 0){
+            //受任番号がマッチした配列について「カナ」のマッチング処理
+                const nameMatchedArray = matcheName(cirlItem.come_in_name,customerIdMatchedArray)
+
+                if(nameMatchedArray.length !== 0){
+                //「カナ」もマッチした場合にfilterdに追加。
+                    filtered.push({cir:cirlItem,cis:nameMatchedArray[0]})
+                    cis = matchedCisDelete(nameMatchedArray[0],cis)
+                }
+                return
+            } else {
+            //受任番号がマッチしなかった場合はとりあえず、マッチングさせない。（数が増えてきたら検討する）
+                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
+                return
+            }
+        } else {
+            //②受任番号が無い場合
+            const nameMatchedArray = matcheName(cirlItem.come_in_name,cis)
+
+            if(nameMatchedArray.length !== 0){
+            //カナがマッチした配列について、金額でマッチング
+                const amountMatched = matcheAmount(cirlItem.amount,nameMatchedArray)
+
+                if(amountMatched.length !== 0){
+                //金額もマッチングした場合filterdに追加。
+                    filtered.push({cir:cirlItem,cis:amountMatched[0]})
+                    cis = matchedCisDelete(amountMatched[0],cis)
+                }
+                return
+            } else {
+            //カナがマッチしなかったら終了。
+                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
+                return
+            }
+        }
+    })
+    return filtered
+}
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -115,6 +200,16 @@ function zenkana2BigHankana(str) {
             .replace(/゜/g, 'ﾟ');
 };
 
+
+const getNextMonth = function(){
+    return moment().add(27,'days').format('YYYY-MM-DD')
+}
+
+const getLastMonth = function(){
+    return moment().add(-27,'days').format('YYYY-MM-DD')
+}
+
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -123,7 +218,11 @@ function zenkana2BigHankana(str) {
 
 export {
     createDownloadATag,
+    matchCis,
+    ////////////////////
     zenkana2BigHankana,
     zenkana2Hankana,   
-    hankana2Zenkana
+    hankana2Zenkana,
+    getNextMonth,
+    getLastMonth
 }

@@ -65,108 +65,11 @@
 </template>
 
 <script>
-import {zenkana2BigHankana} from '/midori-kms/client/plugins/util.js'
 import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
+import {getNextMonth}       from '/midori-kms/client/plugins/util.js'
+import {getLastMonth}       from '/midori-kms/client/plugins/util.js'
+import {matchCis}           from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
-
-const getNextMonth = function(){
-    let today = new Date()
-    today.setDate(today.getDate()+27)
-    const nextMonth = today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate()
-    return nextMonth
-}
-
-const getLastMonth = function(){
-    let today = new Date()
-    today.setDate(today.getDate()-27)
-    const lastMonth = today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate()
-    return lastMonth
-}
-
-const matchCis = function(cis,cir){
-    //cisとcirのマッチング処理
-    //１．cirに受任番号がある場合
-        //受任番号マッチ　→　カナマッチ　→　filterd
-    //２．cirに受任番号が無い場合
-        //カナマッチ　    →　金額マッチ　→　filterd
-
-    //受任番号でマッチ
-    const matcheJyuninNum = function(jyuninNum,cisArray){
-        return cisArray.filter((ele)=>{
-            return jyuninNum === ele.customer_id
-        })
-    }
-
-    //名前の間のスペースはトリミングする。※銀行によってスペースがあったりなかったりする為。
-    const matcheName = function(name,cisArray){
-        return cisArray.filter((ele)=>{
-            return zenkana2BigHankana(name.replace(/\s+/g, "")) === zenkana2BigHankana(String(ele.kana).replace(/\s+/g, ""))
-        })
-    }
-
-    //金額でマッチング
-    const matcheAmount = function(amount,cisArray){
-        return cisArray.filter((ele)=>{
-            return amount === ele.amount
-        })
-    }
-
-    //マッチングしたものをcisから削除する(重複をさける為)
-    const matchedCisDelete = function(matchedCis,cisArray){
-        return cisArray.filter((ele,index)=>{
-            if(ele.come_in_schedules_id !== matchedCis.come_in_schedules_id){
-                return true
-            } else {
-                console.log('del cis id:'+ matchedCis.come_in_schedules_id)
-            }
-        })
-    }
-
-    let filtered = []
-    cir.forEach((cirlItem)=>{
-
-        if(cirlItem.customer_id){
-        //①入金に受任番号があるかないか。
-
-            const customerIdMatchedArray = matcheJyuninNum(cirlItem.customer_id,cis)
-            if(customerIdMatchedArray.length !== 0){
-            //受任番号がマッチした配列について「カナ」のマッチング処理
-                const nameMatchedArray = matcheName(cirlItem.come_in_name,customerIdMatchedArray)
-
-                if(nameMatchedArray.length !== 0){
-                //「カナ」もマッチした場合にfilterdに追加。
-                    filtered.push({cir:cirlItem,cis:nameMatchedArray[0]})
-                    cis = matchedCisDelete(nameMatchedArray[0],cis)
-                }
-                return
-            } else {
-            //受任番号がマッチしなかった場合はとりあえず、マッチングさせない。（数が増えてきたら検討する）
-                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
-                return
-            }
-        } else {
-            //②受任番号が無い場合
-            const nameMatchedArray = matcheName(cirlItem.come_in_name,cis)
-
-            if(nameMatchedArray.length !== 0){
-            //カナがマッチした配列について、金額でマッチング
-                const amountMatched = matcheAmount(cirlItem.amount,nameMatchedArray)
-
-                if(amountMatched.length !== 0){
-                //金額もマッチングした場合filterdに追加。
-                    filtered.push({cir:cirlItem,cis:amountMatched[0]})
-                    cis = matchedCisDelete(amountMatched[0],cis)
-                }
-                return
-            } else {
-            //カナがマッチしなかったら終了。
-                console.log('no matched [cir id]: '+ cirlItem.come_in_records_id)
-                return
-            }
-        }
-    })
-    return filtered
-}
 
 export default {
     layout : 'pa',
@@ -221,13 +124,13 @@ export default {
             const cir = this.comeInRecordsList
             const cis  = this.cis
             const matched = matchCis(cis,cir)
-            console.log(cir)
-            console.log(cis)
-            console.log(matched)
+            console.log('cir:',cir)
+            console.log('cis:',cis)
+            console.log('matched:',matched)
             //マッチした配列をapi/indexに投げて、登録処理を作る。
             this.$axios.put('api/payment_agency/matching',matched)
             .then((response)=>{
-                console.log(response.data)
+                console.log('response: ',response.data)
             })
         },
         csvDownload(){

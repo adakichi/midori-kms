@@ -1,5 +1,11 @@
-
+const moment = require('moment')
 export const sqls = {
+    //CIR -----------------------------------------------
+    /////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
 
     get_paymentAgency_cir : function(options){
         //optionsは
@@ -78,6 +84,38 @@ export const sqls = {
       }
       return result
     }
+  },
+
+
+  //CIS
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+
+
+  get_payment_agency_cis:function(...options){
+    //optionにfromとuntilがある場合はその範囲
+    //片方だけの場合は片方のみ。
+    //無い場合には今日から30日で取得する。
+    let from = ''
+    let until = ''
+    let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
+        sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.lu_id FROM come_in_schedules as cis '
+        sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
+    if(options.from && options.until){
+      sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '" ORDER BY payment_day;'
+    } else if(options.until){
+      sql = sql + 'WHERE cis.payment_day < "' + options.until + '" ORDER BY payment_day;'
+    } else if(options.from){
+      sql = sql + 'WHERE cis.payment_day > "' + options.from + '" ORDER BY payment_day;'
+    } else {
+      from = moment().format('YYYY-MM-DD')
+      until = moment().add(30,'days').format('YYYY-MM-DD')
+      sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '" ORDER BY payment_day;'
+    }
+    return sql
   }
 
 }
