@@ -96,7 +96,7 @@ const setFileInfo =function(name,parsedCsv,thisObj){
 
 //インポートしたCSVからデータカラムのみ抽出
 const selectDataColumns= function(lines){
-    return lines.filter(line => { return line[0] == '2'})
+    return lines.filter(line => { return line[0] == '2' && line[4] == '1'})
 }
 
 
