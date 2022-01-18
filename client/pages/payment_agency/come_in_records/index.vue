@@ -16,14 +16,12 @@
                         <v-radio label="入金済" value="true"></v-radio>
                         <v-radio label="両方" value="both"></v-radio>
                     </v-radio-group>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="match">Match</v-btn>
+                    <v-btn @click="csvDownload">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>
             </v-col>
         </v-row>
-        <v-row>
-            <v-col>
-                <v-btn @click="match">Match</v-btn>
-            </v-col>
-        </v-row>    
         <v-row>
             <v-col>
                 <v-data-table
@@ -67,37 +65,9 @@
 </template>
 
 <script>
-function zenkana2BigHankana(str) {
-    var kanaMap = {
-         "ガ": "ｶﾞ", "ギ": "ｷﾞ", "グ": "ｸﾞ", "ゲ": "ｹﾞ", "ゴ": "ｺﾞ",
-         "ザ": "ｻﾞ", "ジ": "ｼﾞ", "ズ": "ｽﾞ", "ゼ": "ｾﾞ", "ゾ": "ｿﾞ",
-         "ダ": "ﾀﾞ", "ヂ": "ﾁﾞ", "ヅ": "ﾂﾞ", "デ": "ﾃﾞ", "ド": "ﾄﾞ",
-         "バ": "ﾊﾞ", "ビ": "ﾋﾞ", "ブ": "ﾌﾞ", "ベ": "ﾍﾞ", "ボ": "ﾎﾞ",
-         "パ": "ﾊﾟ", "ピ": "ﾋﾟ", "プ": "ﾌﾟ", "ペ": "ﾍﾟ", "ポ": "ﾎﾟ",
-         "ヴ": "ｳﾞ", "ヷ": "ﾜﾞ", "ヺ": "ｦﾞ",
-         "ア": "ｱ", "イ": "ｲ", "ウ": "ｳ", "エ": "ｴ", "オ": "ｵ",
-         "カ": "ｶ", "キ": "ｷ", "ク": "ｸ", "ケ": "ｹ", "コ": "ｺ",
-         "サ": "ｻ", "シ": "ｼ", "ス": "ｽ", "セ": "ｾ", "ソ": "ｿ",
-         "タ": "ﾀ", "チ": "ﾁ", "ツ": "ﾂ", "テ": "ﾃ", "ト": "ﾄ",
-         "ナ": "ﾅ", "ニ": "ﾆ", "ヌ": "ﾇ", "ネ": "ﾈ", "ノ": "ﾉ",
-         "ハ": "ﾊ", "ヒ": "ﾋ", "フ": "ﾌ", "ヘ": "ﾍ", "ホ": "ﾎ",
-         "マ": "ﾏ", "ミ": "ﾐ", "ム": "ﾑ", "メ": "ﾒ", "モ": "ﾓ",
-         "ヤ": "ﾔ", "ユ": "ﾕ", "ヨ": "ﾖ",
-         "ラ": "ﾗ", "リ": "ﾘ", "ル": "ﾙ", "レ": "ﾚ", "ロ": "ﾛ",
-         "ワ": "ﾜ", "ヲ": "ｦ", "ン": "ﾝ",
-         "ァ": "ｱ", "ィ": "ｲ", "ゥ": "ｳ", "ェ": "ｴ", "ォ": "ｵ",
-         "ッ": "ﾂ", "ャ": "ﾔ", "ュ": "ﾕ", "ョ": "ﾖ",
-         "。": "｡", "、": "､", "ー": "ｰ", "「": "｢", "」": "｣", "・": "･"
-    }
-    var reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
-    return str
-            .replace(reg, function (match) {
-                return kanaMap[match];
-            })
-            .replace(/゛/g, 'ﾞ')
-            .replace(/゜/g, 'ﾟ');
-};
-
+import zenkana2BigHankana from '/midori-kms/client/plugins/util.js'
+import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
+const {Parser} = require('json2csv')
 
 const getNextMonth = function(){
     let today = new Date()
@@ -259,6 +229,12 @@ export default {
             .then((response)=>{
                 console.log(response.data)
             })
+        },
+        csvDownload(){
+            const json2csvParser = new Parser({header:true,withBOM:true})
+            const exportText = json2csvParser.parse(this.comeInRecordsList)
+            const link = createDownloadATag(exportText)
+            link.click()
         }
     },  
     created(){

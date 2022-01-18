@@ -48,7 +48,7 @@
                 </v-app-bar>
                 <v-app-bar>
                     <v-spacer></v-spacer>
-                    <v-btn @click="downloadCsv">CSV出力</v-btn>
+                    <v-btn @click="downloadCsv">CSV出力<v-icon>mdi-download</v-icon></v-btn>
                     <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
                     <v-btn @click="confirmPayments">出金確定</v-btn>
                     <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>

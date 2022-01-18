@@ -46,7 +46,7 @@
                 </v-app-bar>
                 <v-app-bar>
                     <v-spacer></v-spacer>
-                    <v-btn @click="csvDownload">CSVダウンロード</v-btn>
+                    <v-btn @click="csvDownload">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>
             </v-col>
         </v-row>    
@@ -129,8 +129,6 @@ export default {
             this.$router.push('/payment_agency/customers/'+strToNum)
         },
         csvDownload(){
-            const fields = ['customer_id','lu_id','name','payment_day','expected_amount']
-            // const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
             const json2csvParser = new Parser({header:true,withBOM:true})
             const exportText = json2csvParser.parse(this.comeInSchedulesList)
             const link = createDownloadATag(exportText)
