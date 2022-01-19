@@ -159,14 +159,15 @@ export const sqls = {
 
     //bankname
     if(bankname !== 'all'){
-      if(downloadDate.from || downloadDate.until){
+      if(sql.indexOf('WHERE')){
         sql = sql + 'AND bankname = "' + bankname + '" '
       } else {
         sql = sql + 'WHERE bankname = "' + bankname + '" '
       }
     }
-
-    sql + sql + ' ORDER BY date DESC;'
+    console.log('bankname',bankname)
+    console.log('date',downloadDate)
+    sql = sql + ' ORDER BY date DESC;'
     return sql
   }
 }

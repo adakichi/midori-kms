@@ -72,7 +72,7 @@ export default {
             search:'',
             importfiles:[],
             menu:false,
-            bank:'',
+            bank:'all',
             dateRange:[],
             headers:[
                 { text:'id',       value:'importfile_id'},
@@ -105,8 +105,9 @@ export default {
     },
     created(){
         const options = {
+            bankName:'all'
         }
-        this.$axios.get('api/payment_agency/cir/importfile',options)
+        this.$axios.get('api/payment_agency/cir/importfile',{params:options})
         .then((response)=>{
             this.importfiles = response.data
         })

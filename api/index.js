@@ -336,16 +336,20 @@ app.post('/payment_agency/cir/', (req,res)=>{
             throw err2
           })
         }
-        db.commit((err)=>{
-          if(err){
-            console.log('failed Commit!!')
-            return db.rollback(()=>{
-              throw err
-            })
-          }
-          console.log('success!')
-          row2.importfileId = fileNumber
-          res.send(row2)
+        const updateImportfileSql = 'UPDATE importfile_for_come_in_records SET imported_number = (SELECT count(importfile_id) FROM come_in_records WHERE importfile_id = ?) WHERE importfile_id = ?;'
+        db.query(updateImportfileSql,[fileNumber,fileNumber],(err3,rows3,fields3)=>{
+          if(err3){throw err3 }
+          db.commit((err)=>{
+            if(err){
+              console.log('failed Commit!!')
+              return db.rollback(()=>{
+                throw err
+              })
+            }
+            console.log('success!')
+            row2.importfileId = fileNumber
+            res.send(row2)
+          })  
         })
       })
     })
@@ -357,6 +361,7 @@ app.get('/payment_agency/cir/importfile',(req,res)=>{
   console.log('--- get importfile ---')
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.importfile_select(options)
+  console.log(sql)
   db.query(sql,(err,rows,fields)=>{
     if(err){ throw err }
     console.log('--- success!!(get importfile) ' + rows.length + '件 ---')
