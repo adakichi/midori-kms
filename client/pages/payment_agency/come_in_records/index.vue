@@ -9,6 +9,7 @@
                     <v-spacer></v-spacer>
                 <v-btn @click="goImport">インポート</v-btn>
                 <v-btn @click="upda">こうしん</v-btn>
+                <v-btn @click="goImportfile">インポートファイル一覧</v-btn>
                 </v-app-bar>
                 <v-app-bar>
                     <v-radio-group v-model="radioPaid" row>
@@ -162,6 +163,9 @@ export default {
         },
         goImport(){
             this.$router.push('/payment_agency/come_in_records/import')
+        },
+        goImportfile(){
+            this.$router.push('/payment_agency/come_in_records/importfile')
         },
         csvDownload(){
             const json2csvParser = new Parser({header:true,withBOM:true})

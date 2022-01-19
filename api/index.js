@@ -352,6 +352,18 @@ app.post('/payment_agency/cir/', (req,res)=>{
   })
 })
 
+//importfilesのdataを取得する
+app.get('/payment_agency/cir/importfile',(req,res)=>{
+  console.log('--- get importfile ---')
+  const options = JSON.parse(JSON.stringify(req.query))
+  const sql = sqls.importfile_select(options)
+  db.query(sql,(err,rows,fields)=>{
+    if(err){ throw err }
+    console.log('--- success!!(get importfile) ' + rows.length + '件 ---')
+    res.send(rows)
+  })
+})
+
 //入金実績の読み込み時のCIS と CIRのマッチング処理
 app.post('/payment_agency/matching',(req,res)=>{
   //insert したimportfile_idとbaseDateがくる。

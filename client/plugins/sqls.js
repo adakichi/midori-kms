@@ -139,6 +139,34 @@ export const sqls = {
     sql = sql + ' ORDER BY payment_day;'
     console.log('sql',sql)
     return sql
-  }
+  },
 
+  importfile_select:function(options){
+    const downloadDate = options.downloadDate
+    const bankname = options.bankName
+    let sql = 'SELECT * , date_format(download_date, "%Y/%m/%d")as date FROM importfile_for_come_in_records '
+    if(downloadDate){
+      const from = downloadDate.from
+      const until = downloadDate.until
+      if(from && until){
+        sql = sql + 'WHERE downloadDate "' + from + '" BETWEEN "' + until + '" '
+      } else if(from){
+        sql = sql + 'WHERE downloadDate < "' + from + '" '
+      } else if(until){
+        sql = sql + 'WHERE downloadDate > "' + until + '" '
+      }
+    }
+
+    //bankname
+    if(bankname !== 'all'){
+      if(downloadDate.from || downloadDate.until){
+        sql = sql + 'AND bankname = "' + bankname + '" '
+      } else {
+        sql = sql + 'WHERE bankname = "' + bankname + '" '
+      }
+    }
+
+    sql + sql + ' ORDER BY date DESC;'
+    return sql
+  }
 }
