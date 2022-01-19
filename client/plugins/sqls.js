@@ -81,6 +81,7 @@ export const sqls = {
       for(let i = 1; i < insertValArray.length ; i++){
         cirSql = cirSql + ',(?)'
       }
+      
       cirSql = cirSql + ';'
 
       const result = {
@@ -111,16 +112,32 @@ export const sqls = {
         sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.lu_id FROM come_in_schedules as cis '
         sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
     if(options.from && options.until){
-      sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '" ORDER BY payment_day;'
+      sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '"'
     } else if(options.until){
-      sql = sql + 'WHERE cis.payment_day < "' + options.until + '" ORDER BY payment_day;'
+      sql = sql + 'WHERE cis.payment_day < "' + options.until + '"'
     } else if(options.from){
-      sql = sql + 'WHERE cis.payment_day > "' + options.from + '" ORDER BY payment_day;'
+      sql = sql + 'WHERE cis.payment_day > "' + options.from + '"'
     } else {
       from = moment().format('YYYY-MM-DD')
       until = moment().add(30,'days').format('YYYY-MM-DD')
-      sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '" ORDER BY payment_day;'
+      sql = sql + 'WHERE cis.payment_day BETWEEN "' + from + '" AND "' + until + '"'
     }
+
+    if(options.searchType){
+      switch(options.searchType){
+        case 'kana':
+          sql = sql + ' AND customers.kana LIKE "%' + options.searchText + '%"'
+          break
+        case 'jyunin':
+          sql = sql + ' AND cis.customer_id = ' + options.searchText
+          break
+        case 'kingaku':
+          sql = sql + ' AND expected_amount = ' + options.searchText
+        break
+      }
+    }
+    sql = sql + ' ORDER BY payment_day;'
+    console.log('sql',sql)
     return sql
   }
 

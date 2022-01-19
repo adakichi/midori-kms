@@ -97,6 +97,7 @@ export default {
             dateRange:[],
             search:'',
             headers:[
+                { text:'cis-id', value:'come_in_schedules_id'},
                 { text:'customer_id', value:'customer_id'},
                 { text:'name', value:'name'},
                 { text:'LU', value:'lu_id'},

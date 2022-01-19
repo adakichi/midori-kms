@@ -36,6 +36,9 @@
                 show-group-by
                 dense
                 >
+                <template v-slot:item.action="{ item }" >
+                    <v-btn @click="openDialog(item)"><v-icon>mdi-handshake</v-icon></v-btn>
+                </template>
                 <template v-slot:top>
                 <v-text-field
                 v-model="search"
@@ -61,6 +64,37 @@
                 </v-data-table>
             </v-col>
         </v-row>
+        <v-dialog v-model="dialog">
+            <v-card>
+                <v-app-bar>
+                    <v-radio-group v-model="searchType" row>
+                        <v-radio label="カナ"     value="kana"></v-radio>
+                        <v-radio label="受任番号" value="jyunin"></v-radio>
+                        <v-radio label="金額"     value="kingaku"></v-radio>
+                    </v-radio-group>
+                    <v-text-field label="検索文字" v-model="searchText"></v-text-field>
+                    <v-btn @click="searchCis">検索</v-btn>
+                </v-app-bar>
+                <v-app-bar>
+                    名前：{{selectItem.come_in_name}} 番号：{{selectItem.actual_deposit_amount}}  受任番号：{{selectItem.customer_id}} 日付：{{selectItem.actual_deposit_date}}
+                    <v-spacer></v-spacer>
+                    <v-btn @click="match">紐づけ</v-btn>
+                </v-app-bar>
+                <v-card-text>
+                    <v-data-table
+                    v-model="selectedSearchResult"
+                    :headers="matchItemHeaders"
+                    :items="searchResult"
+                    item-key="come_in_schedules_id"
+                    :items-per-page="-1"
+                    class="elevation-1"
+                    show-select
+                    single-select
+                    dense
+                    ></v-data-table>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -68,7 +102,6 @@
 import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 import {getNextMonth}       from '/midori-kms/client/plugins/util.js'
 import {getLastMonth}       from '/midori-kms/client/plugins/util.js'
-import {matchCis}           from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
 
 export default {
@@ -77,23 +110,33 @@ export default {
         return{
             search:'',
             selected:[],
+            selectItem:{},
+            searchType:'kana',
+            searchText:'',
+            searchResult:[],
+            selectedSearchResult:[],
+            dialog:false,
             //入金or未入金or両方
             radioPaid:'false',
             headers:[
-                {
-                    text:'id',
-                    align:'start',
-                    sortable:false,
-                    value:'come_in_records_id',
-                    groupable:false
-                },
+                { text:'action',                value:'action'},
+                { text:'id',                    value:'come_in_records_id', align:'start', sortable:false, groupable:false },
                 { text:'customer_id',           value:'customer_id'},
                 { text:'come_in_name',          value:'come_in_name'},
-                { text:'金額', value:'actual_deposit_amount', groupable:false},
+                { text:'金額',                  value:'actual_deposit_amount', groupable:false},
                 { text:'actual_deposit_date',   value:'actual_deposit_date'},
                 { text:'matched',               value:'matched'},
                 { text:'delete_flag',           value:'delete_flag'},
                 { text:'created_at',            value:'created_at'}
+            ],
+            matchItemHeaders:[
+                { text:'cis-id',            value:'come_in_schedules_id'},
+                { text:'customer_id',       value:'customer_id'},
+                { text:'name',              value:'name'},
+                { text:'LU',                value:'lu_id'},
+                { text:'payment_day',       value:'payment_day'},
+                { text:'expected_amount',   value:'expected_amount'},
+                { text:'come_in_records_id', value:'come_in_records_id'}
             ]
         }
     },
@@ -120,27 +163,43 @@ export default {
         goImport(){
             this.$router.push('/payment_agency/come_in_records/import')
         },
-        match(){
-            //importページでマッチング処理を作った為こっちはとりあえず凍結。
-
-            // const cir = this.comeInRecordsList
-            // const cis  = this.cis
-            // const matched = matchCis(cis,cir)
-            // console.log('cir:',cir)
-            // console.log('cis:',cis)
-            // console.log('matched:',matched)
-            // //マッチした配列をapi/indexに投げて、登録処理を作る。
-            // this.$axios.put('api/payment_agency/matching',matched)
-            // .then((response)=>{
-            //     console.log('response: ',response.data)
-            // })
-        },
         csvDownload(){
             const json2csvParser = new Parser({header:true,withBOM:true})
             const exportText = json2csvParser.parse(this.comeInRecordsList)
             const link = createDownloadATag(exportText)
             link.click()
-        }
+        },
+        openDialog(item){
+            this.selectItem = item
+            console.log(item)
+            this.dialog = true
+        },
+        searchCis(){
+            const options = {
+                searchType:this.searchType,
+                searchText:this.searchText,
+                until:getNextMonth()
+            }
+            this.$axios.get('api/payment_agency/cis',{params:options})
+            .then((response)=>{
+                this.searchResult = response.data
+            })
+        },
+        match(){
+            const cis  = this.selectedSearchResult[0]
+            const confirmText = '名前：' + cis.name + ' 受任番号：' + cis.customer_id + ' 金額：' + cis.expected_amount + '　日付：' + cis.payment_day
+            const result = confirm(confirmText + '\n上記とマッチングしますか？')
+            if(result){
+                const cir = this.selectItem
+                const matched = [
+                    {cir:cir,cis:cis}
+                ]
+                this.$axios.put('api/payment_agency/matching',matched)
+                .then((response)=>{
+                    console.log('response: ',response.data)
+                })
+            }
+        },
     },  
     created(){
         this.upda()

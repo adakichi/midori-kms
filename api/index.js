@@ -470,7 +470,7 @@ app.get('/payment_agency/cis/',(req,res)=>{
   console.log(req.query)
   const sql = sqls.get_payment_agency_cis(req.query)
   db.query(sql,(err,rows,fields)=>{
-    if(err){res.send(err)}
+    if(err){throw err}
     console.log('\n--- /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
   })
