@@ -77,7 +77,7 @@ export default {
         return{
             targetText:'',
             search:'',
-            searchType:'namae',
+            searchType:'kana',
             registerDialogIsOpen:false,
             newCustomer:{
                 customer_id:'',
