@@ -179,24 +179,36 @@ export default {
             console.log(ids)
             console.log(today)
             this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:today})
-            .then(() =>{this.searchRecords()})
+            .then(() =>{
+                this.searchRecords()
+                this.selected = []
+                })
         },
         deleteExpectedDate(){
             const ids = getIds(this.selected)
             this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:null})
-            .then(response =>{this.searchRecords()})
+            .then(() =>{
+                this.searchRecords()
+                this.selected = []
+                })
         },
         confirmPayments(){
             const ids = getIds(this.selected)
             const today = todayString()
             console.log('confirm')
             this.$axios.put('/api/payment_agency/confirm_payment_schedules',{ids:ids,date:today})
-            .then(response =>{this.searchRecords()})
+            .then(() =>{
+                this.searchRecords()
+                this.selected = []
+                })
         },
         cancelConfirmPayments(){
             const ids = getIds(this.selected)
             this.$axios.put('/api/payment_agency/confirm_payment_schedules',{ids:ids,date:null})
-            .then(response =>{this.searchRecords()})
+            .then(() =>{
+                this.searchRecords()
+                this.selected = []
+                })
         }
     },
     created(){
