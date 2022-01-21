@@ -494,7 +494,6 @@ export default {
             startDate:'',
             tabs:null,
             registerTabs:null,
-            typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
             //Form data
             // customer:{},
             creditor:'',
@@ -535,6 +534,7 @@ export default {
             kinds:['普通','当座'],
             summer:[4,5,6,7,8,9],
             winter:[10,11,12,1,2,3],
+            typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
 
             // ここから和解内容
 
