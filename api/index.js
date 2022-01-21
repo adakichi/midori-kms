@@ -648,37 +648,10 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
 //支払い予定を取得
 app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   console.log('\n---get Customer payment_schedules ---')
-  const id = req.query.id
-  const from = req.query.from 
-  const until = req.query.until
-  const isPaidDate = req.query.isPaidDate
-  const isExpectedDate = req.query.isExpectedDate
-  let sql = ''
-  let values = []
-  if(id == 0){
-    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
-    sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
-    sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
-    sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
-    sql = sql + 'INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
-    sql = sql + 'INNER JOIN creditors ON pa.creditor_id = creditors.creditor_id '
-    sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
-    values.push(from)
-    values.push(until)
-    if(isPaidDate == 'true'){
-      sql = sql + 'AND ps.paid_date is NOT NULL '
-    } else if(isExpectedDate == 'true'){
-      sql = sql + 'AND ps.expected_date is NOT NULL AND ps.paid_date is NULL '
-    }
-    sql = sql + 'ORDER BY date;'
-  } else {
-    sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
-    sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
-    sql = sql + 'pa.creditor_id , creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
-    sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
-    sql = sql + 'WHERE customer_id = ? ORDER BY date;'
-    values.push(id)
-  }
+  const options = JSON.parse(JSON.stringify(req.query))
+  const convertedData = sqls.get_payment_agency_customer_payment_schedules(options)
+    const values = convertedData.values
+    const sql    = convertedData.sql
   db.query(sql,values,(err,rows,fields)=>{
     if(err){console.log(err); throw err}
     console.log('--- sucess ---')
