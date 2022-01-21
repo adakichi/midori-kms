@@ -122,6 +122,13 @@
                                     </v-text-field>
                                 </v-col>
                                 <v-col>
+                                    <v-select
+                                    :items="typeOfDelayArray"
+                                    v-model="typeOfDelay"
+                                    label="懈怠設定"
+                                    ></v-select>
+                                </v-col>
+                                <v-col>
                                     <v-text-field
                                     type="number"
                                     v-model="delayedInterestRate"
@@ -266,7 +273,8 @@
                                         初回：{{settle.first_amount}}
                                         毎月：{{settle.monthly_payment_due_date}}
                                         回数：{{settle.number_of_payments}}回
-                                        日付：{{settle.start_date}}
+                                        懈怠設定：{{settle.type_of_delay}}
+                                        懈怠利率：{{settle.delayed_interest_rate}}
                                     </v-col>
                                     <v-col>
                                         <v-btn @click="createPaymentSchedules(index)">予定作成</v-btn>
@@ -486,6 +494,7 @@ export default {
             startDate:'',
             tabs:null,
             registerTabs:null,
+            typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
             //Form data
             // customer:{},
             creditor:'',
@@ -495,6 +504,7 @@ export default {
             monthlyPaymentDueDate:'',
             firstAmount:'初回',
             delayedInterestRate:0,
+            typeOfDelay:'2回',
             //irregular
             irregular:false,
             pension:false,
