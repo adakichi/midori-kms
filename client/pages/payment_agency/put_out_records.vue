@@ -132,7 +132,6 @@ export default {
             menu:false,
             dateRange:[],
             selected:[],
-            isAdmin:false,
             headers:[
                 {text:'名前',   value:'name'},
                 {text:'債権者', value:'creditor_name'},
@@ -146,15 +145,15 @@ export default {
     computed:{
         paymentSchedules(){
             return this.arr = this.$store.getters['pa/getPaymentSchedules']
+        },
+        isAdmin(){
+            if(this.$auth.user){
+                return this.$auth.user.isAdmin
+            }
+            return false
         }
     },
     methods:{
-        isAdmin(){
-            if(this.$auth.user){
-                return this.$auth.isAdmin
-            }
-            return false
-        },
         searchRecords(){
             const option = {
                 id:0,
