@@ -201,6 +201,7 @@ export default {
                     const str = response.data.join(',')
                     const count = response.data.length
                     alert('成功:' + count + '件\nsucess row: ' + str)
+                    this.goIndex()
                 }
             })
         }

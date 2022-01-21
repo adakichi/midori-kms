@@ -16,28 +16,36 @@ const matchCis = function(cis,cir){
     //１．cirに受任番号がある場合
         //受任番号マッチ　
             //カナマッチ
+            //カナマッチがゼロの場合bank_account_nameとマッチング
                 //日にちが　27日よりも以前であれば　→　filterd
     //２．cirに受任番号が無い場合 もしくは１．でマッチしなかった場合
         //カナマッチ
+        //カナマッチがゼロの場合bank_account_nameとマッチング
             //金額マッチ
                 //日にちが　27日よりも以前であれば　→　filterd
 
     //受任番号でマッチ
-    const matcheJyuninNum = function(jyuninNum,cisArray){
+    const matchJyuninNum = function(jyuninNum,cisArray){
         return cisArray.filter((ele)=>{
             return jyuninNum === ele.customer_id
         })
     }
 
     //名前の間のスペースはトリミングする。※銀行によってスペースがあったりなかったりする為。
-    const matcheName = function(name,cisArray){
+    const matchName = function(name,cisArray){
         return cisArray.filter((ele)=>{
             return zenkana2BigHankana(name.replace(/\s+/g, "")) === zenkana2BigHankana(String(ele.kana).replace(/\s+/g, ""))
         })
     }
 
+    const matchBankAccountName = function(name,cisArray){
+        return cisArray.filter((ele)=>{
+            return zenkana2BigHankana(name.replace(/\s+/g, "")) === zenkana2BigHankana(String(ele.bank_account_name).replace(/\s+/g, ""))
+        })
+    }
+
     //金額でマッチング
-    const matcheAmount = function(amount,cisArray){
+    const matchAmount = function(amount,cisArray){
         return cisArray.filter((ele)=>{
             return amount === ele.amount
         })
@@ -73,10 +81,15 @@ const matchCis = function(cis,cir){
         if(cirlItem.customer_id){
         //①入金に受任番号があるかないか。
 
-            const customerIdMatchedArray = matcheJyuninNum(cirlItem.customer_id,cis)
+            const customerIdMatchedArray = matchJyuninNum(cirlItem.customer_id,cis)
+
             if(customerIdMatchedArray.length !== 0){
             //受任番号がマッチした配列について「カナ」のマッチング処理
-                const nameMatchedArray = matcheName(cirlItem.come_in_name,customerIdMatchedArray)
+                let nameMatchedArray = matchName(cirlItem.come_in_name,customerIdMatchedArray)
+                //ひとつもマッチしなかった場合bank_account_nameとマッチングをかけ
+                if(nameMatchedArray.length == 0){
+                    nameMatchedArray = matchBankAccountName(cirlItem.come_in_name,customerIdMatchedArray)
+                }
 
                 if(nameMatchedArray.length !== 0){
                 //「カナ」もマッチした場合にfilterdに追加。
@@ -92,11 +105,18 @@ const matchCis = function(cis,cir){
         
         if(isMatched === false ) {
             //②受任番号が無い場合
-            const nameMatchedArray = matcheName(cirlItem.come_in_name,cis)
+            let nameMatchedArray = matchName(cirlItem.come_in_name,cis)
+            console.log('nameMatchedArray判定:',nameMatchedArray.length == 0)
+            console.log('nameMatchedArray:',nameMatchedArray)
+            //ひとつもマッチしなかった場合bank_account_nameとマッチングをかける
+            if(nameMatchedArray.length == 0){
+                nameMatchedArray = matchBankAccountName(cirlItem.come_in_name,cis)
+                console.log('bank match後：',nameMatchedArray)
+            }
 
             if(nameMatchedArray.length !== 0){
             //カナがマッチした配列について、金額でマッチング
-                const amountMatched = matcheAmount(cirlItem.amount,nameMatchedArray)
+                const amountMatched = matchAmount(cirlItem.amount,nameMatchedArray)
 
                 if(amountMatched.length !== 0){
                 //金額もマッチングした場合filterdに追加。
@@ -223,9 +243,16 @@ function zenkana2BigHankana(str) {
             .replace(/゜/g, 'ﾟ');
 };
 
+const objIsEmpty = function(target){
+    return !Object.keys(target).length
+}
 
 const getNextMonth = function(){
     return moment().add(27,'days').format('YYYY-MM-DD')
+}
+
+const getMonthAfterNext = function(){
+    return moment().add(2,'M').format('YYYY-MM-DD')
 }
 
 const getLastMonth = function(){
@@ -246,6 +273,8 @@ export {
     zenkana2BigHankana,
     zenkana2Hankana,   
     hankana2Zenkana,
+    objIsEmpty,
     getNextMonth,
+    getMonthAfterNext,
     getLastMonth
 }

@@ -17,6 +17,12 @@
                         <v-radio label="入金済" value="true"></v-radio>
                         <v-radio label="両方" value="both"></v-radio>
                     </v-radio-group>
+                    <v-divider vertical></v-divider>
+                    <v-radio-group v-model="deleteFlag" row>
+                        <v-radio label="削除あり" value="true"></v-radio>
+                        <v-radio label="削除なし" value="false"></v-radio>
+                        <v-radio label="両方" value="both"></v-radio>
+                    </v-radio-group>
                     <v-spacer></v-spacer>
                     <v-btn disabled @click="match">Match</v-btn>
                     <v-btn @click="csvDownload">CSV<v-icon>mdi-download</v-icon></v-btn>
@@ -103,6 +109,7 @@
 import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 import {getNextMonth}       from '/midori-kms/client/plugins/util.js'
 import {getLastMonth}       from '/midori-kms/client/plugins/util.js'
+import {getMonthAfterNext}       from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
 
 export default {
@@ -119,6 +126,8 @@ export default {
             dialog:false,
             //入金or未入金or両方
             radioPaid:'false',
+            //
+            deleteFlag:'false',
             headers:[
                 { text:'action',                value:'action'},
                 { text:'id',                    value:'come_in_records_id', align:'start', sortable:false, groupable:false },
@@ -157,7 +166,8 @@ export default {
     methods:{
         upda(){
             const options = {
-                paid:this.radioPaid
+                paid:this.radioPaid,
+                deleteFlag:this.deleteFlag
             }
             this.$store.dispatch('pa/actComeInRecords',options)
         },
@@ -182,7 +192,7 @@ export default {
             const options = {
                 searchType:this.searchType,
                 searchText:this.searchText,
-                until:getNextMonth()
+                until:getMonthAfterNext()
             }
             this.$axios.get('api/payment_agency/cis',{params:options})
             .then((response)=>{
@@ -201,6 +211,9 @@ export default {
                 this.$axios.put('api/payment_agency/matching',matched)
                 .then((response)=>{
                     console.log('response: ',response.data)
+                    this.selectItem = null
+                    this.dialog = false
+                    this.upda
                 })
             }
         },

@@ -27,10 +27,31 @@ export const sqls = {
               sql = sql + ' WHERE come_in_schedules_id IS NOT NULL'
               break
             }
+        if(options.deleteFlag){
+          switch(options.deleteFlag){
+            case'true':
+              if(sql.indexOf('WHERE')){
+                sql = sql + ' AND delete_flag = 1'
+              } else {
+                sql = sql + ' WHERE delete_flag = 1'
+              }
+              break
+            case'false':
+              if(sql.indexOf('WHERE')){
+                sql = sql + ' AND delete_flag = 0'
+              } else {
+                sql = sql + ' WHERE delete_flag = 0'
+              }
+              break
+            case'both':
+              //何もしないよ
+          }
+        }
         if(options.importfileId){
           sql = sql + ' AND importfile_id = ' + options.importfileId
         }
         sql = sql + ';'
+        console.log(sql)
         return sql
     },
 
@@ -109,7 +130,7 @@ export const sqls = {
     let from = ''
     let until = ''
     let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
-        sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.lu_id FROM come_in_schedules as cis '
+        sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis '
         sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
     if(options.from && options.until){
       sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '"'

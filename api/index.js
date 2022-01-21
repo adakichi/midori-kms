@@ -11,7 +11,7 @@ import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
 
 import {sqls} from '../client/plugins/sqls.js'
-import {matchCis} from '../client/plugins/util.js'
+import {matchCis,objIsEmpty} from '../client/plugins/util.js'
 
 app.use(cors())
 app.use(domain)
@@ -306,6 +306,8 @@ app.get('/payment_agency/cir/',(req,res)=>{
 app.post('/payment_agency/cir/', (req,res)=>{
   //最初にfileinfoの登録をしたあとにcirの登録。（fileinfoのId取得の為)
   console.log('\n --- post pa/cir ---')
+  //登録データが空だった場合エラーとして返す
+  if(objIsEmpty(req.body.data)){ return res.send({error:true,message:'データがありません!!'})}
   const convertedImportFile = sqls.post_payment_agency_cir.convertImportFile(req.body.fileinfo)
     const importfileSql = convertedImportFile.sql
     const fileinfoArray = convertedImportFile.valuesArray
