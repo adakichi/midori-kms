@@ -45,6 +45,12 @@
                     <v-btn @click="searchSchedules">検索</v-btn>
                 </v-app-bar>
                 <v-app-bar>
+                    <v-radio-group v-model="isMatched" row>
+                        <v-radio label="未入金" value="false"></v-radio>
+                        <v-radio label="入金済" value="true"></v-radio>
+                        <v-radio label="両方" value="both"></v-radio>
+                    </v-radio-group>
+                    <v-divider vertical></v-divider>
                     <v-spacer></v-spacer>
                     <v-btn @click="csvDownload">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>
@@ -95,6 +101,7 @@ export default {
         return{
             menu:false,
             dateRange:[],
+            isMatched:'false',
             search:'',
             headers:[
                 { text:'cis-id', value:'come_in_schedules_id'},
@@ -121,6 +128,7 @@ export default {
                 id:0,
                 from:this.dateRange[0],
                 until:this.dateRange[1],
+                isMatched:this.isMatched
             }
             this.$store.dispatch('pa/actComeInSchedules',option)
         },
@@ -137,7 +145,11 @@ export default {
         }
     },
     created(){
-            this.$store.dispatch('pa/actComeInSchedules')
+            const options = {
+                until:new Date(),
+                isMatched:false
+            }
+            this.$store.dispatch('pa/actComeInSchedules',options)
     }
 }
 </script>

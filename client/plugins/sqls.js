@@ -123,6 +123,7 @@ export const sqls = {
 
 
   get_payment_agency_cis:function(options){
+    //options[from,until,searchType]
     //optionにfromとuntilがある場合はその範囲
     //片方だけの場合は片方のみ。
     //無い場合には今日から30日で取得する。
@@ -132,6 +133,8 @@ export const sqls = {
     let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
         sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis '
         sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
+
+    //from until オプションの判定
     if(options.from && options.until){
       sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '"'
     } else if(options.until){
@@ -154,8 +157,23 @@ export const sqls = {
           break
         case 'kingaku':
           sql = sql + ' AND expected_amount = ' + options.searchText
-        break
-      }
+          break
+        }
+    }
+
+    //入金済みかどうかのオプション
+    if(options.isMatched){
+      switch(options.isMatched){
+        case 'false':
+          sql = sql + ' AND come_in_records_id IS NULL '
+          break
+        case 'true':
+          sql = sql + ' AND come_in_records_id IS NOT NULL '
+          break
+        case 'both':
+          //何もしない。
+          break
+        }
     }
     sql = sql + ' ORDER BY payment_day;'
     console.log('sql',sql)
