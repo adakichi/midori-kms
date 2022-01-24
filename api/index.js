@@ -509,6 +509,20 @@ app.post('/payment_agency/cis/',(req,res)=>{
   })
 })
 
+//customer 特定の顧客の検索
+//カスタマーの詳細取得用
+app.get('/payment_agency/customer/detail',(req,res)=>{
+  console.log('\n--- get/customer detail---')
+  const id = req.query.id
+  const sql = sqls.searchCustomerDetail()
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){throw err}
+    console.log('rows:',rows)
+    console.log('--- sucess ---')
+    res.send(rows)
+  })
+})
+
 //customers の検索
 //text に検索文字列 optionsにTYPE等
 app.get('/payment_agency/customers/',(req,res)=>{

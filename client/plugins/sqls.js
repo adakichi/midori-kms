@@ -247,6 +247,11 @@ export const sqls = {
     return sql
   },
 
+  searchCustomerDetail:function(){
+    const sql = 'SELECT * FROM customers WHERE customer_id = ? ;'
+    return sql
+  },
+
   searchCustomers:function(value,options){
     //オプションはサーチタイプのみ
     let sql = ''

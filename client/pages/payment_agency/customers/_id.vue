@@ -18,6 +18,7 @@
             <v-tab>和解一覧</v-tab>
             <v-tab>支払い予定</v-tab>
             <v-tab>入金予定</v-tab>
+            <v-tab>顧客情報</v-tab>
         </v-tabs>
         <v-tabs-items v-model="tabs">
 
@@ -475,6 +476,28 @@
                 </v-row>
             </v-container>
         </v-tab-item>
+
+        <!-- 顧客情報のタブ -->
+        <v-tab-item>
+            <v-card>
+                <v-container>
+                    <v-row>
+                        <v-col>
+                            <v-text-field label="受任番号" disabled :value="customer.customer_id"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="氏名" disabled :value="customer.name"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="カナ" disabled :value="customer.kana"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="口座摘要" disabled :value="customer.bank_account_name ==='' ? 'ナシ' : customer.bank_account_name"></v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-card>
+        </v-tab-item>
         </v-tabs-items>
     </v-container>
 </template>
@@ -486,6 +509,7 @@ export default {
     data(){
         return{
             customerId:0,
+            customer:{},
             dialog:false,
             createScheduleDialog:false,
             registerComeInRecordsDialog:false,
@@ -575,9 +599,6 @@ export default {
         }
     },
     computed:{
-        customer(){
-            return this.$store.getters['pa/getCustomers'][0]
-        },
         customers(){
             return this.$store.getters['pa/getCustomers']
         },
@@ -756,6 +777,9 @@ export default {
         await this.$store.dispatch('pa/getDbCustomerCis',id)
             const option ={id:id,from:null,until:null}
         await this.$store.dispatch('pa/getDbPaymentSchedules',option)
+            const detailOption = {id:id}
+        this.$axios.get('api/payment_agency/customer/detail',{params:detailOption})
+            .then((response)=>{this.customer = response.data[0]})
         this.banks = await this.$store.getters['pa/getCreditorsAccounts']
         this.newSchedule.customer_id = id
         })()
