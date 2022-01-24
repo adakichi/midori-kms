@@ -515,30 +515,10 @@ app.get('/payment_agency/customers/',(req,res)=>{
   console.log('\n--- get/customers---')
   const value = req.query.text
   const options = JSON.parse(req.query.options)
-  const searchType = options.searchType
-  console.log(req.query)
-  if(value == '' && searchType !== 'all'){throw '検索文字無し'}
-  let sql = ''
-  switch(searchType){
-    case 'all':
-      sql = 'SELECT * FROM customers'
-      break
-    case 'jyunin':
-      sql = 'SELECT * FROM customers WHERE customer_id = ' + value + ' ;'
-      break
-    case 'lu':
-      sql = 'SELECT * FROM customers WHERE lu_id = ' + value + ' ;'
-      break
-    case 'namae':
-      sql = 'SELECT * FROM customers WHERE name LIKE "%' + value + '%" ;'
-      break
-    case 'kana':
-      sql = 'SELECT * FROM customers WHERE kana LIKE "%' + value + '%" ;'
-      break
-    }
-  console.log(sql)
-  db.query(sql,(err,rows,fields)=>{
+  const convertedData = sqls.searchCustomers(value,options)
+  db.query(convertedData.sql,convertedData.value,(err,rows,fields)=>{
     if(err){throw err}
+    console.log('rows:',rows)
     console.log('--- sucess ---')
     res.send(rows)
   })

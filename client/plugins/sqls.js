@@ -189,7 +189,7 @@ export const sqls = {
     // const isExpectedDate = options.isExpectedDate
     let sql = ''
     let values = []
-  
+    console.log(options)
     if(options.id == 0){
       sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
       sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
@@ -212,7 +212,7 @@ export const sqls = {
       sql = sql + 'pa.creditor_id , creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
       sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
       sql = sql + 'WHERE customer_id = ? ORDER BY date;'
-      values.push(id)
+      values.push(options.id)
     }
     return {sql:sql,values:values}  
   },
@@ -245,5 +245,33 @@ export const sqls = {
     console.log('date',downloadDate)
     sql = sql + ' ORDER BY date DESC;'
     return sql
+  },
+
+  searchCustomers:function(value,options){
+    //オプションはサーチタイプのみ
+    let sql = ''
+    let convertedValue = value
+    switch(options.searchType){
+      case 'all':
+        sql = 'SELECT * FROM customers'
+        break
+      case 'jyunin':
+        sql = 'SELECT * FROM customers WHERE customer_id = ? ;'
+        break
+      case 'lu':
+        sql = 'SELECT * FROM customers WHERE lu_id = ? ;'
+        break
+      case 'namae':
+        sql = 'SELECT * FROM customers WHERE name LIKE ? ;'
+        convertedValue = '%' + value + '%'
+        break
+      case 'kana':
+        sql = 'SELECT * FROM customers WHERE kana LIKE ? ;'
+        convertedValue = '%' + value + '%'
+        break
+      }
+      console.log(sql)
+    return {value:convertedValue,sql:sql}
   }
+
 }
