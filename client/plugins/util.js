@@ -56,6 +56,7 @@ const matchCis = function(cis,cir){
         const cirMoment = moment(cirDate)
         const cisMoment = moment(cisDate).add(-27,'days')
         //cisを27日減算した場合にcirよりも古い日付になればマッチしてOKにする（true)を返す。
+        console.log('matchDate判定：',cisMoment.isBefore(cirMoment))
         return cisMoment.isBefore(cirMoment)
     }
 
@@ -73,8 +74,9 @@ const matchCis = function(cis,cir){
     let filtered = []
     cir.forEach((cirlItem)=>{
         //もしもCIS_IDにすでに登録があればマッチング処理はしない
+        console.log('処理する？判定：',cirlItem.come_in_schedules_id === null)
         if(cirlItem.come_in_schedules_id){ return }
-
+        console.log('処理：',cirlItem.come_in_schedules_id)
         //制御用です。
         let isMatched = false
 
@@ -105,8 +107,9 @@ const matchCis = function(cis,cir){
         
         if(isMatched === false ) {
             //②受任番号が無い場合
+            console.log('受任番号が無い場合のmatched:',cirlItem.come_in_name)
             let nameMatchedArray = matchName(cirlItem.come_in_name,cis)
-            console.log('nameMatchedArray判定:',nameMatchedArray.length == 0)
+            console.log('nameMatchedArray判定:',nameMatchedArray.length !== 0)
             console.log('nameMatchedArray:',nameMatchedArray)
             //ひとつもマッチしなかった場合bank_account_nameとマッチングをかける
             if(nameMatchedArray.length == 0){
@@ -122,7 +125,7 @@ const matchCis = function(cis,cir){
                 //金額もマッチングした場合filterdに追加。
 
                 console.log('is match?:',cirlItem.actual_deposit_date,amountMatched[0].payment_day)
-                   if(matchDate(cirlItem.actual_deposit_date,amountMatched[0])){
+                   if(matchDate(cirlItem.actual_deposit_date,amountMatched[0].payment_day)){
                         filtered.push({cir:cirlItem,cis:amountMatched[0]})
                         cis = matchedCisDelete(amountMatched[0],cis)
                    }

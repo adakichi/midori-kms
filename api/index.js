@@ -403,7 +403,7 @@ app.post('/payment_agency/matching',(req,res)=>{
 
       //マッチング処理
       const matchedArray = matchCis(cis,cir)
-
+      console.log('\n\nmatchedArray count:',matchedArray.length,'\nmatchedArray:',matchedArray)
       //マッチング処理された配列でDB登録処理
       Promise.all(matchedArray.map(arr=>{
         return transaction(arr)
