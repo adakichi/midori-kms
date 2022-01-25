@@ -309,51 +309,74 @@ app.post('/payment_agency/cir/', (req,res)=>{
   //登録データが空だった場合エラーとして返す
   if(objIsEmpty(req.body.data)){ return res.send({error:true,message:'データがありません!!'})}
   const convertedImportFile = sqls.post_payment_agency_cir.convertImportFile(req.body.fileinfo)
-    const importfileSql = convertedImportFile.sql
-    const fileinfoArray = convertedImportFile.valuesArray
+    let importfileSql = convertedImportFile.sql
+    let fileinfoArray = convertedImportFile.valuesArray
+    const selectFileSql = convertedImportFile.selectFileSql
+    const selectFileVal = convertedImportFile.selectFileVal
   console.log('fileinfo:',convertedImportFile)
   db.beginTransaction((err)=>{
     if(err){ throw err }
-    db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
+    //importFileに重複が無いか確認の為select
+    let fileNumber = ''
+    db.query(selectFileSql,selectFileVal,(err,duplicateRow,field)=>{
       if(err){
         console.log(err)
         return db.rollback(()=>{
           throw err
         })
       }
-      console.log(' > insert fileinfo is OK')
-      console.log(' > insert val -> ' + row.insertId)
-      const fileNumber = row.insertId
-      const convertedCir   = sqls.post_payment_agency_cir.convertCir(req.body.data, row.insertId)
-        const insertValArray = convertedCir.valuesArray
-        const cirSql         = convertedCir.sql
-      db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
-        console.log('err2:',err2)
-        console.log('row2:',row2)
-        console.log('fields2:',fields2)
-        if(err2){
-          console.log('failed insrtVal')
+      if(duplicateRow.length > 0){ 
+        console.log('\nduplicate->',duplicateRow)
+        fileNumber = duplicateRow[0].importfile_id
+        importfileSql = convertedImportFile.updateFileSql
+        fileinfoArray = convertedImportFile.updateFileVal
+        console.log('\nid:',duplicateRow[0].importfile_id)
+        fileinfoArray.push(fileNumber)
+      }
+      console.log('insert importfile:',importfileSql,fileinfoArray)
+      db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
+        if(err){
           console.log(err)
           return db.rollback(()=>{
-            throw err2
+            throw err
           })
         }
-        const updateImportfileSql = 'UPDATE importfile_for_come_in_records SET imported_number = (SELECT count(importfile_id) FROM come_in_records WHERE importfile_id = ?) WHERE importfile_id = ?;'
-        db.query(updateImportfileSql,[fileNumber,fileNumber],(err3,rows3,fields3)=>{
-          if(err3){throw err3 }
-          db.commit((err)=>{
-            if(err){
-              console.log('failed Commit!!')
-              return db.rollback(()=>{
-                throw err
-              })
-            }
-            console.log('success!')
-            row2.importfileId = fileNumber
-            res.send(row2)
-          })  
+        if(fileNumber === ''){
+          fileNumber = row.insertId
+        }
+        console.log(' > insert fileinfo is OK')
+        console.log(' > insert val -> ' + fileNumber)
+        const convertedCir   = sqls.post_payment_agency_cir.convertCir(req.body.data, row.insertId)
+          const insertValArray = convertedCir.valuesArray
+          const cirSql         = convertedCir.sql
+        db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
+          console.log('err2:',err2)
+          console.log('row2:',row2)
+          console.log('fields2:',fields2)
+          if(err2){
+            console.log('failed insrtVal')
+            console.log(err)
+            return db.rollback(()=>{
+              throw err2
+            })
+          }
+          const updateImportfileSql = 'UPDATE importfile_for_come_in_records SET imported_number = (SELECT count(importfile_id) FROM come_in_records WHERE importfile_id = ?) WHERE importfile_id = ?;'
+          db.query(updateImportfileSql,[fileNumber,fileNumber],(err3,rows3,fields3)=>{
+            if(err3){throw err3 }
+            db.commit((err)=>{
+              if(err){
+                console.log('failed Commit!!')
+                return db.rollback(()=>{
+                  throw err
+                })
+              }
+              console.log('success!')
+              row2.importfileId = fileNumber
+              res.send(row2)
+            })
+          })
         })
-      })
+      })      
     })
   })
 })
@@ -402,6 +425,7 @@ app.post('/payment_agency/matching',(req,res)=>{
       console.log('cis:',cis.length)
 
       //マッチング処理
+      console.log('\nmatcheCis投入cir:',cir)
       const matchedArray = matchCis(cis,cir)
       console.log('\n\nmatchedArray count:',matchedArray.length,'\nmatchedArray:',matchedArray)
       //マッチング処理された配列でDB登録処理

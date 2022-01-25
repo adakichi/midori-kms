@@ -73,15 +73,15 @@ const matchCis = function(cis,cir){
 
     let filtered = []
     cir.forEach((cirlItem)=>{
+        console.log('\n\n-----ここから処理始めます：',cirlItem)
         //もしもCIS_IDにすでに登録があればマッチング処理はしない
-        console.log('処理する？判定：',cirlItem.come_in_schedules_id === null)
         if(cirlItem.come_in_schedules_id){ return }
-        console.log('処理：',cirlItem.come_in_schedules_id)
         //制御用です。
         let isMatched = false
 
         if(cirlItem.customer_id){
         //①入金に受任番号があるかないか。
+        console.log('受任番号あり処理：',cirlItem.customer_id)
 
             const customerIdMatchedArray = matchJyuninNum(cirlItem.customer_id,cis)
 

@@ -71,10 +71,15 @@ export const sqls = {
           fileinfo.bankName,
           fileinfo.imported
         ] 
-        
+        const selectfileSql = 'SELECT *  FROM importfile_for_come_in_records WHERE name = ? AND download_date = ? AND total_amount = ? AND bankname = ?'
+        const selectfileVal = [ fileinfo.name, fileinfo.downloadDate, fileinfo.totalAmount, fileinfo.bankName, fileinfo.imported]
         const result = {
           sql:importfileSql,
           valuesArray:fileinfoArray,
+          selectFileSql:selectfileSql,
+          selectFileVal:selectfileVal,
+          updateFileSql:'UPDATE importfile_for_come_in_records SET imported_number = ? WHERE importfile_id = ?;',
+          updateFileVal:[fileinfo.imported]
         }
         return result
     },
