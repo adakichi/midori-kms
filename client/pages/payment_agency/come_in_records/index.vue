@@ -212,7 +212,7 @@ export default {
                 this.$axios.put('api/payment_agency/matching',matched)
                 .then((response)=>{
                     console.log('response: ',response.data)
-                    this.selectItem = null
+                    this.selectItem = []
                     this.dialog = false
                     this.upda
                 })
