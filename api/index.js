@@ -440,6 +440,7 @@ app.post('/payment_agency/matching',(req,res)=>{
 
 //CIS と CIRのマッチング処理
 app.put('/payment_agency/matching',(req,res)=>{
+  console.log('\n---put pg matching ---')
 //CISとCIRがくるので、
  //CIRにはCISの[come_in_schedules_id]を登録 [customer_id]も登録しよう。
  //CISにはCIRの[come_in_records_id]を登録
