@@ -313,7 +313,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
     let fileinfoArray = convertedImportFile.valuesArray
     const selectFileSql = convertedImportFile.selectFileSql
     const selectFileVal = convertedImportFile.selectFileVal
-  console.log('fileinfo:',convertedImportFile)
+  console.log('fileinfo:',fileinfoArray)
   db.beginTransaction((err)=>{
     if(err){ throw err }
     //importFileに重複が無いか確認の為select
@@ -326,12 +326,12 @@ app.post('/payment_agency/cir/', (req,res)=>{
         })
       }
       if(duplicateRow.length > 0){ 
-        console.log('\nduplicate->',duplicateRow)
         fileNumber = duplicateRow[0].importfile_id
         importfileSql = convertedImportFile.updateFileSql
         fileinfoArray = convertedImportFile.updateFileVal
         console.log('\nid:',duplicateRow[0].importfile_id)
         fileinfoArray.push(fileNumber)
+        console.log('\nduplicate->',fileNumber)
       }
       console.log('insert importfile:',importfileSql,fileinfoArray)
       db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
@@ -346,13 +346,11 @@ app.post('/payment_agency/cir/', (req,res)=>{
         }
         console.log(' > insert fileinfo is OK')
         console.log(' > insert val -> ' + fileNumber)
-        const convertedCir   = sqls.post_payment_agency_cir.convertCir(req.body.data, row.insertId)
+        const convertedCir   = sqls.post_payment_agency_cir.convertCir(req.body.data, fileNumber)
           const insertValArray = convertedCir.valuesArray
           const cirSql         = convertedCir.sql
+        console.log('insertValarray:',insertValArray.length)
         db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
-          console.log('err2:',err2)
-          console.log('row2:',row2)
-          console.log('fields2:',fields2)
           if(err2){
             console.log('failed insrtVal')
             console.log(err)
@@ -417,6 +415,7 @@ app.post('/payment_agency/matching',(req,res)=>{
     if(err){throw err}
     const cir = row
     console.log('cir:',cir.length)
+    if(cir.length === 0 ){ throw 'id:'+fileId+'は全て紐づけ済みです。'}
 
     //マッチング用のCISを取得
     db.query(getCisSql,baseDate,(err2,row2,fields)=>{
@@ -551,7 +550,7 @@ app.get('/payment_agency/cis/',(req,res)=>{
   const sql = sqls.get_payment_agency_cis(options)
   db.query(sql,(err,rows,fields)=>{
     if(err){throw err}
-    console.log('\n--- /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
+    console.log('\n--- Get /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
   })
 })

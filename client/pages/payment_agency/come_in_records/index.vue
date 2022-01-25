@@ -165,6 +165,7 @@ export default {
     },
     methods:{
         upda(){
+            console.log('upda')
             const options = {
                 paid:this.radioPaid,
                 deleteFlag:this.deleteFlag

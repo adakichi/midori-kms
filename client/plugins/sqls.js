@@ -51,7 +51,6 @@ export const sqls = {
           sql = sql + ' AND importfile_id = ' + options.importfileId
         }
         sql = sql + ';'
-        console.log(sql)
         return sql
     },
 
@@ -181,7 +180,6 @@ export const sqls = {
         }
     }
     sql = sql + ' ORDER BY payment_day;'
-    console.log('sql',sql)
     return sql
   },
 
@@ -280,7 +278,6 @@ export const sqls = {
         convertedValue = '%' + value + '%'
         break
       }
-      console.log(sql)
     return {value:convertedValue,sql:sql}
   },
 
