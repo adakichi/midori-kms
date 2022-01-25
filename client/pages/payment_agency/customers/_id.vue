@@ -486,13 +486,26 @@
                             <v-text-field label="受任番号" disabled :value="customer.customer_id"></v-text-field>
                         </v-col>
                         <v-col>
+                            <v-text-field label="LU番号" disabled :value="customer.lu_id"></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
                             <v-text-field label="氏名" disabled :value="customer.name"></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field label="カナ" disabled :value="customer.kana"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="口座摘要" disabled :value="customer.bank_account_name ==='' ? 'ナシ' : customer.bank_account_name"></v-text-field>
+                            <v-text-field label="口座摘要" disabled :value="customer.bank_account_name === null ? '登録ナシ' : customer.bank_account_name"></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
+                            <v-text-field label="債務整理売掛金" disabled suffix=" 円" :value="customer.default_accounts_receivable"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="預かり金" disabled suffix=" 円" :value="customer.deposit"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>
