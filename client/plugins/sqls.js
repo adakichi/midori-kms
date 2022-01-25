@@ -277,6 +277,16 @@ export const sqls = {
       }
       console.log(sql)
     return {value:convertedValue,sql:sql}
+  },
+
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  //gl関係のSQL
+  gl_deposit:{
+    debitSql  :'INSERT INTO gl_deposit (partner_account, debit, customer_id) VALUE (?, ?, ?);',
+    creditSql :'INSERT INTO gl_deposit (partner_account, credit, customer_id) VALUE (?, ?, ?);',
+    customerDepositIncreseSql :'UPDATE customers SET deposit = deposit + ? WHERE customer_id = ?'
   }
 
 }

@@ -389,15 +389,22 @@ app.post('/payment_agency/matching',(req,res)=>{
   console.log('cir sql:',getCirSql)
   console.log('-------------------')
   console.log('cis sql:',getCisSql)
+  //マッチング用のCIRをimportfileの番号で取得
   db.query(getCirSql,(err,row,field)=>{
     if(err){throw err}
     const cir = row
     console.log('cir:',cir.length)
+
+    //マッチング用のCISを取得
     db.query(getCisSql,baseDate,(err2,row2,fields)=>{
       if(err2){throw err2}
       const cis = row2
       console.log('cis:',cis.length)
+
+      //マッチング処理
       const matchedArray = matchCis(cis,cir)
+
+      //マッチング処理された配列でDB登録処理
       Promise.all(matchedArray.map(arr=>{
         return transaction(arr)
       })).then((response)=>{
@@ -445,12 +452,21 @@ app.put('/payment_agency/matching',(req,res)=>{
       const cisId         = data.cis.come_in_schedules_id
       const cisCustomerId = data.cis.customer_id
       const cirId         = data.cir.come_in_records_id
+      const cirAmount     = data.cir.actual_deposit_amount
       const cisVal = [cirId,cisId]
       const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = ?  WHERE come_in_schedules_id = ?;'
       const cirVal = [cisId,cisCustomerId,cirId]
       const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = ? ,customer_id = ? WHERE come_in_records_id = ?;'
+      //gl系DBに会計処理登録
+      const glSql = sqls.gl_deposit.debitSql
+      const glVal = ['預金',cirAmount,cisCustomerId]    //勘定科目・金額・受任番号　の順番
+      //customerのdepositを増やす処理
+      const customerDepositIncreseSql = sqls.gl_deposit.customerDepositIncreseSql
+      const customerDepositIncreseVal = [cirAmount,cisCustomerId]       //金額・受任番号　の順番
       db.beginTransaction((err)=>{
         if(err){ throw err}
+        
+        //CIS　DB登録
         db.query(cisSql,cisVal,(err,row,fields)=>{
           if(err){
             console.log(err)
@@ -458,28 +474,48 @@ app.put('/payment_agency/matching',(req,res)=>{
               throw err
             })
           }
-        })
-        db.query(cirSql,cirVal,(err,row,fields)=>{
-          if(err){
-            console.log(err)
-            return db.rollback(()=>{
-              throw err
-            })
-          }
-          db.commit((err)=>{
+
+          //CIR DB登録
+          db.query(cirSql,cirVal,(err,row,fields)=>{
             if(err){
-              console.log('failed Commit!!')
+              console.log(err)
               return db.rollback(()=>{
                 throw err
               })
             }
-            console.log('success!')
-            console.log(data.cir)
-            resolve(data.cir.file_row_number)
+            //gl系DBに会計処理登録
+            db.query(glSql,glVal,(err,row,fields)=>{
+              if(err){
+                console.log(err)
+                return db.rollback(()=>{
+                  throw err
+                })
+              }
+              //customerのdepositを増やす登録
+              db.query(customerDepositIncreseSql,customerDepositIncreseVal,(err,row,fields)=>{
+                if(err){
+                  console.log(err)
+                  return db.rollback(()=>{
+                    throw err
+                  })
+                }
+                db.commit((err)=>{
+                  if(err){
+                    console.log('failed Commit!!')
+                    return db.rollback(()=>{
+                      throw err
+                    })
+                  }
+                  console.log('success!')
+                  console.log(data.cir)
+                  resolve(data.cir.file_row_number)
+                })    
+                  
+              })
+            })
           })
         })
-      })
-  
+      })  
     })
   }
   ////ここまで--------------------
