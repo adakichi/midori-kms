@@ -30,14 +30,14 @@ export const sqls = {
         if(options.deleteFlag){
           switch(options.deleteFlag){
             case'true':
-              if(sql.indexOf('WHERE')){
+              if(sql.indexOf('WHERE') > 0){
                 sql = sql + ' AND delete_flag = 1'
               } else {
                 sql = sql + ' WHERE delete_flag = 1'
               }
               break
             case'false':
-              if(sql.indexOf('WHERE')){
+              if(sql.indexOf('WHERE') > 0){
                 sql = sql + ' AND delete_flag = 0'
               } else {
                 sql = sql + ' WHERE delete_flag = 0'
@@ -236,9 +236,10 @@ export const sqls = {
       }
     }
 
+    console.log('indexOf:-> ',sql.indexOf('WHERE'))
     //bankname
     if(bankname !== 'all'){
-      if(sql.indexOf('WHERE')){
+      if(sql.indexOf('WHERE') > 0){
         sql = sql + 'AND bankname = "' + bankname + '" '
       } else {
         sql = sql + 'WHERE bankname = "' + bankname + '" '
