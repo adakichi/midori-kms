@@ -99,6 +99,8 @@ export default {
             }
             this.$axios.get('api/payment_agency/cir/importfile',{params:options})
             .then((response)=>{
+                if(response.data.error){ return alert(response.data.message) }
+                console.log(response.data)
                 this.importfiles = response.data
         })
         }
