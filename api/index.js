@@ -699,11 +699,24 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
   })
 })
 
-//支払い予定を取得
+//カスタマー毎の支払い予定を取得
 app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   console.log('\n---get Customer payment_schedules ---')
   const options = JSON.parse(JSON.stringify(req.query))
-  const convertedData = sqls.get_payment_agency_customer_payment_schedules(options)
+  const id = options.id
+  const sql    = sqls.get_payment_agency_customer_payment_schedules()
+  db.query(sql,id,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)    
+  })
+})
+
+//全件の支払い予定を取得
+app.get('/payment_agency/payment_schedules',(req,res)=>{
+  console.log('\n---get All payment_schedules ---')
+  const options = JSON.parse(JSON.stringify(req.query))
+  const convertedData = sqls.get_payment_agency_payment_schedules(options)
     const values = convertedData.values
     const sql    = convertedData.sql
   db.query(sql,values,(err,rows,fields)=>{

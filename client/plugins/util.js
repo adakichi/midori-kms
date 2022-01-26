@@ -262,6 +262,9 @@ const getLastMonth = function(){
     return moment().add(-27,'days').format('YYYY-MM-DD')
 }
 
+const getNextWeek = function(){
+    return moment().add(7,'days').format('YYYY-MM-DD')
+}
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -279,5 +282,6 @@ export {
     objIsEmpty,
     getNextMonth,
     getMonthAfterNext,
-    getLastMonth
+    getLastMonth,
+    getNextWeek
 }

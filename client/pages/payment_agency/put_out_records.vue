@@ -122,6 +122,7 @@ function todayString(){
     return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
 }
 
+import {getNextWeek} from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
 export default {
     layout : 'pa',
@@ -130,6 +131,7 @@ export default {
             isPaidDate:false,
             isExpectedDate:false,
             menu:false,
+            paymentSchedules:[],
             dateRange:[],
             selected:[],
             headers:[
@@ -143,9 +145,9 @@ export default {
         }
     },
     computed:{
-        paymentSchedules(){
-            return this.arr = this.$store.getters['pa/getPaymentSchedules']
-        },
+        // paymentSchedules(){
+        //     return this.arr = this.$store.getters['pa/getPaymentSchedules']
+        // },
         isAdmin(){
             if(this.$auth.user){
                 return this.$auth.user.isAdmin
@@ -211,7 +213,19 @@ export default {
         }
     },
     created(){
-        this.$store.commit('pa/updatePaymentSchedules',[])
+        // this.$store.commit('pa/updatePaymentSchedules',[])
+        const option = {
+            id:0,
+            from:this.dateRange[0],
+            until:getNextWeek(),
+            isPaidDate:false,
+            isExpectedDate:false
+        }
+        this.$axios.get('api/payment_agency/payment_schedules',{params:option})
+        .then((response)=>{
+            console.log(response.data)
+            this.paymentSchedules = response.data
+        })
     }
 }
 </script>

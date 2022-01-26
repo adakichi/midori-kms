@@ -30,14 +30,14 @@ export const sqls = {
         if(options.deleteFlag){
           switch(options.deleteFlag){
             case'true':
-              if(sql.indexOf('WHERE') > 0){
+              if(sql.indexOf('WHERE') >= 0){
                 sql = sql + ' AND delete_flag = 1'
               } else {
                 sql = sql + ' WHERE delete_flag = 1'
               }
               break
             case'false':
-              if(sql.indexOf('WHERE') > 0){
+              if(sql.indexOf('WHERE') >= 0){
                 sql = sql + ' AND delete_flag = 0'
               } else {
                 sql = sql + ' WHERE delete_flag = 0'
@@ -59,7 +59,7 @@ export const sqls = {
       //importFile用　と　sir用
       //戻り値はsqlとvaluesArrayです。
 
-      convertImportFile:function(fileinfo,...optioins){
+      convertImportFile:function(fileinfo,...options){
         //dataObjの中身はfileinfoとdataに分けられる。
         const importfileSql = ' insert into importfile_for_come_in_records (name, download_date, total_amount, count, bankname,imported_number) values (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE imported_number = VALUES(imported_number);'
         const fileinfoArray =[
@@ -183,9 +183,26 @@ export const sqls = {
     return sql
   },
 
-  get_payment_agency_customer_payment_schedules(options){
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
 
-    // const id = options.id
+  //payment shcedulesのSQL
+  get_payment_agency_customer_payment_schedules:function(){
+
+    let sql = ''
+      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
+      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
+      sql = sql + 'pa.creditor_id , creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
+      sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
+      sql = sql + 'WHERE customer_id = ? ORDER BY date;'
+    return sql
+  },
+
+  //全員分の支払い予定取得SQL
+  get_payment_agency_payment_schedules:function(options){
+
     // const from = options.from 
     // const until = options.until
     // const isPaidDate = options.isPaidDate
@@ -193,32 +210,46 @@ export const sqls = {
     let sql = ''
     let values = []
     console.log(options)
-    if(options.id == 0){
       sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
       sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
       sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
       sql = sql + 'INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
       sql = sql + 'INNER JOIN creditors ON pa.creditor_id = creditors.creditor_id '
-      sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
-      values.push(options.from)
-      values.push(options.until)
-      if(options.isPaidDate == 'true'){
-        sql = sql + 'AND ps.paid_date is NOT NULL '
-      } else if(options.isExpectedDate == 'true'){
-        sql = sql + 'AND ps.expected_date is NOT NULL AND ps.paid_date is NULL '
+
+      //from until の範囲設定
+      if(options.from && options.until){
+        sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
+        values.push(options.from,options.until)
+      } else if(options.from){
+        sql = sql + 'WHERE ps.date > ? '  
+        values.push(options.from)
+      } else if(options.until){
+        sql = sql + 'WHERE ps.date < ? '
+        values.push(options.until)
       }
+  
+      //支払い済みを含めるかどうか
+      if(options.isPaidDate == 'true'){
+        if(sql.indexOf('WHERE') >= 0){
+          sql = sql + 'AND ps.paid_date is NOT NULL '
+        } else {
+          sql = sql + 'WHERE ps.paid_date is NOT NULL '
+        }
+      } 
+
+      //仮出金を含めるかどうか
+      if(options.isExpectedDate == 'true'){
+        if(sql.indexOf('WHERE') >= 0){
+          sql = sql + 'AND ps.expected_date is NOT NULL AND ps.paid_date is NULL '
+        } else {
+          sql = sql + 'WHERE ps.expected_date is NOT NULL AND ps.paid_date is NULL '
+        }
+      }
+
       sql = sql + 'ORDER BY date;'
-    } else {
-      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
-      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
-      sql = sql + 'pa.creditor_id , creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
-      sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
-      sql = sql + 'WHERE customer_id = ? ORDER BY date;'
-      values.push(options.id)
-    }
-    return {sql:sql,values:values}  
-  },
+      return {sql:sql,values:values}
+    },
 
   importfile_select:function(options){
     const downloadDate = options.downloadDate
@@ -236,10 +267,9 @@ export const sqls = {
       }
     }
 
-    console.log('indexOf:-> ',sql.indexOf('WHERE'))
     //bankname
     if(bankname !== 'all'){
-      if(sql.indexOf('WHERE') > 0){
+      if(sql.indexOf('WHERE') >= 0){
         sql = sql + 'AND bankname = "' + bankname + '" '
       } else {
         sql = sql + 'WHERE bankname = "' + bankname + '" '
