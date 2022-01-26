@@ -165,7 +165,6 @@ export default {
     },
     methods:{
         upda(){
-            console.log('upda')
             const options = {
                 paid:this.radioPaid,
                 deleteFlag:this.deleteFlag
@@ -186,7 +185,7 @@ export default {
         },
         openDialog(item){
             this.selectItem = item
-            console.log(item)
+            console.log('item:'+item)
             this.dialog = true
         },
         searchCis(){
@@ -214,7 +213,7 @@ export default {
                     console.log('response: ',response.data)
                     this.selectItem = []
                     this.dialog = false
-                    this.upda
+                    this.upda()
                 })
             }
         },
