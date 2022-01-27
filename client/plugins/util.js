@@ -142,6 +142,85 @@ const matchCis = function(cis,cir){
     return filtered
 }
 
+const getIdsFromPaymentSchedules = function(schedulesArray){
+    let ids = schedulesArray.map(obj =>{
+        return obj.customer_id
+    })
+    //重複削除
+    const duplicateDeletion = Array.from(new Set(ids))
+    return duplicateDeletion
+}
+
+//カスタマーの配列と選択された配列を比較してdeposit（預り金）より多ければOKとする。
+//※重要※ リファクタリング案件　計算量を無視してます。（めんどい、というか今は完成スケジュール重視）重たくなったら、createSumPaidObjectとcreateAfterPaymentArray の結合というか　一回の計算量でおわるようにしてください。
+function judgePay(selectedArray,customersArray){
+
+    //実際の出金　OK/NG の判断処理
+    let afterPaymentArray = createAfterPaymentArray(selectedArray,customersArray)
+    return afterPaymentArray
+}
+
+//※judgePay　用の関数 if(預かり金 > 支払い金額小計 && 仮出金していない) を判断する。すでに仮出金済みの案件
+//  その上で支払い金額をcustomersのdepositから引く＆ selectedArrayを支払いOKとする
+function createAfterPaymentArray(selectedArray,customersArray){
+
+    let customersObject = customersArrayToObject(customersArray)
+    const judgedSelectedArray = selectedArray.map(schedule =>{
+        const customerId = schedule.customer_id
+        const amount     = parseInt(schedule.amount,10)
+        const advisoryFee= parseInt(schedule.advisory_fee,10)    * 1.1
+        const commision  = parseInt(schedule.commision,10)       * 1.1
+        const subtotal   = amount + advisoryFee + commision
+        
+        //depositとsubtotalを比較
+        if(customersObject[customerId].deposit >= subtotal && schedule.expected_date === null ){
+            //depositからsubtotalを減算
+            customersObject[customerId].deposit -= subtotal
+            customersObject[customerId].sumAmount += amount
+            customersObject[customerId].sumCommision += commision
+            customersObject[customerId].sumAdvisoryFee += advisoryFee
+            //scheduleに出金　可否を追加
+            schedule.isCanPay = true
+        } else {
+            schedule.isCanPay = false
+        }
+        return schedule
+    })
+    return {customersObject:customersObject,judgedSelectedArray:judgedSelectedArray}
+}
+    //※createAfterPaymentArray用の関数 customerArrayをオブジェクトにする。
+    // filter等で何度も処理すると計算量が大きくなる気がするためオブジェクトに返還してから処理する
+    function customersArrayToObject(customersArray){
+        let customerObject = {}
+        customersArray.forEach((customer)=>{
+            customer.sumAmount = 0
+            customer.sumCommision = 0
+            customer.sumAdvisoryFee = 0
+            customer.depositBeforeJudge = customer.deposit
+            customerObject[customer.customer_id] = customer
+        })
+        return customerObject
+    }
+
+//※judgePay　用の関数 一件づつの支払いを人ごとにまとめる。
+function createSumPaidObject(selectedArray){
+    let sumPaidObject = {}
+    selectedArray.forEach((schedule)=>{
+        const customerId = parseInt(schedule.customer_id,10)
+        const amount     = parseInt(schedule.amount,10)
+        const advisoryFee= parseInt(schedule.advisory_fee,10)
+        const commision  = parseInt(schedule.commision,10)
+        if(sumPaidObject[customerId]){
+            sumPaidObject[customerId].amount        += amount 
+            sumPaidObject[customerId].advisoryFee   += advisoryFee 
+            sumPaidObject[customerId].commision     += commision 
+        } else {
+            sumPaidObject[customerId] = {customerId:customerId,amount:amount,advisoryFee:advisoryFee,commision:commision}
+        }
+    })
+    return sumPaidObject    
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -275,6 +354,8 @@ const getNextWeek = function(){
 export {
     createDownloadATag,
     matchCis,
+    getIdsFromPaymentSchedules,
+    judgePay,
     ////////////////////
     zenkana2BigHankana,
     zenkana2Hankana,   

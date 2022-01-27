@@ -210,8 +210,8 @@ export const sqls = {
     let sql = ''
     let values = []
     console.log(options)
-      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount,date_format(ps.date, "%Y/%m/%d")as date, '
-      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name,'
+      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id, ps.amount, pa.advisory_fee, pa.commision, date_format(ps.date, "%Y/%m/%d")as date, '
+      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name, cu.customer_id, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
       sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
       sql = sql + 'INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
@@ -249,6 +249,18 @@ export const sqls = {
 
       sql = sql + 'ORDER BY date;'
       return {sql:sql,values:values}
+    },
+
+    get_payment_agency_payment_schedules_customers_deposit:function(ids){
+      console.log(ids)
+      const array = ids
+      const count = array.length
+      let sql = 'SELECT * FROM customers WHERE customer_id in (?'
+      for(let i = 1; i < count ; i++){
+        sql = sql + ', ?'
+      }
+      sql = sql + ');'
+      return sql
     },
 
   importfile_select:function(options){

@@ -712,6 +712,19 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   })
 })
 
+//出金処理時に、顧客ごとの預り金がどれくらいあるか比べる為、顧客番号の配列をvaluesとして、depositのみ取得して返す。
+app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
+  console.log('--- Get pa/ps/customer deposit ---')
+  const ids = JSON.parse(JSON.stringify(req.query.ids))
+  const sql = sqls.get_payment_agency_payment_schedules_customers_deposit(ids)
+  console.log('ids length:',ids.length)
+  db.query(sql,ids,(err,rows,fields)=>{
+    if(err){console.log(err); throw err}
+    console.log('--- sucess ---')
+    res.send(rows)    
+  })
+})
+
 //全件の支払い予定を取得
 app.get('/payment_agency/payment_schedules',(req,res)=>{
   console.log('\n---get All payment_schedules ---')
