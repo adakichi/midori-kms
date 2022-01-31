@@ -194,7 +194,7 @@ function todayString(){
     return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
 }
 
-import {getNextWeek,judgePay,objIsEmpty} from '/midori-kms/client/plugins/util.js'
+import {getNextWeek,judgePay} from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
 export default {
     layout : 'pa',
@@ -291,6 +291,7 @@ export default {
             //this.selected　について①出金OKかどうか判定　→　②CSVダウンロード　→　③DBに仮出金登録
             //①出金OKかどうか判定
             const selected = this.selected
+            this.selected = [] //初期化
             if(selected.length <= 0){ return alert('Error : 選択されてません！！')}
             const ids = getIdsFromPaymentSchedules(selected)
             this.$axios.get('api/payment_agency/payment_schedules/customers_deposit',{params:{ids:ids}})
@@ -303,29 +304,31 @@ export default {
                 this.editedCustomersArray  = Object.keys(customersObject).map(key=>{ return customersObject[key]})
                 this.okArray = this.judgedSelectedArray.filter((ele)=>{return ele.isCanPay})
                 this.ngArray = this.judgedSelectedArray.filter((ele)=>{return !ele.isCanPay})
-                this.tabs = 1
-                console.log(this.sumPaidArray)
+                this.tabs = 2
             })
         },
         downloadCsv(){
-            if(objIsEmpty(this.customersObject)){ return alert('マッチングがすんでないよ！') }
+            console.log('okarray len:',this.okArray.length,this.okArray.length > 0)
+            if(this.okArray.length < 1){ return alert('OKなものがありません！') }
 
             //②CSVダウンロード
-            const total = totalAmount(this.selected)
+            const total = totalAmount(this.okArray)
             const fields = ['payment_schedule_id', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','name']
             const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
-            let exportText = json2csvParser.parse(this.selected)
-            exportText = exportText + '\n"2",,,,,' + this.selected.length + ',' + total + ',' 
+            let exportText = json2csvParser.parse(this.okArray)
+            exportText = exportText + '\n"2",,,,,' + this.okArray.length + ',' + total + ',' 
             const link = createDownloadATag(exportText)
             link.click()
             //ダウンロードしたら仮で出金としてDB update。
-            const ids = getIds(this.selected)
+            const okArray = this.okArray
             const today = todayString()
-            console.log(ids)
-            console.log(today)
-            this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:today})
+            this.$axios.put('/api/payment_agency/payment_schedules',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
             .then(() =>{
                 this.searchRecords()
+                this.judgedSelectedArray   = []
+                this.editedCustomersArray  = []
+                this.okArray  = []
+                this.ngArray  = []
                 this.selected = []
                 })
         },
