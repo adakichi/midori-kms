@@ -740,11 +740,10 @@ app.get('/payment_agency/payment_schedules',(req,res)=>{
 })
 
 
-//支払い予定を仮出金にする。OR　取り消し
-//やること。idsごとに手数料等登録必要のためSQL等全て作り直し
+//支払い予定を仮出金にする。
 //customersのdepositを減らす処理まで必要
-app.put('/payment_agency/payment_schedules',(req,res)=>{
-  console.log('\n---Put payment_schedules ---')
+app.put('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
+  console.log('\n---Put payment_schedules/temporary_pay ---')
   const okArray = req.body.okArray
   const date = req.body.date
   const customersSubTotal = req.body.editCustomersArray
@@ -769,11 +768,11 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commision IS NULL OR expected_advisory_fee IS NULL)'
-    db.query(selectExpectedsIsNullSql,editedScheduleId,(err,rows,fields)=>{
-      if(err){
-        console.log(err)
+    db.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
+      if(err0 || rows.length === 0){
+        console.log(err0)
         return db.rollback(()=>{
-          throw err
+          throw err0
         })
       }
 
@@ -796,7 +795,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
 
           //手順2
           const depositMinusSql = ' UPDATE customers SET deposit = deposit - ? WHERE customer_id = ?;'
-          const subTotal = editedScheduleObject.amount + editedScheduleObject.commision + editedScheduleObject.advisory_fee
+          const subTotal = editedScheduleObject.amount + (editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)
           console.log('sabutotal:',subTotal,'customerID:',customerId)
           db.query(depositMinusSql,[subTotal,customerId],(err3,rows3,fields3)=>{
             if(err3){
@@ -823,6 +822,79 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
 
   })
 }
+
+//支払い予定を取り消し
+//customersのdepositを戻す処理まで必要
+app.delete('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
+  console.log('\n---Delete payment_schedules/temporary_pay ---')
+  const selected = req.body.selected
+  Promise.all(selected.map(editedScheduleObject=>{
+    return cancelTemporaryPayTransaction(editedScheduleObject)
+  })).then((response)=>{
+    res.send(response)
+  })  
+})
+
+//仮出金を取り消す際のトランザクション
+const cancelTemporaryPayTransaction = function(editedScheduleObject){
+  return new Promise((resolve,reject)=>{
+  //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
+          //だめならerrを投げよう。投げ方わからんけど。
+  //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,をnull（仮支払い日、仮金額、仮手数料、仮顧問料)
+  //手順2 table(customersのdepositを増やす)
+  const customerId = editedScheduleObject.customer_id
+  const editedScheduleId = editedScheduleObject.payment_schedule_id
+  db.beginTransaction((err)=>{
+    if(err){ throw err}
+    //手順0
+    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL)'
+    db.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows,fields)=>{
+      if(err0 || rows.length === 0){
+        console.log('err:',err0)
+        return db.rollback(()=>{
+          throw err
+        })
+      }
+
+        //手順1
+        const updateScheduleSql = ' UPDATE payment_schedules SET expected_date = null, expected_amount = null, expected_commision = null, expected_advisory_fee = null WHERE payment_schedule_id = ?;'          
+            db.query(updateScheduleSql, editedScheduleId,(err2,rows2,fields2)=>{
+          if(err2){
+            console.log('err2:',err2)
+            return db.rollback(()=>{
+              throw err2
+            })
+          }
+
+          //手順2
+          const depositPlusSql = ' UPDATE customers SET deposit = deposit + ? WHERE customer_id = ?;'
+          const subTotal = editedScheduleObject.amount + (editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)
+          db.query(depositPlusSql,[subTotal,customerId],(err3,rows3,fields3)=>{
+            if(err3){
+              console.log(err3)
+              return db.rollback(()=>{
+                throw err3
+              })
+            }
+
+            db.commit((err4)=>{
+              if(err4){
+                console.log('failed Commit!!')
+                return db.rollback(()=>{
+                  throw err4
+                })
+              }
+              console.log('Commit success!')
+              resolve(editedScheduleObject)
+            })            
+          })
+        })
+    })
+  })
+
+  })
+}
+
 
 //出金予定を確定させる OR 取り消し
 app.put('/payment_agency/confirm_payment_schedules',(req,res)=>{

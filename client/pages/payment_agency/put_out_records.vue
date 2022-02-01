@@ -50,7 +50,7 @@
                     <v-spacer></v-spacer>
                     <v-btn @click="judgementPaid">判定<v-icon></v-icon></v-btn>
                     <v-btn @click="downloadCsv">CSV出力<v-icon>mdi-download</v-icon></v-btn>
-                    <v-btn @click="deleteExpectedDate">仮出金解除</v-btn>
+                    <v-btn v-show="isMatched ? false : true " @click="deleteExpected">仮出金解除</v-btn>
                     <v-btn @click="confirmPayments">出金確定</v-btn>
                     <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
                 </v-app-bar>
@@ -188,6 +188,16 @@ function getIds(selected){
     })
 }
 
+//deleteExpected用　関数
+function turnPositiveIntoNegative(selecteds){
+    return selecteds.map((itemObject)=>{
+        itemObject.amount = -(itemObject.amount)
+        itemObject.commision = -(itemObject.commision)
+        itemObject.advisory_fee = -(itemObject.advisory_fee)
+        return itemObject
+    })
+}
+
   //今日の日付をフォーマットして出力(String)
 function todayString(){
     const today = new Date()
@@ -203,6 +213,7 @@ export default {
             isPaidDate:false,
             isExpectedDate:false,
             menu:false,
+            isMatched:false,    //マッチ済みかどうかのスイッチ。これで仮出金解除等のボタンの表示のON/OFFを切り替える。
 
             //メインのDataTable用 配列
             paymentSchedules:[],
@@ -283,7 +294,6 @@ export default {
             }
             this.$axios.get('api/payment_agency/payment_schedules',{params:option})
             .then((response)=>{
-                console.log(response.data)
                 this.paymentSchedules = response.data
             })
         },
@@ -305,6 +315,7 @@ export default {
                 this.okArray = this.judgedSelectedArray.filter((ele)=>{return ele.isCanPay})
                 this.ngArray = this.judgedSelectedArray.filter((ele)=>{return !ele.isCanPay})
                 this.tabs = 2
+                this.isMatched = true
             })
         },
         downloadCsv(){
@@ -322,7 +333,7 @@ export default {
             //ダウンロードしたら仮で出金としてDB update。
             const okArray = this.okArray
             const today = todayString()
-            this.$axios.put('/api/payment_agency/payment_schedules',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
+            this.$axios.put('/api/payment_agency/payment_schedules/temporary_pay',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
             .then(() =>{
                 this.searchRecords()
                 this.judgedSelectedArray   = []
@@ -332,11 +343,14 @@ export default {
                 this.selected = []
                 })
         },
-        deleteExpectedDate(){
-            const ids = getIds(this.selected)
-            this.$axios.put('/api/payment_agency/payment_schedules',{ids:ids,date:null})
+        deleteExpected(){
+            this.$axios.delete('/api/payment_agency/payment_schedules/temporary_pay',{data:{selected:this.selected}})
             .then(() =>{
                 this.searchRecords()
+                this.judgedSelectedArray   = []
+                this.editedCustomersArray  = []
+                this.okArray  = []
+                this.ngArray  = []
                 this.selected = []
                 })
         },
@@ -369,7 +383,6 @@ export default {
         }
         this.$axios.get('api/payment_agency/payment_schedules',{params:option})
         .then((response)=>{
-            console.log(response.data)
             this.paymentSchedules = response.data
         })
     }
