@@ -48,10 +48,10 @@
                 </v-app-bar>
                 <v-app-bar>
                     <v-spacer></v-spacer>
-                    <v-btn @click="judgementPaid">判定<v-icon></v-icon></v-btn>
-                    <v-btn @click="downloadCsv">CSV出力<v-icon>mdi-download</v-icon></v-btn>
+                    <v-btn v-show="isMatched ? false : true " @click="judgementPaid">判定<v-icon></v-icon></v-btn>
+                    <v-btn @click="downloadCsv">仮出金(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
                     <v-btn v-show="isMatched ? false : true " @click="deleteExpected">仮出金解除</v-btn>
-                    <v-btn @click="confirmPayments">出金確定</v-btn>
+                    <v-btn v-show="isMatched ? false : true " @click="confirmPayments">出金確定</v-btn>
                     <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
                 </v-app-bar>
                 <v-tabs v-model="tabs">
@@ -286,6 +286,16 @@ export default {
     },
     methods:{
         searchRecords(){
+            //いろんなもの初期化。
+            this.judgedSelectedArray   = []
+            this.editedCustomersArray  = []
+            this.okArray  = []
+            this.ngArray  = []
+            this.selected = []
+            this.isMatched = false
+            this.tabs = 0
+            /////////////////////
+
             const option = {
                 from:this.dateRange[0],
                 until:this.dateRange[1],
@@ -336,41 +346,29 @@ export default {
             this.$axios.put('/api/payment_agency/payment_schedules/temporary_pay',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
             .then(() =>{
                 this.searchRecords()
-                this.judgedSelectedArray   = []
-                this.editedCustomersArray  = []
-                this.okArray  = []
-                this.ngArray  = []
-                this.selected = []
                 })
         },
         deleteExpected(){
             this.$axios.delete('/api/payment_agency/payment_schedules/temporary_pay',{data:{selected:this.selected}})
             .then(() =>{
                 this.searchRecords()
-                this.judgedSelectedArray   = []
-                this.editedCustomersArray  = []
-                this.okArray  = []
-                this.ngArray  = []
-                this.selected = []
                 })
         },
         confirmPayments(){
             const ids = getIds(this.selected)
             const today = todayString()
             console.log('confirm')
-            this.$axios.put('/api/payment_agency/confirm_payment_schedules',{ids:ids,date:today})
+            this.$axios.put('/api/payment_agency/payment_schedules/confirm',{ids:ids,date:today})
             .then(() =>{
                 this.searchRecords()
-                this.selected = []
                 })
         },
         cancelConfirmPayments(){
             const ids = getIds(this.selected)
-            this.$axios.put('/api/payment_agency/confirm_payment_schedules',{ids:ids,date:null})
+            this.$axios.delete('/api/payment_agency/payment_schedules/confirm',{data:{ids:ids,date:null}})
             .then(() =>{
                 this.searchRecords()
-                this.selected = []
-                })
+            })
         }
     },
     created(){

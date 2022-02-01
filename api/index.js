@@ -767,7 +767,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
   db.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
-    const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commision IS NULL OR expected_advisory_fee IS NULL)'
+    const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commision IS NULL OR expected_advisory_fee IS NULL) AND paid_date is null'
     db.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log(err0)
@@ -847,7 +847,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
   db.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
-    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL)'
+    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date is null;'
     db.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log('err:',err0)
@@ -896,18 +896,122 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
 }
 
 
-//出金予定を確定させる OR 取り消し
-app.put('/payment_agency/confirm_payment_schedules',(req,res)=>{
+//出金予定を確定させる
+app.put('/payment_agency/payment_schedules/confirm',(req,res)=>{
   console.log('\n---Put Confirm payment_schedules ---')
   const ids = req.body.ids
   const date = req.body.date
-  const sql = ' UPDATE payment_schedules SET paid_date = ? WHERE payment_schedule_id IN (?);'
-  db.query(sql,[date,ids],(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  Promise.all(ids.map(id=>{
+    return confirmPaymentScheduleTransaction(id,date)
+  }),date).then((response)=>{
     console.log('--- sucess ---')
-    res.send(rows)    
-  })
+    res.send(response)
+  })  
 })
+
+//出金予定を確定させるトランザクション
+const confirmPaymentScheduleTransaction = function(id,date){
+  return new Promise((resolve,reject)=>{
+  //手順0 既に（仮出金済み && paid_dateがNULL）か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,is not null && paid_date is null
+          //だめならerrを投げよう。投げ方わからんけど。
+  //手順1 paid_date に処理日付を。
+  const confirmScheduleId = id
+  db.beginTransaction((err)=>{
+    if(err){ throw err}
+    //手順0
+    const selectExpectedsIsNotNullAndPaidDateIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NULL;'
+    db.query(selectExpectedsIsNotNullAndPaidDateIsNullSql,confirmScheduleId,(err0,rows,fields)=>{
+      if(err0 || rows.length === 0){
+        console.log('err:',err0)
+        return db.rollback(()=>{
+          throw err
+        })
+      }
+
+        //手順1
+        const confirmScheduleSql = ' UPDATE payment_schedules SET paid_date = ? WHERE payment_schedule_id = ?;'          
+            db.query(confirmScheduleSql, [date, confirmScheduleId],(err1,rows2,fields2)=>{
+            if(err1){
+              console.log('err2:',err1)
+              return db.rollback(()=>{
+                throw err1
+              })
+            }
+            db.commit((err2)=>{
+              if(err2){
+                console.log('failed Commit!!')
+                return db.rollback(()=>{
+                  throw err2
+                })
+              }
+            console.log('Commit success!')
+            resolve(id)
+            })
+          })
+        })
+      })
+  })
+}
+
+
+//出金確定の取り消し
+app.delete('/payment_agency/payment_schedules/confirm',(req,res)=>{
+  console.log('\n---Delete Confirm /payment_schedules ---')
+  const ids = req.body.ids
+  console.log('req body:',req.body)
+  Promise.all(ids.map(id=>{
+    return cancelConfirmPaymentScheduleTransaction(id)
+  })).then((response)=>{
+    console.log('--- sucess ---')
+    res.send(response)
+  })  
+})
+
+//出金予定を確定させるトランザクション
+const cancelConfirmPaymentScheduleTransaction = function(id){
+  return new Promise((resolve,reject)=>{
+  //手順0 既に（仮出金済み && paid_dateがNOT NULL）か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,is not null && paid_date is null
+          //だめならerrを投げよう。投げ方わからんけど。
+  //手順1 paid_date にnullを。
+  const confirmScheduleId = id
+  db.beginTransaction((err)=>{
+    if(err){ throw err}
+    //手順0
+    const selectExpectedsIsNotNullAndPaidDateIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NOT NULL;'
+    db.query(selectExpectedsIsNotNullAndPaidDateIsNotNullSql,confirmScheduleId,(err0,rows,fields)=>{
+      if(err0 || rows.length === 0){
+        console.log('err:',err0)
+        return db.rollback(()=>{
+          throw err
+        })
+      }
+
+        //手順1
+        const confirmScheduleSql = ' UPDATE payment_schedules SET paid_date = null WHERE payment_schedule_id = ?;'          
+            db.query(confirmScheduleSql, confirmScheduleId,(err1,rows2,fields2)=>{
+            if(err1){
+              console.log('err2:',err1)
+              return db.rollback(()=>{
+                throw err1
+              })
+            }
+            db.commit((err2)=>{
+              if(err2){
+                console.log('failed Commit!!')
+                return db.rollback(()=>{
+                  throw err2
+                })
+              }
+            console.log('Commit success!')
+            resolve(id)
+            })
+          })
+        })
+      })
+  })
+}
+
+
 
 // ---- Creditors 債権者情報   -------
 app.get('/creditors/',(req,res)=>{
