@@ -213,6 +213,7 @@ export default {
                     console.log('response: ',response.data)
                     this.selectItem = []
                     this.dialog = false
+                    this.selectedSearchResult = []
                     this.upda()
                 })
             }

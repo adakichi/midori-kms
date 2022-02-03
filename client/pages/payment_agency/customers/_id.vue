@@ -598,7 +598,7 @@ export default {
             },
             customerCisHeaders:[
                 {text:'予定日',     value:'payment_day'},
-                {text:'実入金',     value:'come_in_recprds_id'},
+                {text:'実入金',     value:'come_in_records_id'},
                 {text:'金額',       value:'expected_amount'},
                 {text:'操作',       value:'actions'},
             ],

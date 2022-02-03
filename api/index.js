@@ -415,7 +415,7 @@ app.post('/payment_agency/matching',(req,res)=>{
     if(err){throw err}
     const cir = row
     console.log('cir:',cir.length)
-    if(cir.length === 0 ){ throw 'id:'+fileId+'は全て紐づけ済みです。'}
+    if(cir.length === 0 ){ throw 'id:' + fileId + 'は全て紐づけ済みです。'}
 
     //マッチング用のCISを取得
     db.query(getCisSql,baseDate,(err2,row2,fields)=>{
@@ -441,17 +441,11 @@ app.post('/payment_agency/matching',(req,res)=>{
 //CIS と CIRのマッチング処理
 app.put('/payment_agency/matching',(req,res)=>{
   console.log('\n---put pg matching ---')
-//CISとCIRがくるので、
- //CIRにはCISの[come_in_schedules_id]を登録 [customer_id]も登録しよう。
- //CISにはCIRの[come_in_records_id]を登録
-//  console.log(req.body)
-//  const baseDate = Date()
-//  const cis = beforeAndAfterCis(baseDate)
-//  console.log(cis)
-  console.log(req.body.length)
+  console.log('req.body.length:',req.body.length)
   Promise.all(req.body.map(arr=>{
     return matchingTransaction(arr)
   })).then((response)=>{
+    console.log('promise all result response:',response)
     res.send(response)
   })
 })
@@ -472,77 +466,206 @@ app.put('/payment_agency/matching',(req,res)=>{
   ////////////////////////////////////////////
   //繰り返し用のSQLのFunction
   const matchingTransaction = function(data){
+    console.log('func matchingTransaction')
+    //1.cis　登録
+    //2.cir　登録
+      //5.1customerのデータを取得して,売掛金があるか判定する
+      //5.2customerの出金予定27日以内のスケジュールと取得
+        //スケジュールから、立替金/顧問料/手数料の合計を取得する
+        //上記合計が入金額より大きい場合は全て預り金に入れて処理を終わる
+      //入金額が次回支払い予定よりも大きい場合は
+        //顧問料・手数料を[仮受金]へ
+          //売掛がある場合に、以下の処理
+
+
+    //3.journal bookに会計処理登録
+
+    //4.customerにdeposit増やす登録
+    //5.commit
     return new Promise((resolve,reject) => {
       const cisId         = data.cis.come_in_schedules_id
-      const cisCustomerId = data.cis.customer_id
+      const customerId    = data.cis.customer_id
       const cirId         = data.cir.come_in_records_id
       const cirAmount     = data.cir.actual_deposit_amount
       const cisVal = [cirId,cisId]
       const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = ?  WHERE come_in_schedules_id = ?;'
-      const cirVal = [cisId,cisCustomerId,cirId]
+      const cirVal = [cisId,customerId,cirId]
       const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = ? ,customer_id = ? WHERE come_in_records_id = ?;'
       //gl系DBに会計処理登録
       const glSql = sqls.gl_deposit.debitSql
-      const glVal = ['預金',cirAmount,cisCustomerId]    //勘定科目・金額・受任番号　の順番
+      const glVal = ['預金',cirAmount,customerId]    //勘定科目・金額・受任番号　の順番
       //customerのdepositを増やす処理
       const customerDepositIncreseSql = sqls.gl_deposit.customerDepositIncreseSql
-      const customerDepositIncreseVal = [cirAmount,cisCustomerId]       //金額・受任番号　の順番
+      const customerDepositIncreseVal = [cirAmount,customerId]       //金額・受任番号　の順番
       db.beginTransaction((err)=>{
         if(err){ throw err}
         
-        //CIS　DB登録
-        db.query(cisSql,cisVal,(err,row,fields)=>{
-          if(err){
-            console.log(err)
+        //1.CIS　DB登録
+        db.query(cisSql,cisVal,(err1,row1,fields1)=>{
+          if(err1){
+            console.log(err1)
             return db.rollback(()=>{
-              throw err
+              throw err1
             })
           }
-
-          //CIR DB登録
-          db.query(cirSql,cirVal,(err,row,fields)=>{
-            if(err){
-              console.log(err)
+          console.log('row1',row1)
+          //2.CIR DB登録
+          db.query(cirSql,cirVal,(err2,row2,fields2)=>{
+            if(err2){
+              console.log(err2)
               return db.rollback(()=>{
-                throw err
+                throw err2
               })
             }
-            //gl系DBに会計処理登録
-            db.query(glSql,glVal,(err,row,fields)=>{
-              if(err){
-                console.log(err)
+            console.log('row2',row2)
+            const selectCustomersSql = 'SELECT * FROM customers WHERE customer_id = ?;'
+            db.query(selectCustomersSql,customerId,(err5,rows5,fields5)=>{
+              if(err5){
+                console.log(err5)
                 return db.rollback(()=>{
-                  throw err
+                  throw err5
                 })
               }
-              //customerのdepositを増やす登録
-              db.query(customerDepositIncreseSql,customerDepositIncreseVal,(err,row,fields)=>{
-                if(err){
-                  console.log(err)
+              console.log('rows5:',rows5)
+              const accountsReceivable = rows5[0].accounts_receivable
+              let temporaryReceipt = cirAmount //入金額
+              
+              //5.1 customerの直近27日以内のpayment_scheduleを取得 valueはcustomer_id,cisの支払い予定日の27日後の日付
+              const selectSchedulesSql = 'SELECT * FROM payment_schedules as ps LEFT OUTER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE pa.customer_id = ? AND ps.date <= ?;'
+              const after27days = moment(data.cis.payment_day).add(27,'d').format('YYYY-MM-DD')
+              console.log('customerID,after27days',[customerId,after27days])
+              db.query(selectSchedulesSql,[customerId,after27days],(err6,rows6,fields6)=>{
+                if(err6){
+                  console.log(err6)
                   return db.rollback(()=>{
-                    throw err
+                    throw err6
                   })
                 }
-                db.commit((err)=>{
-                  if(err){
-                    console.log('failed Commit!!')
+                console.log('Done rows6!\n')
+                //5.2 合計値を取得　totalAdvanceMoney,totalCommision,totalAdovisoryFee,と３つの合計subTotal
+                const resultGetSubTotals = getSubTotals(rows6)
+                console.log('resultGetSubTotals:',resultGetSubTotals)
+                let depositInsertValue          = 0 //預り金
+                let advancePaymentInsertValue   = 0 //前受金
+                let temporaryReceiptInsertValue = 0 //仮受金
+                let accountsReceivableInsertValue = 0 //売掛金の減らす額
+                if(temporaryReceipt < resultGetSubTotals.subTotal){
+                  //入金額よりも次回支払い金額の方が大きい場合は全て仮受金に入れて処理を終わる
+                  temporaryReceiptInsertValue = temporaryReceipt
+                  temporaryReceipt = 0
+                } else {
+                  //入金額よりも次回支払い金額が小さい場合は、前受け金と預かり金に分ける
+                  advancePaymentInsertValue   = resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalCommision //手数料と顧問料の合計を前受け金に。
+                  depositInsertValue          = resultGetSubTotals.totalAdvanceMoney
+                  //前受け金と預かり金を入金額から引く
+                  temporaryReceipt -= (advancePaymentInsertValue + depositInsertValue)
+                  
+                  //売掛金がある場合には残りの入金額を売掛金に充てる。
+                  if(accountsReceivable > 0){
+                    
+                    if(accountsReceivable < temporaryReceipt){
+                      //入金額の残額が売掛金よりも多ければ売掛がゼロになるまで。
+                      accountsReceivableInsertValue = accountsReceivable
+                      temporaryReceipt -= accountsReceivable
+                    } else if(accountsReceivable > temporaryReceipt){
+                      //売掛金の方が多ければ入金額の残額全て。
+                      accountsReceivableInsertValue = temporaryReceipt
+                      temporaryReceipt -= temporaryReceipt
+
+                    }
+                  }
+                }
+                //5.3 各変数にcustomers登録用の数字が入ってるはずなので、これをcusotmersに登録する。
+                const updateCustomersSql = 'UPDATE customers SET accounts_receivable = accounts_receivable - ?, deposit = deposit + ?, advance_payment = advance_payment + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?;'
+                const updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue, customerId]
+                console.log('update customers values:',updateCustomersValue)
+                db.query(updateCustomersSql,updateCustomersValue,(err7,rows7,fields7)=>{
+                  if(err7){
+                    console.log('err7:',err7)
                     return db.rollback(()=>{
-                      throw err
+                      throw err7
                     })
                   }
-                  console.log('success!')
-                  console.log(data.cir)
-                  resolve(data.cir.file_row_number)
-                })    
-                  
+                  console.log('rows7:',rows7)
+                  //3. journal book に仕分を登録
+                  const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId)
+                  console.log('journalbookdata:',journalBookData)
+                  db.query(journalBookData.sql,journalBookData.values,(err8,rows8,fields8)=>{
+                    if(err8){
+                      console.log('err8:',err8)
+                      return db.rollback(()=>{
+                        throw err8
+                      })
+                    }
+                    console.log('rows8:',rows8)
+                    db.commit((err)=>{
+                      if(err){
+                        console.log('failed Commit!!')
+                        return db.rollback(()=>{
+                          throw err
+                        })
+                      }
+                      console.log('success!')
+                      console.log('data cir:',data.cir)
+                      resolve(data.cir.file_row_number)
+                    })
+                  })
+                })
               })
             })
           })
         })
-      })  
+      })
     })
   }
-  ////ここまで--------------------
+  ////ここまで-----上記用の関数が下記に続きます---------------
+  //関数１）取得したpayment_schedulesから立替金と顧問料と手数料を取得して合計金額を吐き出します。
+  function getSubTotals(schedules){
+    let totalAdvanceMoney = 0
+    let totalCommision = 0
+    let totalAdovisoryFee = 0
+    schedules.forEach(schedule=>{
+      totalAdvanceMoney += schedule.amount
+      totalCommision    += (schedule.commision    * 1.1)
+      totalAdovisoryFee += (schedule.advisory_fee * 1.1)
+    })
+    return {
+      totalAdvanceMoney:totalAdvanceMoney,
+      totalCommision:totalCommision,
+      totalAdovisoryFee:totalAdovisoryFee,
+      subTotal:totalAdvanceMoney + totalCommision + totalAdovisoryFee
+    }
+  }
+  //関数２）journal bookへの登録
+  function convPostJournalBook(cirId,valuesArray, customerId){
+    //(valuesArray)updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
+
+    const motocho = 'cir'+cirId
+    const sql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
+    let postJournalVals = []
+    console.log('valuesArray:',valuesArray)
+    //売掛金 accounts_receivableInsertValue
+    if(valuesArray[0] > 0){
+      postJournalVals.push([motocho, '預金', valuesArray[0], '売掛金', valuesArray[0], customerId])
+    }
+
+    //預り金 depositInsertValue
+    if(valuesArray[1] > 0){
+      postJournalVals.push([motocho, '預金', valuesArray[1], '預り金', valuesArray[1], customerId])
+    }
+
+    //前受金 advancePaymentInsertValue
+    if(valuesArray[2] > 0){
+      postJournalVals.push([motocho, '預金', valuesArray[2], '前受金', valuesArray[2], customerId])
+    }
+
+    //仮受金 temporaryReceiptInsertValue
+    if(valuesArray[3] > 0){
+      postJournalVals.push([motocho, '預金', valuesArray[3], '仮受金', valuesArray[3], customerId])
+    }
+    return {sql:sql,values:postJournalVals}
+  }
+  /////関数ここまで////////////////////////////////////////////////////
 
 //get come in schedules
 app.get('/payment_agency/cis/',(req,res)=>{
