@@ -10,6 +10,7 @@
                 <v-btn @click="goImport">インポート</v-btn>
                 <v-btn @click="upda">こうしん</v-btn>
                 <v-btn @click="goImportfile">インポートファイル一覧</v-btn>
+                <v-btn v-show="isAdmin" color="warning" @click="cancelMatching">出金確定取り消し</v-btn>
                 </v-app-bar>
                 <v-app-bar>
                     <v-radio-group v-model="radioPaid" row>
@@ -161,6 +162,12 @@ export default {
         },
         cis(){
             return this.$store.getters['pa/getCIS']
+        },
+        isAdmin(){
+            if(this.$auth.user){
+                return this.$auth.user.isAdmin
+            }
+            return false
         }
     },
     methods:{
@@ -211,13 +218,22 @@ export default {
                 this.$axios.put('api/payment_agency/matching',matched)
                 .then((response)=>{
                     console.log('response: ',response.data)
-                    this.selectItem = []
+                    this.selectItem = {}
                     this.dialog = false
                     this.selectedSearchResult = []
                     this.upda()
                 })
             }
         },
+        cancelMatching(){
+            console.log(this.selected)
+            this.$axios.delete('api/payment_agency/matching',{data:this.selected})
+                .then((response)=>{
+                    console.log('response: ',response.data)
+                    this.selected = []
+                    this.upda()
+                })
+        }
     },  
     created(){
         this.upda()

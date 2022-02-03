@@ -480,7 +480,6 @@ app.put('/payment_agency/matching',(req,res)=>{
 
     //3.journal bookに会計処理登録
 
-    //4.customerにdeposit増やす登録
     //5.commit
     return new Promise((resolve,reject) => {
       const cisId         = data.cis.come_in_schedules_id
@@ -666,6 +665,128 @@ app.put('/payment_agency/matching',(req,res)=>{
     return {sql:sql,values:postJournalVals}
   }
   /////関数ここまで////////////////////////////////////////////////////
+
+app.delete('/payment_agency/matching',(req,res)=>{
+  console.log('\n---Delete pg matching ---')
+  Promise.all(req.body.map(arr=>{
+    return cancelMatchingTransaction(arr)
+  })).then((response)=>{
+    console.log('promise all result response:',response)
+    res.send(response)
+  })
+})
+///////////////////////////////////////////////////
+//delete payment_agency matching用（キャンセル用）
+function cancelMatchingTransaction(targetObject){
+  console.log('targetObject:',targetObject)
+  //targetはCIR
+  //1.cirから 以下を削除 come_in_schedules_id, customer_id 
+  //2.cisから 以下を削除 come_in_records_id
+  //3.journal bookからCIR_idでjournalを取り出す。
+  //4.journalを使ってcustomerの預り金、前受金、仮受金、売掛金を戻す作業。
+  //5.journalをdelete(delete flagにtrue)
+  const customerId = targetObject.customer_id
+  return new Promise((resolve,reject)=>{
+    db.beginTransaction((err)=>{
+      if(err){ throw err}
+
+      //1.cirの処理
+      const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = null, customer_id = null WHERE come_in_records_id = ?;'
+      db.query(cirSql,targetObject.come_in_records_id,(err1,rows1,fields1)=>{
+        if(err1){
+          console.log('err1:',err1)
+          return db.rollback(()=>{ throw err1 })
+        }
+        console.log('rows1:',rows1)
+
+        //2.cisの処理
+        const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = null WHERE come_in_schedules_id = ?;'
+        db.query(cisSql,targetObject.come_in_schedules_id,(err2,rows2,fields2)=>{
+          if(err2){
+            console.log('err2:',err2)
+            return db.rollback(()=>{ throw err2 })
+          }
+          console.log('rows2:',rows2)
+          
+          //3.journal book から取り出し。
+          const selectJournalSql = 'SELECT * FROM journal_book WHERE motocho = ? AND delete_flag = 0;'
+          db.query(selectJournalSql,'cir'+targetObject.come_in_records_id,(err3,rows3,fields3)=>{
+            if(err3){
+              console.log('err3:',err3)
+              return db.rollback(()=>{ throw err3 })
+            }
+            console.log('rows3:',rows3)
+            const journalArray = rows3
+
+            //4.journalでcustomersの金額もろもろを巻き戻し。
+            const updateCustomersSql = 'UPDATE customers SET accounts_receivable = accounts_receivable + ?, deposit = deposit - ?, advance_payment = advance_payment - ?, temporary_receipt = temporary_receipt - ? WHERE customer_id = ?;'
+            let updateCustomersValue = subTotalJournals(journalArray)
+            console.log('updateCustomersValue:',updateCustomersValue)
+            updateCustomersValue.push(customerId)
+            db.query(updateCustomersSql,updateCustomersValue,(err4,rows4,fields4)=>{
+              if(err4){
+                console.log('err4:',err4)
+                return db.rollback(()=>{ throw err4 })
+              }
+              console.log('rows4:',rows4)
+              
+              //5.journal_bookをdeleteにする
+              const deleteJournalSql = 'UPDATE journal_book SET delete_flag = 1 WHERE journal_book_id = ?;'
+              const journalIds = journalArray.map(journal => {return journal.journal_book_id})
+              console.log('journalIds:',journalIds)
+              db.query(deleteJournalSql,journalIds,(err5,rows5,fields5)=>{
+                if(err5){
+                  console.log('err5:',err5)
+                  return db.rollback(()=>{ throw err5 })
+                }
+                console.log('rows5:',rows5)
+  
+                db.commit((err)=>{
+                  if(err){
+                    console.log('failed Commit!!')
+                    return db.rollback(()=>{
+                      throw err
+                    })
+                  }
+                  console.log('success!')
+                  console.log('cir id:',targetObject.come_in_records_id)
+                  resolve(targetObject.come_in_records_id)
+                })
+              })
+            })
+      })
+        })
+      })
+    })
+  })
+}
+
+  //JOURNAL arrayから仮受金、前受金、預り金、売掛金を取り出す。
+  function subTotalJournals(journalArray){
+    let depositInsertValue          = 0 //預り金
+    let advancePaymentInsertValue   = 0 //前受金
+    let temporaryReceiptInsertValue = 0 //仮受金
+    let accountsReceivableInsertValue = 0 //売掛金に戻す額
+    journalArray.forEach(journal=>{
+      switch(journal.credit_account){
+        case '売掛金':
+          accountsReceivableInsertValue += journal.credit
+        break
+        case '預り金':
+          depositInsertValue += journal.credit
+        break
+        case '前受金':
+          advancePaymentInsertValue += journal.credit
+        break
+        case '仮受金':
+          temporaryReceiptInsertValue += journal.credit
+        break
+      }
+    })
+    return [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
+  }
+
+//////関数ここまで////////////////////////////////////////////////
 
 //get come in schedules
 app.get('/payment_agency/cis/',(req,res)=>{
