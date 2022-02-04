@@ -189,10 +189,10 @@ export default {
                 }
             })
         },
-        match(importDate,insertId){
+        match(importDate,insertIds){
             console.log(importDate)
-            console.log(insertId)
-            this.$axios.post('api/payment_agency/matching',{insertId:insertId,baseDate:importDate})
+            console.log(insertIds)
+            this.$axios.post('api/payment_agency/matching',{insertIds:insertIds,baseDate:importDate})
             .then(response=>{
                 console.log(response)
                 if(response.data.error){

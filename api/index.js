@@ -422,19 +422,19 @@ app.post('/payment_agency/matching',(req,res)=>{
   //insert したimportfile_idとbaseDateがくる。
   console.log('\n--- post payment_agency/matching ----')
   const baseDate = req.body.baseDate
-  const fileIds = req.body.insertId
+  const fileIds = req.body.insertIds
   const cisOptions = {
     until:moment(baseDate).add(27,'days').format('YYYY-MM-DD')
   }
-  const getCirSql = sqls.getCirForMatching()
+  let getCirSql = 'SELECT come_in_records_id, customer_id, come_in_name, actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id, file_row_number FROM come_in_records WHERE come_in_records_id IN (?);'
   const getCisSql = sqls.get_payment_agency_cis(cisOptions)
   console.log('fileIds:',fileIds)
   console.log('-------------------')
   //マッチング用のCIRをinsertID(cir_id)の番号で取得
-  db.query(getCirSql,fileIds,(err,row,field)=>{
+  db.query(getCirSql,[fileIds],(err,row,field)=>{
     if(err){throw err}
     const cir = row
-    console.log('取得cir個数:',cir.length)
+    console.log('取得cir個数:',cir.length,'cir:',cir)
     if(cir.length === 0 ){ throw 'id:' + fileIds + 'は全て紐づけ済みです。'}
 
     //マッチング用のCISを取得
@@ -568,7 +568,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                 let advancePaymentInsertValue   = 0 //前受金
                 let temporaryReceiptInsertValue = 0 //仮受金
                 let accountsReceivableInsertValue = 0 //売掛金の減らす額
-                if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals === 0 ){
+                if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals.subTotal === 0 ){
                   //入金額よりも次回支払い金額の方が大きい場合,or次回支払い無し全て仮受金に入れて処理を終わる
                   temporaryReceiptInsertValue = temporaryReceipt
                   temporaryReceipt = 0
