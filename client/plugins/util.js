@@ -154,7 +154,7 @@ const getIdsFromPaymentSchedules = function(schedulesArray){
 //カスタマーの配列と選択された配列を比較してdeposit（預り金）より多ければOKとする。
 //※重要※ リファクタリング案件　計算量を無視してます。（めんどい、というか今は完成スケジュール重視）重たくなったら、createSumPaidObjectとcreateAfterPaymentArray の結合というか　一回の計算量でおわるようにしてください。
 function judgePay(selectedArray,customersArray){
-
+    console.log('cusotmersArray',customersArray)
     //実際の出金　OK/NG の判断処理
     let afterPaymentArray = createAfterPaymentArray(selectedArray,customersArray)
     return afterPaymentArray
@@ -170,17 +170,23 @@ function createAfterPaymentArray(selectedArray,customersArray){
         const amount     = parseInt(schedule.amount,10)
         const advisoryFee= parseInt(schedule.advisory_fee,10)    * 1.1
         const commision  = parseInt(schedule.commision,10)       * 1.1
-        const subtotal   = amount + advisoryFee + commision
         
-        //depositとsubtotalを比較
-        if(customersObject[customerId].deposit >= subtotal && schedule.expected_date === null ){
-            //depositからsubtotalを減算
-            customersObject[customerId].deposit -= subtotal
+        //depositとamount && (adovisoryFee + commision) とadvance_payment を比較する。かつ まだ仮出金になってないことの確認
+        if(customersObject[customerId].deposit >= amount && customersObject[customerId].advance_payment >= (advisoryFee + commision) && schedule.expected_date === null ){
+            //depositからamountを減算
+            customersObject[customerId].deposit -= amount
+            //advance_paymentから　advisoryFeeとcommisionを減算
+            console.log()
+            customersObject[customerId].advance_payment -= advisoryFee + commision
+            //小計に加算
             customersObject[customerId].sumAmount += amount
             customersObject[customerId].sumCommision += commision
             customersObject[customerId].sumAdvisoryFee += advisoryFee
+            //confirm_payment(支払い済み金額)にamountを加算
+            customersObject[customerId].confirm_payment += amount
             //scheduleに出金　可否を追加
             schedule.isCanPay = true
+            console.log('customerObj:',customersObject[customerId])
         } else {
             schedule.isCanPay = false
         }
@@ -197,7 +203,10 @@ function createAfterPaymentArray(selectedArray,customersArray){
             customer.sumCommision = 0
             customer.sumAdvisoryFee = 0
             customer.depositBeforeJudge = customer.deposit
-            customerObject[customer.customer_id] = customer
+            customer.accountsReceivableBeforeJudge = customer.accounts_receivable
+            customer.advancePaymentBeforeJudge     = customer.advance_payment
+            customer.temporaryReceiptBeforeJudge   = customer.temporary_receipt
+            customerObject[customer.customer_id]   = customer
         })
         return customerObject
     }

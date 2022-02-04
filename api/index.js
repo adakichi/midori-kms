@@ -1005,7 +1005,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
   //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
-  //手順2 table(customersのdepositを減らす)
+  //手順2 table(customersのaccounts_receivable, deposit, advance_payment, temporary_receipt, confirm_payment)
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
   db.beginTransaction((err)=>{
@@ -1038,10 +1038,16 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
           }
 
           //手順2
-          const depositMinusSql = ' UPDATE customers SET deposit = deposit - ? WHERE customer_id = ?;'
-          const subTotal = editedScheduleObject.amount + (editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)
-          console.log('sabutotal:',subTotal,'customerID:',customerId)
-          db.query(depositMinusSql,[subTotal,customerId],(err3,rows3,fields3)=>{
+          const updateCustomersSql = 'UPDATE customers SET deposit = deposit - ?, advance_payment = advance_payment - ?, confirm_payment = confirm_payment + ? WHERE customer_id = ?;'
+          const updateCustomersValue = [
+            editedScheduleObject.amount,  //業者への支払い金額　→　預り金額から減算
+            ((editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)),    //　→　前受金から減算
+            editedScheduleObject.amount,  //業者への支払い金額　→　既に支払った金額に加算
+            customerId
+          ]
+
+          console.log('sql:',updateCustomersSql,'value:',updateCustomersValue)
+          db.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
               console.log(err3)
               return db.rollback(()=>{
@@ -1111,9 +1117,15 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
           }
 
           //手順2
-          const depositPlusSql = ' UPDATE customers SET deposit = deposit + ? WHERE customer_id = ?;'
-          const subTotal = editedScheduleObject.amount + (editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)
-          db.query(depositPlusSql,[subTotal,customerId],(err3,rows3,fields3)=>{
+          const updateCustomersSql = 'UPDATE customers SET deposit = deposit + ?, advance_payment = advance_payment + ?, confirm_payment = confirm_payment - ? WHERE customer_id = ?;'
+          const updateCustomersValue = [
+            editedScheduleObject.amount,  //業者への支払い金額　→　預り金額から減算
+            ((editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)),    //　→　前受金から減算
+            editedScheduleObject.amount,  //業者への支払い金額　→　既に支払った金額に加算
+            customerId
+          ]
+          
+          db.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
               console.log(err3)
               return db.rollback(()=>{

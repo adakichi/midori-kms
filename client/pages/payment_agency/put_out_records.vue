@@ -260,16 +260,21 @@ export default {
                 {text:'予定',   value:'expected_date'}
             ],
             headersEditedCustomersArray:[
-                {text:'番号', value:'customer_id'},
-                {text:'名前',   value:'name'},
-                {text:'初期売掛金',   value:'default_accounts_recivable'},
-                {text:'確定日',   value:'paid_date'},
-                {text:'予定日',   value:'expected_date'},
-                {text:'前 預り金',   value:'depositBeforeJudge'},
-                {text:'後 預り金',   value:'deposit',  groupable:false},
-                {text:'立替',   value:'sumAmount', groupable:false},
-                {text:'手数料',   value:'sumCommision', groupable:false},
-                {text:'顧問料',   value:'sumAdvisoryFee', groupable:false}
+                {text:'番号',       value:'customer_id'},
+                {text:'名前',       value:'name'},
+                {text:'初期売掛金', value:'default_accounts_recivable'},
+                {text:'確定日',     value:'paid_date'},
+                {text:'予定日',     value:'expected_date'},
+                {text:'前 預り金',  value:'depositBeforeJudge'},
+                {text:'後 預り金',  value:'deposit',  groupable:false},
+                {text:'前 前受金',  value:'advancePaymentBeforeJudge'},
+                {text:'後 前受金',  value:'advance_payment'},
+                {text:'前 仮受金',  value:'temporaryReceiptBeforeJudge'},
+                {text:'後 仮受金',  value:'temporary_receipt'},
+                {text:'後 支払い済み金額',   value:'confirm_payment'},
+                {text:'立替',       value:'sumAmount', groupable:false},
+                {text:'手数料',     value:'sumCommision', groupable:false},
+                {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
             ]
         }
     },
@@ -314,9 +319,11 @@ export default {
             this.selected = [] //初期化
             if(selected.length <= 0){ return alert('Error : 選択されてません！！')}
             const ids = getIdsFromPaymentSchedules(selected)
+            //預り金があるか等の確認の為顧客情報を取得
             this.$axios.get('api/payment_agency/payment_schedules/customers_deposit',{params:{ids:ids}})
             .then((response)=>{
                 const customers = response.data
+                //預り金（前受等）があるか判断
                 const judgedData = judgePay(selected,customers)
                 this.selected = []
                 this.judgedSelectedArray = judgedData.judgedSelectedArray
