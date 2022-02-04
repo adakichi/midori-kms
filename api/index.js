@@ -12,6 +12,7 @@ const domain = require('express-domain-middleware')
 
 import {sqls} from '../client/plugins/sqls.js'
 import {matchCis,objIsEmpty} from '../client/plugins/util.js'
+import { resolve } from 'path';
 
 app.use(cors())
 app.use(domain)
@@ -329,35 +330,48 @@ app.post('/payment_agency/cir/', (req,res)=>{
         fileNumber = duplicateRow[0].importfile_id
         importfileSql = convertedImportFile.updateFileSql
         fileinfoArray = convertedImportFile.updateFileVal
-        console.log('\nid:',duplicateRow[0].importfile_id)
         fileinfoArray.push(fileNumber)
         console.log('\nduplicate->',fileNumber)
       }
       console.log('insert importfile:',importfileSql,fileinfoArray)
-      db.query(importfileSql,fileinfoArray, (err,row,fields)=>{
-        if(err){
-          console.log(err)
-          return db.rollback(()=>{
-            throw err
-          })
-        }
+      db.query(importfileSql,fileinfoArray, (err2,row2,fields)=>{
+        if(err2){ console.log('err2',err2); return db.rollback(()=>{ throw err2 })}
         if(fileNumber === ''){
-          fileNumber = row.insertId
+          fileNumber = row2.insertId
         }
-        console.log(' > insert fileinfo is OK')
-        console.log(' > insert val -> ' + fileNumber)
+        console.log(' > insert fileinfo is OK\n > insert val -> ' + fileNumber)
         const convertedCir   = sqls.post_payment_agency_cir.convertCir(req.body.data, fileNumber)
           const insertValArray = convertedCir.valuesArray
           const cirSql         = convertedCir.sql
-        console.log('insertValarray:',insertValArray.length)
-        db.query(cirSql,insertValArray,(err2,row2,fields2)=>{
-          if(err2){
-            console.log('failed insrtVal')
-            console.log(err)
-            return db.rollback(()=>{
-              throw err2
+        console.log('insert Value array:',insertValArray.length + '件',insertValArray)
+        Promise.all(insertValArray.map(value=>{
+          return new Promise((resolve,reject)=>{
+            db.beginTransaction((err)=>{
+              if(err){ throw err}
+
+              //ファイルNoとRowNo.で検索して一致する物があるか検索
+              const sql1 = 'SELECT * FROM come_in_records where importfile_id = ? AND file_row_number = ? '
+              db.query(sql1,[value[4],value[5]],(err3,rows3,fields3)=>{
+                if(err3){console.log('err3:',err3); return db.rollback(()=>{ throw err3})}
+                if(rows3.length > 0){ return db.rollback(()=>{ resolve({message:'重複->'+ value[5] + '列目 名前:' + value[1]})})}
+                console.log('rows3:',rows3)
+                //insert
+                const sql2 = 'insert ignore into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id, file_row_number) VALUES (?,?,?,?,?,?)'
+                console.log('value:',value)
+                db.query(sql2,value,(err4,row4,fields4)=>{
+                  if(err4){console.log('err4:',err4); return db.rollback(()=>{ throw err4})}
+                  db.commit((err5)=>{
+                    if(err5){console.log('err5:',err5); return db.rollback(()=>{ throw err5})}
+                    resolve(row4.insertId)
+                  })
+                })
+              })
             })
-          }
+          })
+        }))
+
+        .then(response=>{
+          console.log('promise response:',response)
           const updateImportfileSql = 'UPDATE importfile_for_come_in_records SET imported_number = (SELECT count(importfile_id) FROM come_in_records WHERE importfile_id = ?) WHERE importfile_id = ?;'
           db.query(updateImportfileSql,[fileNumber,fileNumber],(err3,rows3,fields3)=>{
             if(err3){throw err3 }
@@ -368,9 +382,20 @@ app.post('/payment_agency/cir/', (req,res)=>{
                   throw err
                 })
               }
+              let resObject = {
+                message:'',
+                ids:[]
+              }
+              response.forEach((obj)=>{
+                if(obj.message){
+                  resObject.message = resObject.message + '\n' + obj.message
+                } else {
+                  resObject.ids.push(obj)
+                }
+              })
               console.log('success!')
-              row2.importfileId = fileNumber
-              res.send(row2)
+              console.log(resObject)
+              res.send(resObject)
             })
           })
         })
@@ -397,31 +422,26 @@ app.post('/payment_agency/matching',(req,res)=>{
   //insert したimportfile_idとbaseDateがくる。
   console.log('\n--- post payment_agency/matching ----')
   const baseDate = req.body.baseDate
-  const fileId = req.body.importfileId
+  const fileIds = req.body.insertId
   const cisOptions = {
     until:moment(baseDate).add(27,'days').format('YYYY-MM-DD')
   }
-  const cirOptions = {
-    importfileId:fileId,
-    paid:'false'
-  }
-  const getCirSql = sqls.get_payment_agency_cir(cirOptions)
+  const getCirSql = sqls.getCirForMatching()
   const getCisSql = sqls.get_payment_agency_cis(cisOptions)
-  console.log('cir sql:',getCirSql)
+  console.log('fileIds:',fileIds)
   console.log('-------------------')
-  console.log('cis sql:',getCisSql)
-  //マッチング用のCIRをimportfileの番号で取得
-  db.query(getCirSql,(err,row,field)=>{
+  //マッチング用のCIRをinsertID(cir_id)の番号で取得
+  db.query(getCirSql,fileIds,(err,row,field)=>{
     if(err){throw err}
     const cir = row
-    console.log('cir:',cir.length)
-    if(cir.length === 0 ){ throw 'id:' + fileId + 'は全て紐づけ済みです。'}
+    console.log('取得cir個数:',cir.length)
+    if(cir.length === 0 ){ throw 'id:' + fileIds + 'は全て紐づけ済みです。'}
 
     //マッチング用のCISを取得
     db.query(getCisSql,baseDate,(err2,row2,fields)=>{
       if(err2){throw err2}
       const cis = row2
-      console.log('cis:',cis.length)
+      console.log('取得cis個数:',cis.length)
 
       //マッチング処理
       console.log('\nmatcheCis投入cir:',cir)
@@ -548,8 +568,8 @@ app.put('/payment_agency/matching',(req,res)=>{
                 let advancePaymentInsertValue   = 0 //前受金
                 let temporaryReceiptInsertValue = 0 //仮受金
                 let accountsReceivableInsertValue = 0 //売掛金の減らす額
-                if(temporaryReceipt < resultGetSubTotals.subTotal){
-                  //入金額よりも次回支払い金額の方が大きい場合は全て仮受金に入れて処理を終わる
+                if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals === 0 ){
+                  //入金額よりも次回支払い金額の方が大きい場合,or次回支払い無し全て仮受金に入れて処理を終わる
                   temporaryReceiptInsertValue = temporaryReceipt
                   temporaryReceipt = 0
                 } else {
@@ -639,7 +659,7 @@ app.put('/payment_agency/matching',(req,res)=>{
   function convPostJournalBook(cirId,valuesArray, customerId){
     //(valuesArray)updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
 
-    const motocho = 'cir'+cirId
+    const motocho = 'cir'+ cirId
     const sql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
     let postJournalVals = []
     console.log('valuesArray:',valuesArray)
@@ -1006,6 +1026,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
   //手順2 table(customersのaccounts_receivable, deposit, advance_payment, temporary_receipt, confirm_payment)
+  //手順3 journal_bookに登録
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
   db.beginTransaction((err)=>{
@@ -1054,23 +1075,49 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
                 throw err3
               })
             }
-            console.log('rows3: ',rows3)
-            db.commit((err4)=>{
+            console.log('rows3: ')
+
+            //手順3 journal_bookに処理
+            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
+            const journalInsertValueArray = createJournalArray(editedScheduleObject)
+            console.log('journal book val array:',journalInsertValueArray)
+            db.query(journalBookSql,[journalInsertValueArray],(err4,rows4,fields4)=>{
               if(err4){
-                console.log('failed Commit!!')
+                console.log(err4)
                 return db.rollback(()=>{
                   throw err4
                 })
               }
-              console.log('Commit success!')
-              resolve(editedScheduleObject)
-            })            
+              console.log('rows4: ')
+              db.commit((err4)=>{
+                if(err4){
+                  console.log('failed Commit!!')
+                  return db.rollback(()=>{
+                    throw err4
+                  })
+                }
+                console.log('Commit success!')
+                resolve(editedScheduleObject)
+              })                
+            })
           })
         })
     })
   })
 
   })
+}
+
+//temporary_transaction用の関数
+//journal values を作成する
+function createJournalArray(editedScheduleObject){
+  //'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
+  const motocho = 'ps' + editedScheduleObject.payment_schedule_id
+  const advancePayment = editedScheduleObject.advisory_fee + editedScheduleObject.commision 
+  let journalArray = []
+  journalArray.push([ motocho, '預り金', editedScheduleObject.amount, '預金', editedScheduleObject.amount, editedScheduleObject.customer_id])
+  journalArray.push([ motocho, '前受金', advancePayment, '売上', advancePayment, editedScheduleObject.customer_id ])
+  return journalArray
 }
 
 //支払い予定を取り消し
@@ -1092,19 +1139,21 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,をnull（仮支払い日、仮金額、仮手数料、仮顧問料)
   //手順2 table(customersのdepositを増やす)
+  //手順3 journalArrayを削除する。
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
   db.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date is null;'
-    db.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows,fields)=>{
-      if(err0 || rows.length === 0){
+    db.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows0,fields)=>{
+      if(err0 || rows0.length === 0){
         console.log('err:',err0)
         return db.rollback(()=>{
-          throw err
+          throw err0
         })
       }
+      console.log('rows0:',rows0)
 
         //手順1
         const updateScheduleSql = ' UPDATE payment_schedules SET expected_date = null, expected_amount = null, expected_commision = null, expected_advisory_fee = null WHERE payment_schedule_id = ?;'          
@@ -1115,6 +1164,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
               throw err2
             })
           }
+          console.log('rows2:',rows2)
 
           //手順2
           const updateCustomersSql = 'UPDATE customers SET deposit = deposit + ?, advance_payment = advance_payment + ?, confirm_payment = confirm_payment - ? WHERE customer_id = ?;'
@@ -1132,22 +1182,34 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
                 throw err3
               })
             }
+            console.log('rows3:',rows3)
 
-            db.commit((err4)=>{
+            //手順3 journalを削除する。
+            const journalBookSql = 'DELETE FROM journal_book WHERE motocho = ? AND delete_flag = 0;'
+            const motochoValue = 'ps'+ editedScheduleObject.payment_schedule_id
+            db.query(journalBookSql,motochoValue,(err4,rows4,fields4)=>{
               if(err4){
-                console.log('failed Commit!!')
+                console.log(err4)
                 return db.rollback(()=>{
                   throw err4
                 })
               }
-              console.log('Commit success!')
-              resolve(editedScheduleObject)
-            })            
+              console.log('rows4:',rows4)
+              db.commit((err4)=>{
+                if(err4){
+                  console.log('failed Commit!!')
+                  return db.rollback(()=>{
+                    throw err4
+                  })
+                }
+                console.log('Commit success!')
+                resolve(editedScheduleObject)
+              })            
+            })
           })
         })
+      })
     })
-  })
-
   })
 }
 

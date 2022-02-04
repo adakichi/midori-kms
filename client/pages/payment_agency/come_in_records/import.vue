@@ -173,26 +173,26 @@ export default {
         submitData(){
             const selectedItems = this.selected
             this.fileInfo.imported = selectedItems.length
-            console.log(this.fileInfo)
-            console.log('length:',selectedItems.length)
-            console.log(selectedItems)
+            console.log('submit data')
             this.$axios.post('api/payment_agency/cir',{fileinfo:this.fileInfo,data:selectedItems})
             .then((response)=>{
-                console.log('response:',response)
+                console.log('Done get cir')
                 if(response.data.error){
                     alert(response.data.message)
                 } else {
-                    console.log('response:',response)
-                    alert('新規登録:'+ response.data.affectedRows + '\nResult:' + response.data.message)
-                    const doMatch = confirm('紐づけしますか？')
-                    if(doMatch){this.match(this.fileInfo.downloadDate,response.data.importfileId)}
+                    console.log('response ids:',response.data)
+                    alert('新規登録:'+ response.data.ids.length + '件登録\n' + response.data.message)
+                    if(response.data.ids.length > 0){
+                        const doMatch = confirm('紐づけしますか？')
+                        if(doMatch){this.match(this.fileInfo.downloadDate,response.data.ids)}
+                    }
                 }
             })
         },
-        match(importDate,importfileId){
+        match(importDate,insertId){
             console.log(importDate)
-            console.log(importfileId)
-            this.$axios.post('api/payment_agency/matching',{importfileId:importfileId,baseDate:importDate})
+            console.log(insertId)
+            this.$axios.post('api/payment_agency/matching',{insertId:insertId,baseDate:importDate})
             .then(response=>{
                 console.log(response)
                 if(response.data.error){
