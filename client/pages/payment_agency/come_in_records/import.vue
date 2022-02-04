@@ -197,10 +197,9 @@ export default {
                 console.log(response)
                 if(response.data.error){
                     alert(response.data.message)
-                } else if(Array.isArray(response.data)) {
-                    const str = response.data.join(',')
-                    const count = response.data.length
-                    alert('成功:' + count + '件\nsucess row: ' + str)
+                } else if(response.data.rowNumbers) {
+                    const count = response.data.rowNumbers.length
+                    alert('成功:' + count + '件\nsucess row: ' + response.data.rowNumbers + '\n'+response.data.messages )
                     this.goIndex()
                 }
             })

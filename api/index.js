@@ -452,7 +452,7 @@ app.post('/payment_agency/matching',(req,res)=>{
         return matchingTransaction(arr)
       })).then((response)=>{
         console.log(response)
-        res.send(response)
+        res.send(resObject(response))
       })  
     })
   })
@@ -466,7 +466,7 @@ app.put('/payment_agency/matching',(req,res)=>{
     return matchingTransaction(arr)
   })).then((response)=>{
     console.log('promise all result response:',response)
-    res.send(response)
+    res.send(resObject(response))
   })
 })
 
@@ -626,7 +626,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                       }
                       console.log('success!')
                       console.log('data cir:',data.cir)
-                      resolve(data.cir.file_row_number)
+                      resolve(data.cir)
                     })
                   })
                 })
@@ -683,6 +683,17 @@ app.put('/payment_agency/matching',(req,res)=>{
       postJournalVals.push([motocho, '預金', valuesArray[3], '仮受金', valuesArray[3], customerId])
     }
     return {sql:sql,values:postJournalVals}
+  }
+
+  //transactionで成功したらCirを返すのでpromis Allの戻り値がcirの配列になる。
+  //clientに返すように編集する関数を作る
+  function resObject(cirArray){
+    let resObject = {messages:'',rowNumbers:[]}
+    cirArray.forEach(cir=>{
+      resObject.messages = resObject.messages + '\n名前:' + cir.come_in_name
+      resObject.rowNumbers.push(cir.file_row_number)
+    })
+    return resObject
   }
   /////関数ここまで////////////////////////////////////////////////////
 
@@ -1078,7 +1089,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             console.log('rows3: ')
 
             //手順3 journal_bookに処理
-            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
+            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
             const journalInsertValueArray = createJournalArray(editedScheduleObject)
             console.log('journal book val array:',journalInsertValueArray)
             db.query(journalBookSql,[journalInsertValueArray],(err4,rows4,fields4)=>{

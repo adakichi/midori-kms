@@ -176,7 +176,6 @@ function createAfterPaymentArray(selectedArray,customersArray){
             //depositからamountを減算
             customersObject[customerId].deposit -= amount
             //advance_paymentから　advisoryFeeとcommisionを減算
-            console.log()
             customersObject[customerId].advance_payment -= advisoryFee + commision
             //小計に加算
             customersObject[customerId].sumAmount += amount
@@ -186,7 +185,6 @@ function createAfterPaymentArray(selectedArray,customersArray){
             customersObject[customerId].confirm_payment += amount
             //scheduleに出金　可否を追加
             schedule.isCanPay = true
-            console.log('customerObj:',customersObject[customerId])
         } else {
             schedule.isCanPay = false
         }
