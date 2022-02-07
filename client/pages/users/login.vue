@@ -24,6 +24,8 @@
                       @click:append="showpass = !showpass"
                     ></v-text-field>
                     <v-btn @click="login">送信</v-btn>
+                    <v-btn @click="goRegister">新規登録</v-btn>
+                    <v-btn @click="goAdminPage">管理者ページ</v-btn>
                     </v-card-text>
                 </v-form>
             </v-card>
@@ -63,6 +65,12 @@ import axios from 'axios'
             }
         })
       },
+      goRegister(){
+        this.$router.push('/users/register/')
+      },  
+      goAdminPage(){
+        this.$router.push('/users/adminPage')
+      },  
       // login(){
       //   console.log('--get-->')
       //   const data = {userId:this.user.userId,password:this.user.password}
