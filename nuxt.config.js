@@ -8,7 +8,9 @@ export default {
 
   //auth middleware設定
   router:{
-    // middleware:['auth']
+    //アクセス制限を解除する場合は、下記をコメントアウトしてください。
+    //アクセス制限をONにしている場合、制限をしないページには auth:false　を設定してください。
+    middleware:['auth']
   },
 
   //auth情報追加

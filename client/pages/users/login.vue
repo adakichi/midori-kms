@@ -37,6 +37,7 @@
 <script>
 import axios from 'axios'
   export default {
+    //下記auth:false を削除してしまうとアクセス制限がONの時にアクセスできなくなりますので、絶対削除はNGです。
     auth:false,
     data(){
       return {
