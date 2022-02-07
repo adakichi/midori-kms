@@ -28,7 +28,7 @@ logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + ' サーバー起動')
 //database mkms へのコネクト
 const db_mkms = mysql.createConnection(dbConfig.mkms)
   db_mkms.connect((err)=>{
-    console.log('>db.connect')
+    console.log('>db mkms .connect')
     if(err){
       console.error('error connecting: ' + err.stack)
       return
@@ -39,7 +39,7 @@ const db_mkms = mysql.createConnection(dbConfig.mkms)
 //database midori_users用
 const db_midori_users =mysql.createConnection(dbConfig.midoriUsers)
 db_midori_users.connect((err)=>{
-  console.log('>midori users db.connect')
+  console.log('>db midori users .connect')
   if(err){
     console.error('error connecting: ' + err.stack)
     return
@@ -49,8 +49,8 @@ db_midori_users.connect((err)=>{
 
 //database payment_agency用
 const db_payment_agency =mysql.createConnection(dbConfig.paymentAgency)
-db_midori_users.connect((err)=>{
-  console.log('>payment_agency db.connect')
+db_payment_agency.connect((err)=>{
+  console.log('>db payment_agency connect')
   if(err){
     console.error('error db [payment_agency] connecting: ' + err.stack)
     return
@@ -90,7 +90,7 @@ app.post('/auth/login',(req,res)=>{
     const reqpass = req.body.password
     const sql = "SELECT * FROM users WHERE user_id = ?"
     db_midori_users.query(sql, userId,(err,user,fields)=>{
-      console.log('>db.query (/auth/login/)')
+      console.log('>at: (/auth/login/)')
       if(err){
         console.log('  query error\n---stop post login process---')
         return res.json({"message": err.message})
@@ -375,7 +375,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
       }
       console.log('insert importfile:',importfileSql,fileinfoArray)
       db_payment_agency.query(importfileSql,fileinfoArray, (err2,row2,fields)=>{
-        if(err2){ console.log('err2',err2); return db.rollback(()=>{ throw err2 })}
+        if(err2){ console.log('err2',err2); return db_payment_agency.rollback(()=>{ throw err2 })}
         if(fileNumber === ''){
           fileNumber = row2.insertId
         }
@@ -1084,7 +1084,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commision IS NULL OR expected_advisory_fee IS NULL) AND paid_date is null'
-    db.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
+    db_payment_agency.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log(err0)
         return db_payment_agency.rollback(()=>{
