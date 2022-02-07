@@ -181,9 +181,9 @@ app.put('/auth/user/editUser',(req,res)=>{
   app.post('/auth/register/',(req,res)=>{
     console.log('\n--- request(POST) auth/register/ start---\n' + Date())
     console.log(req.body.userId)
-    const insertSql = 'INSERT INTO USERS (name, user_id, password) VALUES (?,?,?)'
+    const insertSql = 'INSERT INTO USERS (name, user_id, password, division) VALUES (?,?,?)'
     bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
-      db_midori_users.query(insertSql, [req.body.name, req.body.userId, hash],(err)=>{
+      db_midori_users.query(insertSql, [req.body.name, req.body.userId, hash,req.body.division],(err)=>{
         if(err){ err.whichApi = 'post /auth/register/'; throw err}
 
         console.log(' Sucess Create New User\n--- Done process ---')

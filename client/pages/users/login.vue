@@ -25,7 +25,6 @@
                     ></v-text-field>
                     <v-btn @click="login">送信</v-btn>
                     <v-btn @click="goRegister">新規登録</v-btn>
-                    <v-btn @click="goAdminPage">管理者ページ</v-btn>
                     </v-card-text>
                 </v-form>
             </v-card>

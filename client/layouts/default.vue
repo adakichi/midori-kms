@@ -99,6 +99,9 @@
           </v-list-item-action>
           <v-list-item-title>Switch drawer (click me)</v-list-item-title>
         </v-list-item>
+        <v-list-item v-show='$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false ' @click="$router.push('users/adminPage')">
+          <v-list-item-title>管理者ページ</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-footer

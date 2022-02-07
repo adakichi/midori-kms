@@ -30,6 +30,13 @@
                       required
                       @click:append="showpass = !showpass"
                     ></v-text-field>
+                    <v-select
+                      v-model="user.division"
+                      :items='divisions'
+                      :counter="20"
+                      label="所属"
+                      required
+                    ></v-select>
                     <v-btn @click="createUser">登録</v-btn>
                     </v-card-text>
                 </v-form>
@@ -42,14 +49,17 @@
 <script>
 import axios from 'axios'
   export default {
+    auth:false,
     data(){
       return {
         user:{
           name:'',
           userId:'',
-          password:''
+          password:'',
+          division:'無所属'
         },
-        showpass:false
+        showpass:false,
+        divisions:['新規','調査','中決','交面','交渉','完了','債務整理','無所属'],
       }
     },
     methods:{
