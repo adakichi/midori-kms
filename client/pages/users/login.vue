@@ -23,7 +23,7 @@
                       required
                       @click:append="showpass = !showpass"
                     ></v-text-field>
-                    <v-btn @click="login">送信</v-btn>
+                    <v-btn @click="login">ログイン</v-btn>
                     <v-btn @click="goRegister">新規登録</v-btn>
                     </v-card-text>
                 </v-form>

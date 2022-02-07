@@ -117,7 +117,8 @@ app.post('/auth/login',(req,res)=>{
           id:user[0].id,
           userId:user[0].user_id,
           name:user[0].name,
-          isAdmin:user[0].admin
+          isAdmin:user[0].admin,
+          division:user[0].division
         }
         console.log('---compare sucess---\n')
         logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + '>' + user[0].name + ' がログインしました。')

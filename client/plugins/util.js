@@ -229,6 +229,7 @@ function createSumPaidObject(selectedArray){
 }
 
 //転送api用にreq.body.divisionで送信先を変える関数
+import {chatworkConf} from '../../midori-kms_config'
 function forwardingAddress (division){
     let toRoomId = []
     let from = ''
@@ -251,6 +252,10 @@ function forwardingAddress (division){
             toRoomId[2] = chatworkConf.rooms.hasegawa
             break;
         case '交渉':
+            from = chatworkConf.token.adachi
+            toRoomId[0] = chatworkConf.rooms.nakataniEmiri
+            toRoomId[1] = chatworkConf.rooms.hyoudouEmi
+            toRoomId[2] = chatworkConf.rooms.aokiKanade
             break;
         case '完了':
             break;
