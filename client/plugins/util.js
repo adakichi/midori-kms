@@ -228,6 +228,40 @@ function createSumPaidObject(selectedArray){
     return sumPaidObject    
 }
 
+//転送api用にreq.body.divisionで送信先を変える関数
+function forwardingAddress (division){
+    let toRoomId = []
+    let from = ''
+    switch (division){
+        case '新規':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.yoshizawa_robot
+            break;
+        case '調査':
+            from = chatworkConf.token.adachi
+            toRoomId[0] = chatworkConf.rooms.nakajimaYuki
+            toRoomId[1] = chatworkConf.rooms.tanakaMai
+            toRoomId[2] = chatworkConf.rooms.nomuraMinori
+            toRoomId[3] = chatworkConf.rooms.gotouEri
+            break;
+        case '交面':
+            from = chatworkConf.token.adachi
+            toRoomId[0] = chatworkConf.rooms.tozawa
+            toRoomId[1] = chatworkConf.rooms.watanabesyouhei
+            toRoomId[2] = chatworkConf.rooms.hasegawa
+            break;
+        case '交渉':
+            break;
+        case '完了':
+            break;
+        case '債務整理':
+            break;
+        case '':
+            break;
+        }
+    return {from: from, to: toRoomId}
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -363,6 +397,7 @@ export {
     matchCis,
     getIdsFromPaymentSchedules,
     judgePay,
+    forwardingAddress,
     ////////////////////
     zenkana2BigHankana,
     zenkana2Hankana,   

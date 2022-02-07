@@ -12,7 +12,6 @@ const domain = require('express-domain-middleware')
 
 import {sqls} from '../client/plugins/sqls.js'
 import {matchCis,objIsEmpty} from '../client/plugins/util.js'
-import { resolve } from 'path';
 
 app.use(cors())
 app.use(domain)
@@ -22,17 +21,22 @@ const out = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + '
 const err = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'error.log')
 const logger = new console.Console(out,err)
 logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + ' サーバー起動')
-//databaseへのコネクト
-const db = mysql.createConnection(dbConfig.mkms)
-  db.connect((err)=>{
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+//database mkms へのコネクト
+const db_mkms = mysql.createConnection(dbConfig.mkms)
+  db_mkms.connect((err)=>{
     console.log('>db.connect')
     if(err){
       console.error('error connecting: ' + err.stack)
       return
     }
-    console.log('db [mkms] Connected id: ' + db.threadId)
+    console.log('db [mkms] Connected id: ' + db_mkms.threadId)
   })
 
+//database midori_users用
 const db_midori_users =mysql.createConnection(dbConfig.midoriUsers)
 db_midori_users.connect((err)=>{
   console.log('>midori users db.connect')
@@ -40,8 +44,23 @@ db_midori_users.connect((err)=>{
     console.error('error connecting: ' + err.stack)
     return
   }
-  console.log('db [midori users] Connected id: ' + db.threadId)
+  console.log('db [midori users] Connected id: ' + db_midori_users.threadId)
 })
+
+//database payment_agency用
+const db_payment_agency =mysql.createConnection(dbConfig.paymentAgency)
+db_midori_users.connect((err)=>{
+  console.log('>payment_agency db.connect')
+  if(err){
+    console.error('error db [payment_agency] connecting: ' + err.stack)
+    return
+  }
+  console.log('db [payment_agency] Connected id: ' + db_midori_users.threadId)
+})
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 // kokokara
 const path = require('path')
@@ -134,6 +153,7 @@ app.get('/auth/user/allUsers',(req,res)=>{
   console.log('division')
   const sql = 'SELECT id, user_id, name, admin, division FROM users'
   db_midori_users.query(sql,(err,row,fields)=>{
+    if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
   })
 })
@@ -144,7 +164,7 @@ app.put('/auth/user/editUser',(req,res)=>{
   const sql = 'UPDATE users SET name = ?, admin = ?, division = ? WHERE id = ?;'
   const values = [req.body.name, req.body.admin, req.body.division, req.body.id]
   db_midori_users.query(sql,values,(err,row,fields)=>{
-    if(err){ throw err }
+    if(err){ err.whichApi = 'put /auth/user/editUser' ; throw err }
     console.log('row:',row)
     res.send('OK')
   })
@@ -164,10 +184,8 @@ app.put('/auth/user/editUser',(req,res)=>{
     const insertSql = 'INSERT INTO USERS (name, user_id, password) VALUES (?,?,?)'
     bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
       db_midori_users.query(insertSql, [req.body.name, req.body.userId, hash],(err)=>{
-        if(err){
-          console.log(' db.query Error\n err: ' + err.message + '\n--- Done process ---')
-          return res.json({"message": "登録できませんでした。\nError : " + err.message})
-        }
+        if(err){ err.whichApi = 'post /auth/register/'; throw err}
+
         console.log(' Sucess Create New User\n--- Done process ---')
         return res.json({
           "message":"新規登録が成功しました。\n message : create User successfully",
@@ -196,26 +214,11 @@ app.get("/cw/send",function(req,res,next){
         })
 })
 
-//転送api用にreq.body.divisionで送信先を変える関数
-  function forwardingAddress (division){
-    let toRoomId = []
-    let from = ''
-    switch (division){
-        case '新規':
-            from = chatworkConf.token.robot
-            toRoomId[0] = chatworkConf.rooms.yoshizawa_robot
-            break;
-        case '交面':
-            from = chatworkConf.token.adachi
-            toRoomId[0] = chatworkConf.rooms.tozawa
-            toRoomId[1] = chatworkConf.rooms.watanabesyouhei
-            toRoomId[2] = chatworkConf.rooms.hasegawa
-            break;
-        }
-    return {from: from, to: toRoomId}
-}
 
 //chatworkへの転送api
+////関数FROM util.js////
+import {forwardingAddress} from '/midori-kms/client/plugins/util.js'  //転送api用にreq.body.divisionで送信先を変える関数
+////////
 app.post("/cw/send",function(req,res,next){
     console.log('\nPOST:/cw/send\n---start cw send process---')
     console.log('  division: ' + req.body.division)
@@ -231,14 +234,14 @@ app.post("/cw/send",function(req,res,next){
     })
     console.log(params)
     console.log('  axios.all:start!!')
-    const axioses = urls.map(function(url){
+    const axiosResults = urls.map(function(url){
         return axios.post(url,params,{
             headers: {'X-ChatWorkToken' : cwToken}
         })
     })
     let responseData = []
     Promise.all(
-        axioses
+        axiosResults
         ).then((responses)=> {
             console.log('  done:promise')
             if(responses){
@@ -261,7 +264,9 @@ app.post("/cw/send",function(req,res,next){
 
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 //BIZTEL CTIの連携用API
 
 //顧客番号でSAIZOのURLを返す関数
@@ -270,7 +275,8 @@ app.post("/cw/send",function(req,res,next){
 app.post('/biztel/search',(req,res)=>{
   console.log('\n--- BIZTEL search ---')
   const sql = 'SELECT jyuninNumber FROM saizoSearch WHERE phoneNumber = ?'
-  db.query(sql, req.body.tel,(err,num,fields)=>{
+  db_mkms.query(sql, req.body.tel,(err,num,fields)=>{
+    if(err){err.whichApi = 'post /biztel/search/' ; throw err}
     console.log()
     let jyuninNum = ''
     if(!num){
@@ -292,7 +298,8 @@ app.post('/biztel/search',(req,res)=>{
 app.post('/biztel/pickup',(req,res)=>{
   console.log('\n--- BIZTEL pickup ---')
   const sql = 'SELECT kokyakuId FROM saizoSearch WHERE phoneNumber = ?'
-  db.query(sql, req.body.tel,(err,num,fields)=>{
+  db_mkms.query(sql, req.body.tel,(err,num,fields)=>{
+    if(err){ err.whichApi = 'post /biztel/pickup/'; throw err}
     console.log()
     let saizoUrl = ''
     if(!num){
@@ -317,6 +324,9 @@ app.post('/biztel/hangup',(req,res)=>{
 })
 
 
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -326,8 +336,8 @@ app.get('/payment_agency/cir/',(req,res)=>{
   console.log('\n ---get payment_agensy/cir ---')
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.get_payment_agency_cir(options)
-  db.query(sql,(err,rows,fields)=>{
-    if(err){res.send(err)}
+  db_payment_agency.query(sql,(err,rows,fields)=>{
+    if(err){ err.whichApi = 'get /payment_agency/cir/' ; throw err }
     console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
   })
@@ -338,21 +348,21 @@ app.post('/payment_agency/cir/', (req,res)=>{
   //最初にfileinfoの登録をしたあとにcirの登録。（fileinfoのId取得の為)
   console.log('\n --- post pa/cir ---')
   //登録データが空だった場合エラーとして返す
-  if(objIsEmpty(req.body.data)){ return res.send({error:true,message:'データがありません!!'})}
+  if(objIsEmpty(req.body.data)){ throw {message:'データがありません!!'}}
   const convertedImportFile = sqls.post_payment_agency_cir.convertImportFile(req.body.fileinfo)
     let importfileSql = convertedImportFile.sql
     let fileinfoArray = convertedImportFile.valuesArray
     const selectFileSql = convertedImportFile.selectFileSql
     const selectFileVal = convertedImportFile.selectFileVal
   console.log('fileinfo:',fileinfoArray)
-  db.beginTransaction((err)=>{
+  db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err }
     //importFileに重複が無いか確認の為select
     let fileNumber = ''
-    db.query(selectFileSql,selectFileVal,(err,duplicateRow,field)=>{
+    db_payment_agency.query(selectFileSql,selectFileVal,(err,duplicateRow,field)=>{
       if(err){
         console.log(err)
-        return db.rollback(()=>{
+        return db_payment_agency.rollback(()=>{
           throw err
         })
       }
@@ -364,7 +374,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
         console.log('\nduplicate->',fileNumber)
       }
       console.log('insert importfile:',importfileSql,fileinfoArray)
-      db.query(importfileSql,fileinfoArray, (err2,row2,fields)=>{
+      db_payment_agency.query(importfileSql,fileinfoArray, (err2,row2,fields)=>{
         if(err2){ console.log('err2',err2); return db.rollback(()=>{ throw err2 })}
         if(fileNumber === ''){
           fileNumber = row2.insertId
@@ -376,22 +386,22 @@ app.post('/payment_agency/cir/', (req,res)=>{
         console.log('insert Value array:',insertValArray.length + '件',insertValArray)
         Promise.all(insertValArray.map(value=>{
           return new Promise((resolve,reject)=>{
-            db.beginTransaction((err)=>{
+            db_payment_agency.beginTransaction((err)=>{
               if(err){ throw err}
 
               //ファイルNoとRowNo.で検索して一致する物があるか検索
               const sql1 = 'SELECT * FROM come_in_records where importfile_id = ? AND file_row_number = ? '
-              db.query(sql1,[value[4],value[5]],(err3,rows3,fields3)=>{
-                if(err3){console.log('err3:',err3); return db.rollback(()=>{ throw err3})}
-                if(rows3.length > 0){ return db.rollback(()=>{ resolve({message:'重複->'+ value[5] + '列目 名前:' + value[1]})})}
+              db_payment_agency.query(sql1,[value[4],value[5]],(err3,rows3,fields3)=>{
+                if(err3){console.log('err3:',err3); return db_payment_agency.rollback(()=>{ throw err3})}
+                if(rows3.length > 0){ return db_payment_agency.rollback(()=>{ resolve({message:'重複->'+ value[5] + '列目 名前:' + value[1]})})}
                 console.log('rows3:',rows3)
                 //insert
                 const sql2 = 'insert ignore into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id, file_row_number) VALUES (?,?,?,?,?,?)'
                 console.log('value:',value)
-                db.query(sql2,value,(err4,row4,fields4)=>{
-                  if(err4){console.log('err4:',err4); return db.rollback(()=>{ throw err4})}
-                  db.commit((err5)=>{
-                    if(err5){console.log('err5:',err5); return db.rollback(()=>{ throw err5})}
+                db_payment_agency.query(sql2,value,(err4,row4,fields4)=>{
+                  if(err4){console.log('err4:',err4); return db_payment_agency.rollback(()=>{ throw err4})}
+                  db_payment_agency.commit((err5)=>{
+                    if(err5){console.log('err5:',err5); return db_payment_agency.rollback(()=>{ throw err5})}
                     resolve(row4.insertId)
                   })
                 })
@@ -403,12 +413,12 @@ app.post('/payment_agency/cir/', (req,res)=>{
         .then(response=>{
           console.log('promise response:',response)
           const updateImportfileSql = 'UPDATE importfile_for_come_in_records SET imported_number = (SELECT count(importfile_id) FROM come_in_records WHERE importfile_id = ?) WHERE importfile_id = ?;'
-          db.query(updateImportfileSql,[fileNumber,fileNumber],(err3,rows3,fields3)=>{
+          db_payment_agency.query(updateImportfileSql,[fileNumber,fileNumber],(err3,rows3,fields3)=>{
             if(err3){throw err3 }
-            db.commit((err)=>{
+            db_payment_agency.commit((err)=>{
               if(err){
                 console.log('failed Commit!!')
-                return db.rollback(()=>{
+                return db_payment_agency.rollback(()=>{
                   throw err
                 })
               }
@@ -440,7 +450,7 @@ app.get('/payment_agency/cir/importfile',(req,res)=>{
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.importfile_select(options)
   console.log(sql)
-  db.query(sql,(err,rows,fields)=>{
+  db_payment_agency.query(sql,(err,rows,fields)=>{
     if(err){ throw err }
     console.log('--- success!!(get importfile) ' + rows.length + '件 ---')
     res.send(rows)
@@ -461,14 +471,14 @@ app.post('/payment_agency/matching',(req,res)=>{
   console.log('fileIds:',fileIds)
   console.log('-------------------')
   //マッチング用のCIRをinsertID(cir_id)の番号で取得
-  db.query(getCirSql,[fileIds],(err,row,field)=>{
+  db_payment_agency.query(getCirSql,[fileIds],(err,row,field)=>{
     if(err){throw err}
     const cir = row
     console.log('取得cir個数:',cir.length,'cir:',cir)
     if(cir.length === 0 ){ throw 'id:' + fileIds + 'は全て紐づけ済みです。'}
 
     //マッチング用のCISを取得
-    db.query(getCisSql,baseDate,(err2,row2,fields)=>{
+    db_payment_agency.query(getCisSql,baseDate,(err2,row2,fields)=>{
       if(err2){throw err2}
       const cis = row2
       console.log('取得cis個数:',cis.length)
@@ -546,32 +556,32 @@ app.put('/payment_agency/matching',(req,res)=>{
       //customerのdepositを増やす処理
       const customerDepositIncreseSql = sqls.gl_deposit.customerDepositIncreseSql
       const customerDepositIncreseVal = [cirAmount,customerId]       //金額・受任番号　の順番
-      db.beginTransaction((err)=>{
+      db_payment_agency.beginTransaction((err)=>{
         if(err){ throw err}
         
         //1.CIS　DB登録
-        db.query(cisSql,cisVal,(err1,row1,fields1)=>{
+        db_payment_agency.query(cisSql,cisVal,(err1,row1,fields1)=>{
           if(err1){
             console.log(err1)
-            return db.rollback(()=>{
+            return db_payment_agency.rollback(()=>{
               throw err1
             })
           }
           console.log('row1',row1)
           //2.CIR DB登録
-          db.query(cirSql,cirVal,(err2,row2,fields2)=>{
+          db_payment_agency.query(cirSql,cirVal,(err2,row2,fields2)=>{
             if(err2){
               console.log(err2)
-              return db.rollback(()=>{
+              return db_payment_agency.rollback(()=>{
                 throw err2
               })
             }
             console.log('row2',row2)
             const selectCustomersSql = 'SELECT * FROM customers WHERE customer_id = ?;'
-            db.query(selectCustomersSql,customerId,(err5,rows5,fields5)=>{
+            db_payment_agency.query(selectCustomersSql,customerId,(err5,rows5,fields5)=>{
               if(err5){
                 console.log(err5)
-                return db.rollback(()=>{
+                return db_payment_agency.rollback(()=>{
                   throw err5
                 })
               }
@@ -583,10 +593,10 @@ app.put('/payment_agency/matching',(req,res)=>{
               const selectSchedulesSql = 'SELECT * FROM payment_schedules as ps LEFT OUTER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE pa.customer_id = ? AND ps.date <= ?;'
               const after27days = moment(data.cis.payment_day).add(27,'d').format('YYYY-MM-DD')
               console.log('customerID,after27days',[customerId,after27days])
-              db.query(selectSchedulesSql,[customerId,after27days],(err6,rows6,fields6)=>{
+              db_payment_agency.query(selectSchedulesSql,[customerId,after27days],(err6,rows6,fields6)=>{
                 if(err6){
                   console.log(err6)
-                  return db.rollback(()=>{
+                  return db_payment_agency.rollback(()=>{
                     throw err6
                   })
                 }
@@ -628,10 +638,10 @@ app.put('/payment_agency/matching',(req,res)=>{
                 const updateCustomersSql = 'UPDATE customers SET accounts_receivable = accounts_receivable - ?, deposit = deposit + ?, advance_payment = advance_payment + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?;'
                 const updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue, customerId]
                 console.log('update customers values:',updateCustomersValue)
-                db.query(updateCustomersSql,updateCustomersValue,(err7,rows7,fields7)=>{
+                db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err7,rows7,fields7)=>{
                   if(err7){
                     console.log('err7:',err7)
-                    return db.rollback(()=>{
+                    return db_payment_agency.rollback(()=>{
                       throw err7
                     })
                   }
@@ -639,18 +649,18 @@ app.put('/payment_agency/matching',(req,res)=>{
                   //3. journal book に仕分を登録
                   const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId)
                   console.log('journalbookdata:',journalBookData)
-                  db.query(journalBookData.sql,journalBookData.values,(err8,rows8,fields8)=>{
+                  db_payment_agency.query(journalBookData.sql,journalBookData.values,(err8,rows8,fields8)=>{
                     if(err8){
                       console.log('err8:',err8)
-                      return db.rollback(()=>{
+                      return db_payment_agency.rollback(()=>{
                         throw err8
                       })
                     }
                     console.log('rows8:',rows8)
-                    db.commit((err)=>{
+                    db_payment_agency.commit((err)=>{
                       if(err){
                         console.log('failed Commit!!')
-                        return db.rollback(()=>{
+                        return db_payment_agency.rollback(()=>{
                           throw err
                         })
                       }
@@ -748,33 +758,33 @@ function cancelMatchingTransaction(targetObject){
   //5.journalをdelete(delete flagにtrue)
   const customerId = targetObject.customer_id
   return new Promise((resolve,reject)=>{
-    db.beginTransaction((err)=>{
+    db_payment_agency.beginTransaction((err)=>{
       if(err){ throw err}
 
       //1.cirの処理
       const cirSql = 'UPDATE come_in_records SET come_in_schedules_id = null, customer_id = null WHERE come_in_records_id = ?;'
-      db.query(cirSql,targetObject.come_in_records_id,(err1,rows1,fields1)=>{
+      db_payment_agency.query(cirSql,targetObject.come_in_records_id,(err1,rows1,fields1)=>{
         if(err1){
           console.log('err1:',err1)
-          return db.rollback(()=>{ throw err1 })
+          return db_payment_agency.rollback(()=>{ throw err1 })
         }
         console.log('rows1:',rows1)
 
         //2.cisの処理
         const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = null WHERE come_in_schedules_id = ?;'
-        db.query(cisSql,targetObject.come_in_schedules_id,(err2,rows2,fields2)=>{
+        db_payment_agency.query(cisSql,targetObject.come_in_schedules_id,(err2,rows2,fields2)=>{
           if(err2){
             console.log('err2:',err2)
-            return db.rollback(()=>{ throw err2 })
+            return db_payment_agency.rollback(()=>{ throw err2 })
           }
           console.log('rows2:',rows2)
           
           //3.journal book から取り出し。
           const selectJournalSql = 'SELECT * FROM journal_book WHERE motocho = ? AND delete_flag = 0;'
-          db.query(selectJournalSql,'cir'+targetObject.come_in_records_id,(err3,rows3,fields3)=>{
+          db_payment_agency.query(selectJournalSql,'cir'+targetObject.come_in_records_id,(err3,rows3,fields3)=>{
             if(err3){
               console.log('err3:',err3)
-              return db.rollback(()=>{ throw err3 })
+              return db_payment_agency.rollback(()=>{ throw err3 })
             }
             console.log('rows3:',rows3)
             const journalArray = rows3
@@ -784,10 +794,10 @@ function cancelMatchingTransaction(targetObject){
             let updateCustomersValue = subTotalJournals(journalArray)
             console.log('updateCustomersValue:',updateCustomersValue)
             updateCustomersValue.push(customerId)
-            db.query(updateCustomersSql,updateCustomersValue,(err4,rows4,fields4)=>{
+            db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err4,rows4,fields4)=>{
               if(err4){
                 console.log('err4:',err4)
-                return db.rollback(()=>{ throw err4 })
+                return db_payment_agency.rollback(()=>{ throw err4 })
               }
               console.log('rows4:',rows4)
               
@@ -795,17 +805,17 @@ function cancelMatchingTransaction(targetObject){
               const deleteJournalSql = 'UPDATE journal_book SET delete_flag = 1 WHERE journal_book_id = ?;'
               const journalIds = journalArray.map(journal => {return journal.journal_book_id})
               console.log('journalIds:',journalIds)
-              db.query(deleteJournalSql,journalIds,(err5,rows5,fields5)=>{
+              db_payment_agency.query(deleteJournalSql,journalIds,(err5,rows5,fields5)=>{
                 if(err5){
                   console.log('err5:',err5)
-                  return db.rollback(()=>{ throw err5 })
+                  return db_payment_agency.rollback(()=>{ throw err5 })
                 }
                 console.log('rows5:',rows5)
   
-                db.commit((err)=>{
+                db_payment_agency.commit((err)=>{
                   if(err){
                     console.log('failed Commit!!')
-                    return db.rollback(()=>{
+                    return db_payment_agency.rollback(()=>{
                       throw err
                     })
                   }
@@ -854,8 +864,8 @@ app.get('/payment_agency/cis/',(req,res)=>{
   console.log(req.query)
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.get_payment_agency_cis(options)
-  db.query(sql,(err,rows,fields)=>{
-    if(err){throw err}
+  db_payment_agency.query(sql,(err,rows,fields)=>{
+    if(err){ err.which = 'get /payment_agency/cis/' ;throw err}
     console.log('\n--- Get /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
   })
@@ -867,8 +877,8 @@ app.post('/payment_agency/cis/',(req,res)=>{
   const values = Object.entries(req.body).map(([key,value])=>{ return value })
   console.log(values)
   const sql = 'INSERT INTO come_in_schedules (customer_id, payment_day, expected_amount) VALUES (?,?,?);'
-  db.query(sql,values,(err,rows,fields)=>{
-    if(err){ throw err}
+  db_payment_agency.query(sql,values,(err,rows,fields)=>{
+    if(err){ err.which = 'post payment_agency/cis/' ;throw err}
     console.log('--- sucess pg/cis ---')
     res.send(rows)
   })
@@ -880,8 +890,8 @@ app.get('/payment_agency/customer/detail',(req,res)=>{
   console.log('\n--- get/customer detail---')
   const id = req.query.id
   const sql = sqls.searchCustomerDetail()
-  db.query(sql,id,(err,rows,fields)=>{
-    if(err){throw err}
+  db_payment_agency.query(sql,id,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/customer/detail'; throw err}
     console.log('rows:',rows)
     console.log('--- sucess ---')
     res.send(rows)
@@ -895,8 +905,8 @@ app.get('/payment_agency/customers/',(req,res)=>{
   const value = req.query.text
   const options = JSON.parse(req.query.options)
   const convertedData = sqls.searchCustomers(value,options)
-  db.query(convertedData.sql,convertedData.value,(err,rows,fields)=>{
-    if(err){throw err}
+  db_payment_agency.query(convertedData.sql,convertedData.value,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/customers/' ;throw err}
     console.log('rows:',rows)
     console.log('--- sucess ---')
     res.send(rows)
@@ -909,8 +919,8 @@ app.post('/payment_agency/customers/',(req,res)=>{
   console.log(req.body)
   const values = [req.body.customer_id,req.body.name,req.body.kana,req.body.lu_id]
   let sql = 'INSERT INTO customers (customer_id,name,kana,lu_id) VALUES (?,?,?,?);'
-  db.query(sql,values,(err,row,fields)=>{
-    if(err){throw err}
+  db_payment_agency.query(sql,values,(err,row,fields)=>{
+    if(err){ err.which = 'post /payment_agency/customers/'; throw err}
     console.log('---sucess---')
     res.send('登録しました。')
   })
@@ -924,8 +934,8 @@ app.post('/payment_agency/new_account',(req,res)=>{
       sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
       sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
-  db.query(sql,req.body,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,req.body,(err,rows,fields)=>{
+    if(err){ err.which = 'post /payment_agency/new_account' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -939,8 +949,8 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
       sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month '
       sql = sql + 'from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
-  db.query(sql,id,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,id,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/customer/settlements' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -953,8 +963,8 @@ app.get('/payment_agency/customer/cis',(req,res)=>{
   let sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
       sql = sql + 'expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ? '
       sql = sql + 'ORDER BY payment_day'
-  db.query(sql,id,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,id,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/customer/cis' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -968,8 +978,8 @@ app.post('/payment_agency/customer/cis',(req,res)=>{
   const values = req.body.map((obj)=>[obj.id,obj.amount,obj.date])
   console.log(values)
   const sql = 'INSERT INTO come_in_schedules (customer_id, expected_amount, payment_day) VALUES ?;'
-  db.query(sql,[values],(err,rows,fields)=>{
-    if(err){ throw err}
+  db_payment_agency.query(sql,[values],(err,rows,fields)=>{
+    if(err){ err.which = 'post payment_agency/customer/cis' ;throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -982,8 +992,8 @@ app.delete('/payment_agency/customer/cis',(req,res)=>{
   const id = req.body.id
   console.log(id)
   const sql = 'DELETE FROM come_in_schedules WHERE come_in_schedules_id = ?;'
-  db.query(sql,id,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,id,(err,rows,fields)=>{
+    if(err){ err.which = 'delete /payment_agency/customer/cis' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -997,8 +1007,8 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
   const values = req.body.map((obj)=>[obj.paymentAccountId,obj.amount,obj.date])
   console.log(values)
   const sql = 'INSERT INTO payment_schedules (payment_account_id, amount, date) VALUES ?;'
-  db.query(sql,[values],(err,rows,fields)=>{
-    if(err){ throw err}
+  db_payment_agency.query(sql,[values],(err,rows,fields)=>{
+    if(err){ err.which = 'post /payment_agency/customer/register_payment_schedules' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -1010,8 +1020,8 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   const options = JSON.parse(JSON.stringify(req.query))
   const id = options.id
   const sql    = sqls.get_payment_agency_customer_payment_schedules()
-  db.query(sql,id,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,id,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/customer/payment_schedules' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1023,8 +1033,8 @@ app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
   const ids = JSON.parse(JSON.stringify(req.query.ids))
   const sql = sqls.get_payment_agency_payment_schedules_customers_deposit(ids)
   console.log('ids length:',ids.length)
-  db.query(sql,ids,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,ids,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/payment_schedules/customers_deposit' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1037,8 +1047,8 @@ app.get('/payment_agency/payment_schedules',(req,res)=>{
   const convertedData = sqls.get_payment_agency_payment_schedules(options)
     const values = convertedData.values
     const sql    = convertedData.sql
-  db.query(sql,values,(err,rows,fields)=>{
-    if(err){console.log(err); throw err}
+  db_payment_agency.query(sql,values,(err,rows,fields)=>{
+    if(err){ err.which = 'get payment_agency/payment_schedules' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1070,14 +1080,14 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
   //手順3 journal_bookに登録
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
-  db.beginTransaction((err)=>{
+  db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commision IS NULL OR expected_advisory_fee IS NULL) AND paid_date is null'
     db.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log(err0)
-        return db.rollback(()=>{
+        return db_payment_agency.rollback(()=>{
           throw err0
         })
       }
@@ -1091,10 +1101,10 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
           editedScheduleObject.advisory_fee,
           editedScheduleId          
         ]
-            db.query(updateScheduleSql, updateDataArray,(err2,rows2,fields2)=>{
+            db_payment_agency.query(updateScheduleSql, updateDataArray,(err2,rows2,fields2)=>{
           if(err2){
             console.log(err2)
-            return db.rollback(()=>{
+            return db_payment_agency.rollback(()=>{
               throw err2
             })
           }
@@ -1109,10 +1119,10 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
           ]
 
           console.log('sql:',updateCustomersSql,'value:',updateCustomersValue)
-          db.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
+          db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
               console.log(err3)
-              return db.rollback(()=>{
+              return db_payment_agency.rollback(()=>{
                 throw err3
               })
             }
@@ -1122,18 +1132,18 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
             const journalInsertValueArray = createJournalArray(editedScheduleObject)
             console.log('journal book val array:',journalInsertValueArray)
-            db.query(journalBookSql,[journalInsertValueArray],(err4,rows4,fields4)=>{
+            db_payment_agency.query(journalBookSql,[journalInsertValueArray],(err4,rows4,fields4)=>{
               if(err4){
                 console.log(err4)
-                return db.rollback(()=>{
+                return db_payment_agency.rollback(()=>{
                   throw err4
                 })
               }
               console.log('rows4: ')
-              db.commit((err4)=>{
+              db_payment_agency.commit((err4)=>{
                 if(err4){
                   console.log('failed Commit!!')
-                  return db.rollback(()=>{
+                  return db_payment_agency.rollback(()=>{
                     throw err4
                   })
                 }
@@ -1183,14 +1193,14 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
   //手順3 journalArrayを削除する。
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
-  db.beginTransaction((err)=>{
+  db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date is null;'
-    db.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows0,fields)=>{
+    db_payment_agency.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows0,fields)=>{
       if(err0 || rows0.length === 0){
         console.log('err:',err0)
-        return db.rollback(()=>{
+        return db_payment_agency.rollback(()=>{
           throw err0
         })
       }
@@ -1198,10 +1208,10 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
 
         //手順1
         const updateScheduleSql = ' UPDATE payment_schedules SET expected_date = null, expected_amount = null, expected_commision = null, expected_advisory_fee = null WHERE payment_schedule_id = ?;'          
-            db.query(updateScheduleSql, editedScheduleId,(err2,rows2,fields2)=>{
+            db_payment_agency.query(updateScheduleSql, editedScheduleId,(err2,rows2,fields2)=>{
           if(err2){
             console.log('err2:',err2)
-            return db.rollback(()=>{
+            return db_payment_agency.rollback(()=>{
               throw err2
             })
           }
@@ -1216,10 +1226,10 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
             customerId
           ]
           
-          db.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
+          db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
               console.log(err3)
-              return db.rollback(()=>{
+              return db_payment_agency.rollback(()=>{
                 throw err3
               })
             }
@@ -1228,18 +1238,18 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
             //手順3 journalを削除する。
             const journalBookSql = 'DELETE FROM journal_book WHERE motocho = ? AND delete_flag = 0;'
             const motochoValue = 'ps'+ editedScheduleObject.payment_schedule_id
-            db.query(journalBookSql,motochoValue,(err4,rows4,fields4)=>{
+            db_payment_agency.query(journalBookSql,motochoValue,(err4,rows4,fields4)=>{
               if(err4){
                 console.log(err4)
-                return db.rollback(()=>{
+                return db_payment_agency.rollback(()=>{
                   throw err4
                 })
               }
               console.log('rows4:',rows4)
-              db.commit((err4)=>{
+              db_payment_agency.commit((err4)=>{
                 if(err4){
                   console.log('failed Commit!!')
-                  return db.rollback(()=>{
+                  return db_payment_agency.rollback(()=>{
                     throw err4
                   })
                 }
@@ -1275,31 +1285,31 @@ const confirmPaymentScheduleTransaction = function(id,date){
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 paid_date に処理日付を。
   const confirmScheduleId = id
-  db.beginTransaction((err)=>{
+  db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNotNullAndPaidDateIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NULL;'
-    db.query(selectExpectedsIsNotNullAndPaidDateIsNullSql,confirmScheduleId,(err0,rows,fields)=>{
+    db_payment_agency.query(selectExpectedsIsNotNullAndPaidDateIsNullSql,confirmScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log('err:',err0)
-        return db.rollback(()=>{
+        return db_payment_agency.rollback(()=>{
           throw err
         })
       }
 
         //手順1
         const confirmScheduleSql = ' UPDATE payment_schedules SET paid_date = ? WHERE payment_schedule_id = ?;'          
-            db.query(confirmScheduleSql, [date, confirmScheduleId],(err1,rows2,fields2)=>{
+            db_payment_agency.query(confirmScheduleSql, [date, confirmScheduleId],(err1,rows2,fields2)=>{
             if(err1){
               console.log('err2:',err1)
-              return db.rollback(()=>{
+              return db_payment_agency.rollback(()=>{
                 throw err1
               })
             }
-            db.commit((err2)=>{
+            db_payment_agency.commit((err2)=>{
               if(err2){
                 console.log('failed Commit!!')
-                return db.rollback(()=>{
+                return db_payment_agency.rollback(()=>{
                   throw err2
                 })
               }
@@ -1333,31 +1343,31 @@ const cancelConfirmPaymentScheduleTransaction = function(id){
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 paid_date にnullを。
   const confirmScheduleId = id
-  db.beginTransaction((err)=>{
+  db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
     const selectExpectedsIsNotNullAndPaidDateIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NOT NULL;'
-    db.query(selectExpectedsIsNotNullAndPaidDateIsNotNullSql,confirmScheduleId,(err0,rows,fields)=>{
+    db_payment_agency.query(selectExpectedsIsNotNullAndPaidDateIsNotNullSql,confirmScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log('err:',err0)
-        return db.rollback(()=>{
+        return db_payment_agency.rollback(()=>{
           throw err
         })
       }
 
         //手順1
         const confirmScheduleSql = ' UPDATE payment_schedules SET paid_date = null WHERE payment_schedule_id = ?;'          
-            db.query(confirmScheduleSql, confirmScheduleId,(err1,rows2,fields2)=>{
+            db_payment_agency.query(confirmScheduleSql, confirmScheduleId,(err1,rows2,fields2)=>{
             if(err1){
               console.log('err2:',err1)
-              return db.rollback(()=>{
+              return db_payment_agency.rollback(()=>{
                 throw err1
               })
             }
-            db.commit((err2)=>{
+            db_payment_agency.commit((err2)=>{
               if(err2){
                 console.log('failed Commit!!')
-                return db.rollback(()=>{
+                return db_payment_agency.rollback(()=>{
                   throw err2
                 })
               }
@@ -1376,8 +1386,8 @@ const cancelConfirmPaymentScheduleTransaction = function(id){
 app.get('/creditors/',(req,res)=>{
   console.log('\n---- get creditors ----')
   const sql = 'select * from creditors'
-  db.query(sql,(err,rows,fields)=>{
-    if(err){throw err}
+  db_payment_agency.query(sql,(err,rows,fields)=>{
+    if(err){ err.which = 'get creditors' ;throw err}
     console.log('---success get creditors ---')
     res.send(rows)
   })
@@ -1387,8 +1397,8 @@ app.get('/creditors/',(req,res)=>{
 app.get('/creditors_accounts/',(req,res)=>{
   console.log('\n---- get creditors_accounts ----')
   const sql = 'select * from creditors_accounts'
-  db.query(sql,(err,rows,fields)=>{
-    if(err){throw err}
+  db_payment_agency.query(sql,(err,rows,fields)=>{
+    if(err){ err.which = 'get creditors_accounts/' ;throw err}
     console.log('---success get creditors_accounts ---')
     res.send(rows)
   })
@@ -1399,8 +1409,8 @@ app.get('/creditors_accounts/',(req,res)=>{
 app.get('/issues/',(req,res)=>{
   console.log('\n--- get /issues/ ---')
   const sql = 'SELECT * FROM issues;'
-  db.query(sql,(err,rows,fields)=>{
-    if(err){return console.log(err)}
+  db_mkms.query(sql,(err,rows,fields)=>{
+    if(err){err.which = 'get /issues/'; throw err}
     res.send(rows)
     console.log('---x---x---x---x---')
   })
@@ -1415,8 +1425,8 @@ app.post('/issues/',(req,res)=>{
     req.body.data.author  
   ]
   const sql = 'INSERT INTO issues (title, description, author) values (?,?,?) ;'
-  db.query(sql, data, (err,rows,fields)=>{
-    if(err){return console.log(err)}
+  db_mkms.query(sql, data, (err,rows,fields)=>{
+    if(err){ err.which = 'post /issues/'; throw err}
     console.log(' 新規登録成功\n---x---x---x---x---')
     return res.send('OK')
   })
@@ -1429,11 +1439,8 @@ app.get('/issue',(req,res)=>{
   let sql = 'SELECT msg.*, name from issues_messages as msg '
       sql = sql + 'inner join users on msg.author = users.user_id '
       sql = sql + 'WHERE issue_id = ? ORDER BY msg.created_at;'
-  db.query(sql,id,(err,rows,fields)=>{
-    if(err){
-      console.log(err)
-      return res.send(err)
-    }
+  db_mkms.query(sql,id,(err,rows,fields)=>{
+    if(err){ err.which = 'get /issue' ; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
   })
@@ -1449,11 +1456,8 @@ app.post('/issue',(req,res)=>{
   const data = [issueId, author, message]
   console.log(data)
   let sql = 'INSERT INTO issues_messages (issue_id, author, message) VALUES (?,?,?);'
-    db.query(sql,data,(err,rows,fields)=>{
-    if(err){
-      console.log(err)
-      return res.send(err)
-    }
+    db_mkms.query(sql,data,(err,rows,fields)=>{
+    if(err){ err.which = 'post /issue' ; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
   })
@@ -1468,11 +1472,8 @@ app.put('/issue',(req,res)=>{
   const message = req.body.message
   const data = [message, issueId, messageId]
   let sql = 'UPDATE issues_messages SET message = ? WHERE issue_id = ? AND issues_messages_id = ?;'
-    db.query(sql,data,(err,rows,fields)=>{
-    if(err){
-      console.log(err)
-      return res.send(err)
-    }
+    db_mkms.query(sql,data,(err,rows,fields)=>{
+    if(err){ err.which = 'put / issue'; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
   })
@@ -1480,9 +1481,25 @@ app.put('/issue',(req,res)=>{
 
 // データベースのendは不要です。
 // db.end()
-db.on('error',function(err){
+db_mkms.on('error',function(err){
   if(err){
-    console.log(err)
+    console.log('DB:mkms',err)
+    logger.error(err)
+    throw err
+  }
+})
+
+db_midori_users.on('error',function(err){
+  if(err){
+    console.log('DB:midori users',err)
+    logger.error(err)
+    throw err
+  }
+})
+
+db_payment_agency.on('error',function(err){
+  if(err){
+    console.log('DB:payment_agency',err)
     logger.error(err)
     throw err
   }
@@ -1490,6 +1507,7 @@ db.on('error',function(err){
 
 //Error handoler
 app.use(function(err,req,res,next){
+  if(err.which){ console.log('error at:'+ err.which)}
   logger.error(new Error(err))
   console.log('domain Error : ' + err)
   const data = {
