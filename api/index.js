@@ -23,16 +23,25 @@ const err = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + '
 const logger = new console.Console(out,err)
 logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + ' サーバー起動')
 //databaseへのコネクト
-const db = mysql.createConnection(dbConfig)
+const db = mysql.createConnection(dbConfig.mkms)
   db.connect((err)=>{
     console.log('>db.connect')
     if(err){
       console.error('error connecting: ' + err.stack)
       return
     }
-    console.log('Connected id: ' + db.threadId)
+    console.log('db [mkms] Connected id: ' + db.threadId)
   })
 
+const db_midori_users =mysql.createConnection(dbConfig.midoriUsers)
+db_midori_users.connect((err)=>{
+  console.log('>midori users db.connect')
+  if(err){
+    console.error('error connecting: ' + err.stack)
+    return
+  }
+  console.log('db [midori users] Connected id: ' + db.threadId)
+})
 
 // kokokara
 const path = require('path')
@@ -61,7 +70,7 @@ app.post('/auth/login',(req,res)=>{
     console.log('req user id:' + userId)
     const reqpass = req.body.password
     const sql = "SELECT * FROM users WHERE user_id = ?"
-    db.query(sql, userId,(err,user,fields)=>{
+    db_midori_users.query(sql, userId,(err,user,fields)=>{
       console.log('>db.query (/auth/login/)')
       if(err){
         console.log('  query error\n---stop post login process---')
@@ -120,6 +129,27 @@ app.post('/auth/login',(req,res)=>{
     })
   })
 
+//admin page用 users取得
+app.get('/auth/user/allUsers',(req,res)=>{
+  console.log('division')
+  const sql = 'SELECT id, user_id, name, admin, division FROM users'
+  db_midori_users.query(sql,(err,row,fields)=>{
+    res.send(row)
+  })
+})
+
+//admin page用 users変更
+app.put('/auth/user/editUser',(req,res)=>{
+  console.log('Put -- /auth/user/editUser -- ')
+  const sql = 'UPDATE users SET name = ?, admin = ?, division = ? WHERE id = ?;'
+  const values = [req.body.name, req.body.admin, req.body.division, req.body.id]
+  db_midori_users.query(sql,values,(err,row,fields)=>{
+    if(err){ throw err }
+    console.log('row:',row)
+    res.send('OK')
+  })
+})
+
 //ログアウト後の動作
   app.post('/auth/logout',(req,res)=>{
     logger.log(moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。')
@@ -133,7 +163,7 @@ app.post('/auth/login',(req,res)=>{
     console.log(req.body.userId)
     const insertSql = 'INSERT INTO USERS (name, user_id, password) VALUES (?,?,?)'
     bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
-      db.query(insertSql, [req.body.name, req.body.userId, hash],(err)=>{
+      db_midori_users.query(insertSql, [req.body.name, req.body.userId, hash],(err)=>{
         if(err){
           console.log(' db.query Error\n err: ' + err.message + '\n--- Done process ---')
           return res.json({"message": "登録できませんでした。\nError : " + err.message})
