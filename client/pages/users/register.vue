@@ -65,8 +65,8 @@ import axios from 'axios'
     methods:{
       createUser(){
         console.log('--post create user---')
-        const data = {name:this.user.name,userId:this.user.userId, password:this.user.password}
-        axios.post('http://localhost:3000/api/auth/register/', data)
+        const data = {name:this.user.name,userId:this.user.userId, password:this.user.password,division:this.user.division}
+        axios.post('/api/auth/register/', data)
         .then((res)=>{
           if(res.data.message){alert(res.data.message)}
             this.$auth.loginWith('local',{data:this.user})

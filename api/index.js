@@ -182,7 +182,7 @@ app.put('/auth/user/editUser',(req,res)=>{
   app.post('/auth/register/',(req,res)=>{
     console.log('\n--- request(POST) auth/register/ start---\n' + Date())
     console.log(req.body.userId)
-    const insertSql = 'INSERT INTO USERS (name, user_id, password, division) VALUES (?,?,?)'
+    const insertSql = 'INSERT INTO USERS (name, user_id, password, division) VALUES (?,?,?,?)'
     bcrypt.hash(req.body.password, saltRounds, (err,hash)=>{
       db_midori_users.query(insertSql, [req.body.name, req.body.userId, hash,req.body.division],(err)=>{
         if(err){ err.whichApi = 'post /auth/register/'; throw err}
@@ -866,7 +866,7 @@ app.get('/payment_agency/cis/',(req,res)=>{
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.get_payment_agency_cis(options)
   db_payment_agency.query(sql,(err,rows,fields)=>{
-    if(err){ err.which = 'get /payment_agency/cis/' ;throw err}
+    if(err){ err.whichApi= 'get /payment_agency/cis/' ;throw err}
     console.log('\n--- Get /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
     res.send(rows)
   })
@@ -879,7 +879,7 @@ app.post('/payment_agency/cis/',(req,res)=>{
   console.log(values)
   const sql = 'INSERT INTO come_in_schedules (customer_id, payment_day, expected_amount) VALUES (?,?,?);'
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
-    if(err){ err.which = 'post payment_agency/cis/' ;throw err}
+    if(err){ err.whichApi= 'post payment_agency/cis/' ;throw err}
     console.log('--- sucess pg/cis ---')
     res.send(rows)
   })
@@ -892,7 +892,7 @@ app.get('/payment_agency/customer/detail',(req,res)=>{
   const id = req.query.id
   const sql = sqls.searchCustomerDetail()
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/customer/detail'; throw err}
+    if(err){ err.whichApi= 'get payment_agency/customer/detail'; throw err}
     console.log('rows:',rows)
     console.log('--- sucess ---')
     res.send(rows)
@@ -907,7 +907,7 @@ app.get('/payment_agency/customers/',(req,res)=>{
   const options = JSON.parse(req.query.options)
   const convertedData = sqls.searchCustomers(value,options)
   db_payment_agency.query(convertedData.sql,convertedData.value,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/customers/' ;throw err}
+    if(err){ err.whichApi= 'get payment_agency/customers/' ;throw err}
     console.log('rows:',rows)
     console.log('--- sucess ---')
     res.send(rows)
@@ -921,7 +921,7 @@ app.post('/payment_agency/customers/',(req,res)=>{
   const values = [req.body.customer_id,req.body.name,req.body.kana,req.body.lu_id]
   let sql = 'INSERT INTO customers (customer_id,name,kana,lu_id) VALUES (?,?,?,?);'
   db_payment_agency.query(sql,values,(err,row,fields)=>{
-    if(err){ err.which = 'post /payment_agency/customers/'; throw err}
+    if(err){ err.whichApi= 'post /payment_agency/customers/'; throw err}
     console.log('---sucess---')
     res.send('登録しました。')
   })
@@ -936,7 +936,7 @@ app.post('/payment_agency/new_account',(req,res)=>{
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
       sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
   db_payment_agency.query(sql,req.body,(err,rows,fields)=>{
-    if(err){ err.which = 'post /payment_agency/new_account' ; throw err}
+    if(err){ err.whichApi= 'post /payment_agency/new_account' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -951,7 +951,7 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month '
       sql = sql + 'from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/customer/settlements' ; throw err}
+    if(err){ err.whichApi= 'get payment_agency/customer/settlements' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -965,7 +965,7 @@ app.get('/payment_agency/customer/cis',(req,res)=>{
       sql = sql + 'expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ? '
       sql = sql + 'ORDER BY payment_day'
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/customer/cis' ; throw err}
+    if(err){ err.whichApi= 'get payment_agency/customer/cis' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -980,7 +980,7 @@ app.post('/payment_agency/customer/cis',(req,res)=>{
   console.log(values)
   const sql = 'INSERT INTO come_in_schedules (customer_id, expected_amount, payment_day) VALUES ?;'
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
-    if(err){ err.which = 'post payment_agency/customer/cis' ;throw err}
+    if(err){ err.whichApi= 'post payment_agency/customer/cis' ;throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -994,7 +994,7 @@ app.delete('/payment_agency/customer/cis',(req,res)=>{
   console.log(id)
   const sql = 'DELETE FROM come_in_schedules WHERE come_in_schedules_id = ?;'
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
-    if(err){ err.which = 'delete /payment_agency/customer/cis' ; throw err}
+    if(err){ err.whichApi= 'delete /payment_agency/customer/cis' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1009,7 +1009,7 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
   console.log(values)
   const sql = 'INSERT INTO payment_schedules (payment_account_id, amount, date) VALUES ?;'
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
-    if(err){ err.which = 'post /payment_agency/customer/register_payment_schedules' ; throw err}
+    if(err){ err.whichApi= 'post /payment_agency/customer/register_payment_schedules' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)
   })
@@ -1022,7 +1022,7 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   const id = options.id
   const sql    = sqls.get_payment_agency_customer_payment_schedules()
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/customer/payment_schedules' ; throw err}
+    if(err){ err.whichApi= 'get payment_agency/customer/payment_schedules' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1035,7 +1035,7 @@ app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
   const sql = sqls.get_payment_agency_payment_schedules_customers_deposit(ids)
   console.log('ids length:',ids.length)
   db_payment_agency.query(sql,ids,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/payment_schedules/customers_deposit' ; throw err}
+    if(err){ err.whichApi= 'get payment_agency/payment_schedules/customers_deposit' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1049,7 +1049,7 @@ app.get('/payment_agency/payment_schedules',(req,res)=>{
     const values = convertedData.values
     const sql    = convertedData.sql
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
-    if(err){ err.which = 'get payment_agency/payment_schedules' ; throw err}
+    if(err){ err.whichApi= 'get payment_agency/payment_schedules' ; throw err}
     console.log('--- sucess ---')
     res.send(rows)    
   })
@@ -1388,7 +1388,7 @@ app.get('/creditors/',(req,res)=>{
   console.log('\n---- get creditors ----')
   const sql = 'select * from creditors'
   db_payment_agency.query(sql,(err,rows,fields)=>{
-    if(err){ err.which = 'get creditors' ;throw err}
+    if(err){ err.whichApi= 'get creditors' ;throw err}
     console.log('---success get creditors ---')
     res.send(rows)
   })
@@ -1399,7 +1399,7 @@ app.get('/creditors_accounts/',(req,res)=>{
   console.log('\n---- get creditors_accounts ----')
   const sql = 'select * from creditors_accounts'
   db_payment_agency.query(sql,(err,rows,fields)=>{
-    if(err){ err.which = 'get creditors_accounts/' ;throw err}
+    if(err){ err.whichApi= 'get creditors_accounts/' ;throw err}
     console.log('---success get creditors_accounts ---')
     res.send(rows)
   })
@@ -1411,7 +1411,7 @@ app.get('/issues/',(req,res)=>{
   console.log('\n--- get /issues/ ---')
   const sql = 'SELECT * FROM issues;'
   db_mkms.query(sql,(err,rows,fields)=>{
-    if(err){err.which = 'get /issues/'; throw err}
+    if(err){err.whichApi= 'get /issues/'; throw err}
     res.send(rows)
     console.log('---x---x---x---x---')
   })
@@ -1427,7 +1427,7 @@ app.post('/issues/',(req,res)=>{
   ]
   const sql = 'INSERT INTO issues (title, description, author) values (?,?,?) ;'
   db_mkms.query(sql, data, (err,rows,fields)=>{
-    if(err){ err.which = 'post /issues/'; throw err}
+    if(err){ err.whichApi= 'post /issues/'; throw err}
     console.log(' 新規登録成功\n---x---x---x---x---')
     return res.send('OK')
   })
@@ -1441,7 +1441,7 @@ app.get('/issue',(req,res)=>{
       sql = sql + 'inner join users on msg.author = users.user_id '
       sql = sql + 'WHERE issue_id = ? ORDER BY msg.created_at;'
   db_mkms.query(sql,id,(err,rows,fields)=>{
-    if(err){ err.which = 'get /issue' ; throw err }
+    if(err){ err.whichApi= 'get /issue' ; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
   })
@@ -1458,7 +1458,7 @@ app.post('/issue',(req,res)=>{
   console.log(data)
   let sql = 'INSERT INTO issues_messages (issue_id, author, message) VALUES (?,?,?);'
     db_mkms.query(sql,data,(err,rows,fields)=>{
-    if(err){ err.which = 'post /issue' ; throw err }
+    if(err){ err.whichApi= 'post /issue' ; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
   })
@@ -1474,7 +1474,7 @@ app.put('/issue',(req,res)=>{
   const data = [message, issueId, messageId]
   let sql = 'UPDATE issues_messages SET message = ? WHERE issue_id = ? AND issues_messages_id = ?;'
     db_mkms.query(sql,data,(err,rows,fields)=>{
-    if(err){ err.which = 'put / issue'; throw err }
+    if(err){ err.whichApi= 'put / issue'; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
   })
@@ -1508,7 +1508,7 @@ db_payment_agency.on('error',function(err){
 
 //Error handoler
 app.use(function(err,req,res,next){
-  if(err.which){ console.log('error at:'+ err.which)}
+  if(err.whichApi){ console.log('error at:'+ err.whichApi)}
   logger.error(new Error(err))
   console.log('domain Error : ' + err)
   const data = {
