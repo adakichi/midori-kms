@@ -1,11 +1,10 @@
 <template>
     <v-container>
                 <v-app-bar>
-                    <v-app-bar-title>LUID：{{customer? customer.lu_id:'No ID'}}</v-app-bar-title>
+                    LUID：{{customer? customer.lu_id:'No ID'}}
                 </v-app-bar>
                 <v-app-bar>
-                    <v-app-bar-title>受：{{customerId}} {{customer?customer.name:'No Name'}}</v-app-bar-title>
-                    <v-spacer></v-spacer>
+                    受：{{customerId}} {{customer?customer.name:'No Name'}}
                     <v-btn @click="goback">戻る</v-btn>
                 </v-app-bar>
         <v-row>
@@ -502,10 +501,21 @@
                     </v-row>
                     <v-row>
                         <v-col>
-                            <v-text-field label="債務整理売掛金" disabled suffix=" 円" :value="customer.default_accounts_receivable"></v-text-field>
+                            <v-text-field label="債務整理売掛金" disabled suffix=" 円" :value="customer.accounts_receivable"></v-text-field>
                         </v-col>
                         <v-col>
+                            <v-text-field label="支払い済み債務" disabled suffix=" 円" :value="customer.confirm_payment"></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
                             <v-text-field label="預かり金" disabled suffix=" 円" :value="customer.deposit"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="前受金" disabled suffix=" 円" :value="customer.advance_payment"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="仮受金" disabled suffix=" 円" :value="customer.temporary_receipt"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>
