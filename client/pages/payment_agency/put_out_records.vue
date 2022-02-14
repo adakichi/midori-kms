@@ -262,9 +262,7 @@ export default {
             headersEditedCustomersArray:[
                 {text:'番号',       value:'customer_id'},
                 {text:'名前',       value:'name'},
-                {text:'初期売掛金', value:'default_accounts_recivable'},
-                {text:'確定日',     value:'paid_date'},
-                {text:'予定日',     value:'expected_date'},
+                {text:'売掛金',     value:'accounts_receivable'},
                 {text:'前 預り金',  value:'depositBeforeJudge'},
                 {text:'後 預り金',  value:'deposit',  groupable:false},
                 {text:'前 前受金',  value:'advancePaymentBeforeJudge'},
