@@ -528,22 +528,54 @@
             </v-card>
         </v-tab-item>
         </v-tabs-items>
+
+        <!-- 仮受金の振替ダイアログ -->
         <v-dialog v-model="editTemporaryDialog">
             <v-card>
-                editTemporaryDialog
-                残り：{{Number(customer.temporary_receipt) - (Number(editedTemporaryValues.deposit) + Number(editedTemporaryValues.advance_payment))}}
-                    <v-row>
-                        <v-col>
-                            <v-text-field label="預かり金" type="number" suffix=" 円" v-model="editedTemporaryValues.deposit"></v-text-field>
-                        </v-col>
-                        <v-col>
-                            <v-text-field label="前受金" type="number" suffix=" 円" v-model="editedTemporaryValues.advance_payment"></v-text-field>
-                        </v-col>
-                    </v-row>
-                    <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn @click="editTemporary">編集</v-btn>
-                    </v-card-actions>
+                <v-tabs v-model="editTemporaryDialogTabs">
+                    <v-tab>仮受金→預り金</v-tab>
+                    <v-tab>仮受金→売掛金</v-tab>
+                </v-tabs>
+                <v-tabs-items v-model="editTemporaryDialogTabs">
+                    <v-tab-item>
+                        <v-card>
+                            <v-card-title>仮受金→預り金</v-card-title>
+                            <v-card-subtitle>仮受金残り：{{Number(customer.temporary_receipt) - (Number(editedTemporaryValues.deposit) + Number(editedTemporaryValues.advance_payment))}}</v-card-subtitle>
+                            <v-card-text>
+                                <v-row>
+                                    <v-col>
+                                        <v-text-field label="預かり金" type="number" suffix=" 円" v-model="editedTemporaryValues.deposit"></v-text-field>
+                                    </v-col>
+                                    <v-col>
+                                        <v-text-field label="前受金" type="number" suffix=" 円" v-model="editedTemporaryValues.advance_payment"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                            </v-card-text>
+                            <v-card-actions>
+                            <v-spacer></v-spacer>
+                                <v-btn @click="editTemporary2deposit">編集</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-tab-item>
+                    <v-tab-item>
+                        <v-card>
+                            <v-card-title>仮受金→売掛金</v-card-title>
+                            <v-card-subtitle>仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}</v-card-subtitle>
+                            <v-card-text>
+                            
+                            <v-row>
+                                <v-col>
+                                    <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedTemporaryValues.accounts_receivable"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn @click="editTemporary2receivable">編集</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-tab-item>
+                </v-tabs-items>
             </v-card>
         </v-dialog>
     </v-container>
@@ -568,6 +600,7 @@ export default {
             activePicker:false,
             startDate:'',
             tabs:null,
+            editTemporaryDialogTabs:null,
             registerTabs:null,
             //Form data
             // customer:{},
@@ -642,7 +675,7 @@ export default {
                 {text:'操作',       value:'actions'},
             ],
             updateValue:{},
-            editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0},
+            editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0, accounts_receivable:0},
 
             //validate rules
             required: value => !!value || "必ず入力してください",
@@ -807,7 +840,7 @@ export default {
             this.editTemporaryDialog = true
             console.log('openeditTemporaryDialog')
         },
-        editTemporary(){
+        editTemporary2deposit(){
             const customer = this.customer
             let ev = this.editedTemporaryValues
             const total = Number(ev.advance_payment) + Number(ev.deposit)
@@ -820,6 +853,26 @@ export default {
                 console.log(ev)
                 alert('yes:',ev)
                 this.$axios.post('api/payment_agency/customer/temp2deposit',ev)
+                .then(responce=>{
+                    alert(responce.data)
+                    location.reload()
+                    })
+            } else {
+                console.log(ev)
+                alert('編集しません。')
+            }
+        },
+        editTemporary2receivable(){
+            const customer = this.customer
+            let ev = this.editedTemporaryValues
+            const diffResult = Number(customer.temporary_receipt) - ev.accounts_receivable
+            ev.temporary_receipt = ev.accounts_receivable
+            ev.customerId = customer.customer_id
+            console.log('ev:',ev)
+            if(diffResult >= 0 && customer.temporary_receipt !== ev.temporary_receipt){
+                console.log(ev)
+                alert('yes:',ev)
+                this.$axios.post('api/payment_agency/customer/temp2receivable',ev)
                 .then(responce=>{
                     alert(responce.data)
                     location.reload()
