@@ -147,9 +147,10 @@
                                     label="変則(他に選択肢がなければこれ)"
                                     v-model="irregular"
                                     ></v-checkbox></span>
-                                    <v-checkbox
-                                    label="年金(偶数月入金)"
-                                    v-model="pension"></v-checkbox>
+                                    <v-select
+                                    :items="pensionValues"
+                                    label="隔月(年金等)"
+                                    v-model="pension"></v-select>
                                     <v-text-field
                                     label="将来利息がつく"
                                     type="number"
@@ -515,13 +516,34 @@
                             <v-text-field label="前受金" disabled suffix=" 円" :value="customer.advance_payment"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="仮受金" disabled suffix=" 円" :value="customer.temporary_receipt"></v-text-field>
+                            <v-text-field label="仮受金" suffix=" 円" :value="customer.temporary_receipt" @click="openEditTemporaryDialog"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>
             </v-card>
         </v-tab-item>
         </v-tabs-items>
+        <v-dialog v-model="editTemporaryDialog">
+            <v-card>
+                editTemporaryDialog
+                残り：{{customer.temporary_receipt - (editedTemporaryValues.temporary_receipt+editedTemporaryValues.deposit+editedTemporaryValues.advance_payment)}}
+                    <v-row>
+                        <v-col>
+                            <v-text-field label="預かり金" suffix=" 円" :value="editedTemporaryValues.deposit"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="前受金" suffix=" 円" :value="editedTemporaryValues.advance_payment"></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="仮受金" suffix=" 円" :value="customer.temporary_receipt" @input="val => editedTemporaryValues.temporary_receipt = val"></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn @click="editTemporary">編集</v-btn>
+                    </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -533,9 +555,13 @@ export default {
         return{
             customerId:0,
             customer:{},
+            //dialog関係
             dialog:false,
             createScheduleDialog:false,
             registerComeInRecordsDialog:false,
+            editTemporaryDialog:false,
+            editDialog:false,
+            //////////
             targetText:'',
             activePicker:false,
             startDate:'',
@@ -582,6 +608,7 @@ export default {
             summer:[4,5,6,7,8,9],
             winter:[10,11,12,1,2,3],
             typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
+            pensionValues:['偶数','奇数'],
 
             // ここから和解内容
 
@@ -612,8 +639,8 @@ export default {
                 {text:'金額',       value:'expected_amount'},
                 {text:'操作',       value:'actions'},
             ],
-            editDialog:false,
             updateValue:{},
+            editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0},
 
             //validate rules
             required: value => !!value || "必ず入力してください",
@@ -772,6 +799,21 @@ export default {
             this.editDialog = true
             this.updateValue = Object.assign({}, item)
             alert('まだ編集機能はつくってないです。 ')
+        },
+        openEditTemporaryDialog(){
+            this.editTemporaryDialog = true
+            console.log('openeditTemporaryDialog')
+        },
+        editTemporary(){
+            const ev = this.editedTemporaryValues
+            const customer = this.customer
+            if(ev.advance_payment + ev.deposit - ev.temporary_receipt == 0){
+                console.log(ev)
+                alert('yes:',ev)
+            } else {
+                console.log(ev)
+                alert('not:',ev)
+            }
         },
         deleteCustomerCis(item){
             const answer = confirm('本当に削除しますか？')
