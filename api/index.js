@@ -931,7 +931,7 @@ app.post('/payment_agency/customers/',(req,res)=>{
 app.post('/payment_agency/new_account',(req,res)=>{
   console.log('\n--- post new account ---')
   console.log(req.body)
-  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, start_date, delayed_interest_rate'
+  let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, start_date, delayed_interest_rate '
       sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
       sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
