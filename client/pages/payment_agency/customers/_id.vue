@@ -322,7 +322,12 @@
                                             ></v-checkbox>
                                         </v-system-bar>
                                     </v-col>
-                                </v-row>                               
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        銀行：{{settle.bankcode}}支店：{{settle.branchcode}}種別:{{settle.kind}}番号{{settle.account_number}}口座名義{{settle.account_holder}}
+                                    </v-col>
+                                </v-row>       
                             </v-card-text>
                         </v-card>
                     </v-col>
@@ -526,16 +531,13 @@
         <v-dialog v-model="editTemporaryDialog">
             <v-card>
                 editTemporaryDialog
-                残り：{{customer.temporary_receipt - (editedTemporaryValues.temporary_receipt+editedTemporaryValues.deposit+editedTemporaryValues.advance_payment)}}
+                残り：{{Number(customer.temporary_receipt) - (Number(editedTemporaryValues.deposit) + Number(editedTemporaryValues.advance_payment))}}
                     <v-row>
                         <v-col>
-                            <v-text-field label="預かり金" suffix=" 円" :value="editedTemporaryValues.deposit"></v-text-field>
+                            <v-text-field label="預かり金" type="number" suffix=" 円" v-model="editedTemporaryValues.deposit"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="前受金" suffix=" 円" :value="editedTemporaryValues.advance_payment"></v-text-field>
-                        </v-col>
-                        <v-col>
-                            <v-text-field label="仮受金" suffix=" 円" :value="customer.temporary_receipt" @input="val => editedTemporaryValues.temporary_receipt = val"></v-text-field>
+                            <v-text-field label="前受金" type="number" suffix=" 円" v-model="editedTemporaryValues.advance_payment"></v-text-field>
                         </v-col>
                     </v-row>
                     <v-card-actions>
@@ -579,7 +581,7 @@ export default {
             typeOfDelay:'2回',
             //irregular
             irregular:false,
-            pension:false,
+            pension:'',
             interest:false,
             bonus:false,
             addition:false,
@@ -608,7 +610,7 @@ export default {
             summer:[4,5,6,7,8,9],
             winter:[10,11,12,1,2,3],
             typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
-            pensionValues:['偶数','奇数'],
+            pensionValues:['偶数','奇数',''],
 
             // ここから和解内容
 
@@ -801,18 +803,30 @@ export default {
             alert('まだ編集機能はつくってないです。 ')
         },
         openEditTemporaryDialog(){
+            this.editedTemporaryValues.temporary_receipt = this.customer.temporary_receipt
             this.editTemporaryDialog = true
             console.log('openeditTemporaryDialog')
         },
         editTemporary(){
-            const ev = this.editedTemporaryValues
             const customer = this.customer
-            if(ev.advance_payment + ev.deposit - ev.temporary_receipt == 0){
+            let ev = this.editedTemporaryValues
+            const total = Number(ev.advance_payment) + Number(ev.deposit)
+            console.log('total:',total)
+            const diffResult = Number(customer.temporary_receipt) - total
+            ev.temporary_receipt = total
+            ev.customerId = customer.customer_id
+            console.log('ev:',ev)
+            if(diffResult >= 0 && customer.temporary_receipt !== ev.temporary_receipt){
                 console.log(ev)
                 alert('yes:',ev)
+                this.$axios.post('api/payment_agency/customer/temp2deposit',ev)
+                .then(responce=>{
+                    alert(responce.data)
+                    location.reload()
+                    })
             } else {
                 console.log(ev)
-                alert('not:',ev)
+                alert('編集しません。')
             }
         },
         deleteCustomerCis(item){

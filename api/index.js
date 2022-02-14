@@ -1028,6 +1028,41 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   })
 })
 
+//カスタマーの仮受金を預り金と前受金に振り替え
+app.post('/payment_agency/customer/temp2deposit',(req,res)=>{
+  console.log('pa/customer/temp2deposit')
+  console.log(req.body)
+  const deposit = req.body.deposit
+  const advance = req.body.advance_payment
+  const temporary = req.body.temporary_receipt
+  const customerId = req.body.customerId
+  db_payment_agency.beginTransaction((err)=>{
+    if(err){ err.whichApi= 'get payment_agency/customer/temp2deposit'; throw err}
+
+    //最初にcustomersの金額を変更
+    const sql1 = 'UPDATE customers set deposit = deposit + ?, advance_payment = advance_payment + ?, temporary_receipt = temporary_receipt - ? WHERE customer_id = ?'
+    const val1 = [deposit, advance, temporary, customerId]
+    db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
+      if(err1){ err1.whichApi= 'temp2deposit: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+
+      //journal_bookに登録
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const motocho = 'temp2deposit' + moment().format('YYYY-MM-DD-HHmmss')
+      const val2 = [
+        [motocho, '仮受金', deposit, '預り金', deposit, customerId], //預り金
+        [motocho, '仮受金', advance, '前受金', advance, customerId]  //前受金
+      ]
+        db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
+          if(err2){ err2.whichApi= 'temp2deposit: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+          db_payment_agency.commit((err0)=>{
+            if(err0){err0.whichApi= 'temp2deposit: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
+            res.send('振替処理おわりました。')
+          })
+      })
+    })
+  })
+})
+
 //出金処理時に、顧客ごとの預り金がどれくらいあるか比べる為、顧客番号の配列をvaluesとして、depositのみ取得して返す。
 app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
   console.log('--- Get pa/ps/customer deposit ---')
