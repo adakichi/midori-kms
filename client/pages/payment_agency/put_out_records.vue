@@ -126,6 +126,7 @@
                     :items="editedCustomersArray"
                     :items-per-page="50"
                     item-key="customer_id"
+                    @click:row="goCustomerPage"
                     show-select
                     show-group-by
                     v-model="selected"
@@ -374,6 +375,10 @@ export default {
             .then(() =>{
                 this.searchRecords()
             })
+        },
+        goCustomerPage(e){
+            console.log(e)
+           this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
         }
     },
     created(){
