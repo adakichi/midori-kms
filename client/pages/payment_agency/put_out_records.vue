@@ -6,8 +6,8 @@
                     <v-app-bar-title>出金予定：Put Out record</v-app-bar-title>
                 </v-app-bar>
                 <v-app-bar flat>
-                    <v-checkbox v-model="isPaidDate" label="出金済のみ"></v-checkbox>
-                    <v-checkbox v-model="isExpectedDate" label="仮出金のみ"></v-checkbox>
+                    <v-checkbox v-model="isPaidDate" label="出金済を含める"></v-checkbox>
+                    <v-checkbox v-model="isExpectedDate" label="仮出金を含める"></v-checkbox>
                     <v-spacer></v-spacer>
                     <div>
                     <v-menu

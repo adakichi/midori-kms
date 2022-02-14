@@ -235,14 +235,26 @@ export const sqls = {
         } else {
           sql = sql + 'WHERE ps.paid_date is NOT NULL '
         }
-      } 
+      } else if(options.isPaidDate == 'false'){
+        if(sql.indexOf('WHERE') >= 0){
+          sql = sql + 'AND ps.paid_date is NULL '
+        } else {
+          sql = sql + 'WHERE ps.paid_date is NULL '
+        }
+      }
 
       //仮出金を含めるかどうか
       if(options.isExpectedDate == 'true'){
         if(sql.indexOf('WHERE') >= 0){
-          sql = sql + 'AND ps.expected_date is NOT NULL AND ps.paid_date is NULL '
+          sql = sql + 'AND ps.expected_date is NOT NULL '
         } else {
-          sql = sql + 'WHERE ps.expected_date is NOT NULL AND ps.paid_date is NULL '
+          sql = sql + 'WHERE ps.expected_date is NOT NULL '
+        }
+      } else if(options.isExpectedDate == 'true'){
+        if(sql.indexOf('WHERE') >= 0){
+          sql = sql + 'AND ps.expected_date is NULL '
+        } else {
+          sql = sql + 'WHERE ps.expected_date is NULL '
         }
       }
 
