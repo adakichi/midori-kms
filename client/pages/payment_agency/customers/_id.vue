@@ -717,6 +717,8 @@ export default {
             this.$router.push('/payment_agency/customers')
         },
         postNewAccount(){
+            //口座（和解）の新規登録処理
+            if(this.accountNumber == ''){return alert('入力が不完全です')}
             const data = [
                 parseInt(this.customer.customer_id,10),
                 this.creditor,
@@ -747,18 +749,19 @@ export default {
             ]
             this.$axios.post('/api/payment_agency/new_account',data).then(response =>{
                 console.log(response)
-                if(response.data.errno){
-                    return alert('DB Error: \nCode: '+ response.data.code +'\neErrNo: '+ response.data.errno +'\nMes: '+ response.data.sqlMessage)
+                if(response.data.error){
+                    return alert(response.data.message)
                 }
                 this.dialog = false
                 alert('登録が終わりました!')
+                location.reload()
             })
         },
         createPaymentSchedules(index){
             this.createScheduleDialog = true
             const settle = this.contentsOfSettlements[index]
             let schedules =[{paymentAccountId:settle.payment_account_id,amount:settle.first_amount,date:moment(settle.start_date).format('YYYY/MM/DD')}]
-            const duedate = settle.monthly_payment_due_date === '末日'? 31 : baseDate.monthly_payment_due_date
+            const duedate = settle.monthly_payment_due_date === '末日'? 31 : settle.monthly_payment_due_date
             let baseDate = moment(settle.start_date)
             for(let i = 2; i <= settle.number_of_payments; i++){
                 let nextDate = moment(baseDate).add(i-1,'month').format('YYYY/MM/DD')
