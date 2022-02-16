@@ -893,8 +893,7 @@ app.get('/payment_agency/customer/detail',(req,res)=>{
   const sql = sqls.searchCustomerDetail()
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/detail'; throw err}
-    console.log('rows:',rows)
-    console.log('--- sucess ---')
+    console.log('> '+req.query.id+'の顧客情報取得\n--- sucess ---')
     res.send(rows)
   })
 })
@@ -908,8 +907,7 @@ app.get('/payment_agency/customers/',(req,res)=>{
   const convertedData = sqls.searchCustomers(value,options)
   db_payment_agency.query(convertedData.sql,convertedData.value,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customers/' ;throw err}
-    console.log('rows:',rows)
-    console.log('--- sucess ---')
+    console.log(' > '+options + 'の検索結果\n--- sucess ---')
     res.send(rows)
   })
 })
@@ -959,15 +957,15 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
 
 //顧客毎の入金予定　取得
 app.get('/payment_agency/customer/cis',(req,res)=>{
-  console.log('\n---get Customer Cis ---')
   const id = req.query.id
-  let sql = 'SELECT come_in_schedules_id, customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
-      sql = sql + 'expected_amount, come_in_records_id FROM come_in_schedules WHERE customer_id = ? '
+  console.log('\n---get Customer Cis ---',req.query.id)
+  let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(cis.payment_day, "%Y/%m/%d")as payment_day, date_format(cir.actual_deposit_date, "%Y/%m/%d")as actual_deposit_date, cir.actual_deposit_amount, '
+      sql = sql + 'cis.expected_amount, cis.come_in_records_id FROM come_in_schedules as cis LEFT JOIN come_in_records as cir ON cis.come_in_records_id = cir.come_in_records_id WHERE cis.customer_id = ? '
       sql = sql + 'ORDER BY payment_day'
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/cis' ; throw err}
-    console.log('--- sucess ---')
-    res.send(rows)    
+    console.log(' > '+id + 'の入金予定取得\n--- sucess ---' )
+    res.send(rows)
   })
 })
 
@@ -989,13 +987,17 @@ app.post('/payment_agency/customer/cis',(req,res)=>{
 
 //顧客毎の入金予定の削除
 app.delete('/payment_agency/customer/cis',(req,res)=>{
-  console.log('\n---Delete Customer Cis: ' + req.body.id + ' ---')
-  const id = req.body.id
-  console.log(id)
-  const sql = 'DELETE FROM come_in_schedules WHERE come_in_schedules_id = ?;'
-  db_payment_agency.query(sql,id,(err,rows,fields)=>{
+  console.log('\n---Delete Customer Cis: \n >計画を削除します 受任番号:' + req.body.customerId + ' ---')
+  const idsObject = JSON.parse(JSON.stringify(req.body.id))
+  let ids = []
+  idsObject.forEach(item =>{ids.push(item)})
+  console.log('ids:',ids,typeof(ids))
+  console.log('ids:',Array.isArray(ids))
+  const sql = 'DELETE FROM come_in_schedules WHERE come_in_schedules_id in (?);'
+  db_payment_agency.query(sql,[ids],(err,rows,fields)=>{
     if(err){ err.whichApi= 'delete /payment_agency/customer/cis' ; throw err}
     console.log('--- sucess ---')
+    logger.log('\n---Delete Customer Cis: \n >計画を削除しました 受任番号:' + req.body.customerId + ' ---')
     res.send(rows)    
   })
 })
@@ -1023,7 +1025,7 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   const sql    = sqls.get_payment_agency_customer_payment_schedules()
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/payment_schedules' ; throw err}
-    console.log('--- sucess ---')
+    console.log(' > '+ options.id +'支払い予定取得\n--- sucess ---')
     res.send(rows)    
   })
 })
@@ -1127,14 +1129,15 @@ app.get('/payment_agency/payment_schedules',(req,res)=>{
 //支払い予定を仮出金にする。
 //customersのdepositを減らす処理まで必要
 app.put('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
-  console.log('\n---Put payment_schedules/temporary_pay ---')
+  console.log('\n---Put payment_schedules/temporary_pay ---\n >PSに仮出金処理をします。')
   const okArray = req.body.okArray
   const date = req.body.date
   const customersSubTotal = req.body.editCustomersArray
   Promise.all(okArray.map(editedScheduleObject=>{
     return temporaryPayTransaction(editedScheduleObject,date)
   }),date).then((response)=>{
-    console.log(response)
+    console.log(' >仮出金処理 終了',response)
+    logger.log('>仮出金処理\n')
     res.send(response)
   })  
 })
@@ -1243,7 +1246,7 @@ function createJournalArray(editedScheduleObject){
 //支払い予定を取り消し
 //customersのdepositを戻す処理まで必要
 app.delete('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
-  console.log('\n---Delete payment_schedules/temporary_pay ---')
+  console.log('\n---Delete payment_schedules/temporary_pay ---\n >仮出金を取り消しします。')
   const selected = req.body.selected
   Promise.all(selected.map(editedScheduleObject=>{
     return cancelTemporaryPayTransaction(editedScheduleObject)

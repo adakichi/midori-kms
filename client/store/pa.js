@@ -95,7 +95,6 @@ export const actions = {
         const targetText = data.targetText
         const options = data.options
         const customers = await this.$axios.get('api/payment_agency/customers',{params:{text:targetText,options:options}})
-        console.log(customers)
         //errorの場合の処理
         if(customers.data.error){
             alert(customers.data.message)
@@ -117,7 +116,6 @@ export const actions = {
     },
     //顧客IDでのcome in records取得
     async getDbCustomerCis(context,id){
-        console.log('getDbCustomer CIS:' + id)
         const cises = await this.$axios.get('api/payment_agency/customer/cis',{params:{id:id}})
         context.commit('updateCustomerCis',cises.data)
     },

@@ -416,6 +416,7 @@
                     <v-col>
                         <v-app-bar>
                             <v-btn @click="registerComeInRecordsDialog = true">入金予定登録</v-btn>
+                            <v-btn @click="deleteAllCis">予定一括削除登録</v-btn>
                             <div>
                                 <v-dialog v-model="registerComeInRecordsDialog">
                                 <v-card>
@@ -449,10 +450,20 @@
                             </div>
                         </v-app-bar>
                         <v-data-table
+                        v-model="selectedCustomerCis"
                         :headers="customerCisHeaders"
                         :items="customerCis"
+                        item-key="come_in_schedules_id"
+                        selectable-key="isSelectable"
+                        :items-per-page="-1"
+                        show-select
                         show-group-by
                         >
+                            <!-- come_in_records_id  -->
+                            <template v-slot:item.come_in_records_id="{item}">
+                                {{item.come_in_records_id === null? true :false}}
+                            </template>
+
                             <!-- 編集機能部分 -->
                             <template v-slot:item.actions="{item}">
                                 <v-icon @click="openEditDialog(item)">mdi-pen</v-icon>
@@ -589,6 +600,7 @@ export default {
         return{
             customerId:0,
             customer:{},
+            customerCis:[],
             //dialog関係
             dialog:false,
             createScheduleDialog:false,
@@ -669,11 +681,13 @@ export default {
                 amount:0
             },
             customerCisHeaders:[
-                {text:'予定日',     value:'payment_day'},
-                {text:'実入金',     value:'come_in_records_id'},
-                {text:'金額',       value:'expected_amount'},
-                {text:'操作',       value:'actions'},
+                {text:'予定日',         value:'payment_day'},
+                {text:'実入金日',       value:'actual_deposit_date'},
+                {text:'実入金額',       value:'actual_deposit_amount'},
+                {text:'予定金額',       value:'expected_amount'},
+                {text:'操作',           value:'actions'},
             ],
+            selectedCustomerCis:[],
             updateValue:{},
             editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0, accounts_receivable:0},
 
@@ -699,9 +713,6 @@ export default {
         contentsOfSettlements(){
             return this.$store.getters['pa/getContentsOfSettlements']
         },
-        customerCis(){
-            return this.$store.getters['pa/getCustomerCis']
-        },
         paymentSchedules(){
             return this.arr = this.$store.getters['pa/getPaymentSchedules']
         }
@@ -715,6 +726,22 @@ export default {
         },
         goback(){
             this.$router.push('/payment_agency/customers')
+        },
+        getCustomerCis(){
+            //select可能かどうかのpropsを追加して返す。
+            this.$axios.get('api/payment_agency/customer/cis',{params:{id:this.customerId}})
+            .then(response=>{
+                const cis = response.data
+                const filterd = cis.map(item=>{
+                    if(item.come_in_records_id === null){
+                        item.isSelectable = true
+                    } else {
+                        item.isSelectable = false
+                    }
+                    return item
+                })
+            this.customerCis = filterd
+            })
         },
         postNewAccount(){
             //口座（和解）の新規登録処理
@@ -785,6 +812,20 @@ export default {
             const lastAmount = total - subtotal
             schedules[schedules.length-1].amount = lastAmount
             this.schedules = schedules
+        },
+        deleteAllCis(){
+            const doOrNot = confirm('本当に削除しますか？')
+            if(doOrNot === false ){ return }
+            let ids = new Array()
+            this.selectedCustomerCis.forEach(item=> {return ids.push(item.come_in_schedules_id)})
+            this.$axios.delete('/api/payment_agency/customer/cis',{data:{id:ids,customerId:this.customer.customer_id}})
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                console.log(response.data)
+                alert(response.data.affectedRows + '件削除しました。')
+                this.selectedCustomerCis = []
+                this.getCustomerCis()
+            })
         },
         registerPaymentSchedules(){
             //登録して良いかのValidation組む必要があるが、まず  は登録する。最悪あとから編集の方を先に作ればOKのはず。
@@ -904,12 +945,11 @@ export default {
         const options = {
             searchType:'jyunin'
         }
-        console.log('id:'+id)
+        this.getCustomerCis()
         await this.$store.dispatch('pa/searchCustomers',{targetText:id,options:options})
         await this.$store.dispatch('getDbCreditors')
         await this.$store.dispatch('pa/getDbCreditorsAccounts')
         await this.$store.dispatch('pa/getDbContentsOfSettlements',id)
-        await this.$store.dispatch('pa/getDbCustomerCis',id)
             const option ={id:id,from:null,until:null}
         await this.$store.dispatch('pa/getDbPaymentSchedules',option)
             const detailOption = {id:id}
