@@ -459,27 +459,19 @@
                         show-select
                         show-group-by
                         >
-                            <!-- come_in_records_id  -->
-                            <template v-slot:item.come_in_records_id="{item}">
-                                {{item.come_in_records_id === null? true :false}}
-                            </template>
 
-                            <!-- 編集機能部分 -->
-                            <template v-slot:item.actions="{item}">
-                                <v-icon @click="openEditDialog(item)">mdi-pen</v-icon>
-                                <v-icon @click="deleteCustomerCis(item)">mdi-delete</v-icon>
-                            </template>
-
-                            <!-- 編集スロット -->
+                            <!-- 編集スロット 支払い日-->
                             <template v-slot:item.payment_day="{item}">
                                 <v-edit-dialog
-                                    v-model="editDialog"
+                                    v-model="editDialogPaymentDay"
+                                    large
+                                    @save="saveCis(item)"
                                     :return-value.sync="item.payment_day"
                                 >   
                                     {{item.payment_day}}
                                     <template v-slot:input>
                                         <v-text-field
-                                            :value="updateValue"
+                                            v-model="item.payment_day"
                                             label="支払日"
                                             single-line
                                             type="Date"
@@ -487,7 +479,43 @@
                                     </template>
                                 </v-edit-dialog>
                             </template>
+
+                            <!-- 金額 -->
+                            <template v-slot:item.expected_amount="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialogExpectedAmount"
+                                    large
+                                    @save="saveCis(item)"
+                                    :return-value.sync="item.expected_amount"
+                                >   
+                                    {{item.expected_amount}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            v-model="item.expected_amount"
+                                            label="入金金額"
+                                            single-line
+                                            type="number"
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
                         </v-data-table>
+                        <v-snackbar
+                          v-model="snack"
+                          :timeout="3000"
+                          :color="snackColor"
+                        >
+                          {{ snackText }}
+                          <template v-slot:action="{ attrs }">
+                            <v-btn
+                              v-bind="attrs"
+                              text
+                              @click="snack = false"
+                            >
+                              Close
+                            </v-btn>
+                          </template>
+                        </v-snackbar>
                     </v-col>
                 </v-row>
             </v-container>
@@ -606,7 +634,8 @@ export default {
             createScheduleDialog:false,
             registerComeInRecordsDialog:false,
             editTemporaryDialog:false,
-            editDialog:false,
+            editDialogPaymentDay:false,
+            editDialogExpectedAmount:false,
             //////////
             targetText:'',
             activePicker:false,
@@ -656,6 +685,10 @@ export default {
             winter:[10,11,12,1,2,3],
             typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
             pensionValues:['偶数','奇数',''],
+            //snack bar
+            snack:'',
+            snackColor:'',
+            snackText:'',
 
             // ここから和解内容
 
@@ -685,7 +718,6 @@ export default {
                 {text:'実入金日',       value:'actual_deposit_date'},
                 {text:'実入金額',       value:'actual_deposit_amount'},
                 {text:'予定金額',       value:'expected_amount'},
-                {text:'操作',           value:'actions'},
             ],
             selectedCustomerCis:[],
             updateValue:{},
@@ -874,11 +906,6 @@ export default {
                 this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
             })
         },
-        openEditDialog(item){
-            this.editDialog = true
-            this.updateValue = Object.assign({}, item)
-            alert('まだ編集機能はつくってないです。 ')
-        },
         openEditTemporaryDialog(){
             this.editedTemporaryValues.temporary_receipt = this.customer.temporary_receipt
             this.editTemporaryDialog = true
@@ -926,17 +953,21 @@ export default {
                 alert('編集しません。')
             }
         },
-        deleteCustomerCis(item){
-            const answer = confirm('本当に削除しますか？')
-            if(answer){
-                const id = item.come_in_schedules_id
-                console.log(id)
-                this.$axios.delete('/api/payment_agency/customer/cis',{data:{id:id}})
-                .then(()=>{
-                    this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
-                })
-            }
-        },
+        saveCis(e){
+            console.log(e)
+            this.$axios.put('api/payment_agency/customer/cis',e)
+            .then(response=>{
+                if(response.data.error){
+                     alert(response.data.message)
+                    this.snack = true
+                    this.snackColor = 'warning'
+                    this.snackText = '失敗しました。'
+                     }
+                this.snack = true
+                this.snackColor = 'success'
+                this.snackText = '成功しました。'
+            })
+        }
     },
     created(){
         (async()=>{

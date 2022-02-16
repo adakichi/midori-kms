@@ -984,6 +984,21 @@ app.post('/payment_agency/customer/cis',(req,res)=>{
   })
 })
 
+//顧客毎の入金予定　更新
+app.put('/payment_agency/customer/cis',(req,res)=>{
+  console.log('\n--- Put customer cis ---')
+  const obj = req.body
+  const values = [obj.expected_amount, obj.payment_day, obj.memo, obj.come_in_schedules_id]
+  console.log(values)
+  const sql = 'UPDATE come_in_schedules set expected_amount = ?, payment_day = ?, memo = ? WHERE come_in_schedules_id = ?;'
+  db_payment_agency.query(sql,values,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'post payment_agency/customer/cis' ;throw err}
+    console.log('入金予定ID：' + obj.come_in_schedules_id + 'を更新しました。\n--- sucess ---')
+    logger.log('入金予定ID：' + obj.come_in_schedules_id + 'を更新しました。')
+    res.send(rows)
+  })
+})
+
 
 //顧客毎の入金予定の削除
 app.delete('/payment_agency/customer/cis',(req,res)=>{
