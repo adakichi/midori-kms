@@ -3,7 +3,8 @@ import colors from 'vuetify/es5/util/colors'
 export default {
   //IPアドレスで外部からアクセス可能にする為追加
   server: {
-    host: '0.0.0.0' // デフォルト: localhost
+    // host: '192.168.101.204' // デフォルト: localhost
+    host: process.env.DEPLOY_HOST // デフォルト: localhost
   },
 
   //auth middleware設定
@@ -85,7 +86,9 @@ export default {
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {},
+  axios: {
+    baseURL:process.env.API_BASE_URL
+  },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
@@ -109,4 +112,5 @@ export default {
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   }
+
 }
