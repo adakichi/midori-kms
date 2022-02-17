@@ -979,6 +979,7 @@ export default {
         },
         saveCis(e){
             console.log(e)
+            if(e.isSelectable === false){ return alert('Error:\n紐づけが終わっているものは変更できません！')}
             this.$axios.put('api/payment_agency/customer/cis',e)
             .then(response=>{
                 if(response.data.error){
