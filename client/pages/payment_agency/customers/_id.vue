@@ -923,9 +923,11 @@ export default {
             }
             console.log(schedules)
             this.$axios.post('/api/payment_agency/customer/cis',schedules)
-            .then(()=>{
+            .then((response)=>{
+                if(response.data.error){return alert(response.data.message)}
                 this.registerComeInRecordsDialog = false
                 this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+                alert('登録されました。')
             })
         },
         openEditTemporaryDialog(){
