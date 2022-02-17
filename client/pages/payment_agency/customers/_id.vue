@@ -905,8 +905,8 @@ export default {
             })
         },
         deleteAllPs(){
-            // const doOrNot = confirm('本当に削除しますか？')
-            // if(doOrNot === false ){ return }
+            const doOrNot = confirm('本当に削除しますか？')
+            if(doOrNot === false ){ return }
             let ids = new Array()
             this.selectedPs.forEach(item=> {return ids.push(item.payment_schedule_id)})
             this.$axios.delete('/api/payment_agency/customer/payment_schedules',{data:{id:ids,customerId:this.customer.customer_id}})
