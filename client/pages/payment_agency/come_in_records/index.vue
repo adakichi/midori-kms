@@ -8,8 +8,8 @@
                     </v-app-bar-title>
                     <v-spacer></v-spacer>
                 <v-btn @click="goImport">インポート</v-btn>
-                <v-btn @click="upda">こうしん</v-btn>
                 <v-btn @click="goImportfile">インポートファイル一覧</v-btn>
+                <v-btn @click="upda">検索</v-btn>
                 <v-btn v-show="isAdmin" color="warning" @click="cancelMatching">出金確定取り消し</v-btn>
                 </v-app-bar>
                 <v-app-bar>
