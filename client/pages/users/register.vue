@@ -10,8 +10,15 @@
                 <v-card-text>
                     <v-text-field
                       v-model="user.userId"
-                      :counter="20"
+                      :counter="5"
                       label="ID"
+                      clearable
+                      required
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="user.name"
+                      :counter="20"
+                      label="Name"
                       clearable
                       required
                     ></v-text-field>
@@ -23,6 +30,13 @@
                       required
                       @click:append="showpass = !showpass"
                     ></v-text-field>
+                    <v-select
+                      v-model="user.division"
+                      :items='divisions'
+                      :counter="20"
+                      label="所属"
+                      required
+                    ></v-select>
                     <v-btn @click="createUser">登録</v-btn>
                     </v-card-text>
                 </v-form>
@@ -35,20 +49,24 @@
 <script>
 import axios from 'axios'
   export default {
+    auth:false,
     data(){
       return {
         user:{
+          name:'',
           userId:'',
-          password:''
+          password:'',
+          division:'無所属'
         },
-        showpass:false
+        showpass:false,
+        divisions:['新規','調査','中決','交面','交渉','完了','債務整理','無所属'],
       }
     },
     methods:{
       createUser(){
         console.log('--post create user---')
-        const data = {name:this.name,password:this.password}
-        axios.post('http://localhost:3000/api/auth/register/', data)
+        const data = {name:this.user.name,userId:this.user.userId, password:this.user.password,division:this.user.division}
+        axios.post('/api/auth/register/', data)
         .then((res)=>{
           if(res.data.message){alert(res.data.message)}
             this.$auth.loginWith('local',{data:this.user})

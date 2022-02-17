@@ -1,5 +1,5 @@
 <template>
-  <v-app dark>
+  <v-app>
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant="miniVariant"
@@ -53,24 +53,6 @@
       <v-spacer />
             User:{{$auth.user ? $auth.user.name : 'ゲスト'}}
       <v-spacer />
-      <v-menu offset-y dense>
-        <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          color="primary"
-          dark
-          v-bind="attrs"
-          v-on="on"
-        >内線表</v-btn>
-        </template>
-        <v-list nav>
-          <v-list-group
-          v-for="group in phonebook" :key="group.title">
-            <v-list-item-title>{{group.title}}</v-list-item-title>
-          </v-list-group>
-          </v-list>
-      </v-menu>
-      <v-btn v-if="!$auth.loggedIn" color="primary" @click="$router.push('/users/login')">ログイン</v-btn>
-      <v-btn v-else @click="logout()">ログアウト</v-btn>
         <theme-toggle></theme-toggle>
       <v-btn
         icon
@@ -99,9 +81,6 @@
           </v-list-item-action>
           <v-list-item-title>Switch drawer (click me)</v-list-item-title>
         </v-list-item>
-        <v-list-item v-show='$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false ' @click="$router.push('users/adminPage')">
-          <v-list-item-title>管理者ページ</v-list-item-title>
-        </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-footer
@@ -127,50 +106,39 @@ export default {
       items: [
         {
           icon: 'mdi-apps',
-          title: 'Welcome',
+          title: 'Index',
+          to: '/payment_agency/'
+        },
+        {
+          icon: 'mdi-apps',
+          title: 'Back',
           to: '/'
         },
         {
-          icon: 'mdi-login',
-          title: 'Login',
-          to: '/users/login'
+          icon: 'mdi-cash-fast',
+          title: '入金実績',
+          to: '/payment_agency/come_in_records/'
         },
         {
           icon: 'mdi-cash-fast',
-          title: '代行支払い',
-          to: '/payment_agency'
+          title: '入金予定',
+          to: '/payment_agency/come_in_schedules/'
         },
         {
-          icon: 'mdi-chart-bubble',
-          title: 'Inspire',
-          to: '/inspire'
+          icon: 'mdi-cash-fast',
+          title: '出金予定',
+          to: '/payment_agency/put_out_records/'
         },
         {
-          icon: 'mdi-tools',
-          title: 'Tools',
-          to: '/tools/tools_index'
+          icon: 'mdi-account',
+          title: '顧客毎',
+          to: '/payment_agency/customers/'
         },
-        {
-          icon: 'mdi-school',
-          title: 'Study',
-          to: '/study/study_index'
-        },
-        {
-          icon: 'mdi-frequently-asked-questions',
-          title: 'FAQ',
-          to: '/faq/faq_index'
-        }
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
       title: 'MIDORI-KMS'
-    }
-  },
-  methods:{
-    logout(){
-      const data = { auth: this.$auth.user.name}
-      this.$auth.logout({data:data})
     }
   }
 }

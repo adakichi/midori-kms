@@ -44,14 +44,16 @@
 <script>
 import axios from 'axios'
 export default {
-    auth:'guest',
+    auth:false,
     data() {
         return {
             name:'',
             selectedDivision:{},
             division:[
                 { text:"新規", value:"新規"},
-                { text:"交面", value:"交面"}
+                { text:"調査", value:"調査"},
+                { text:"交面", value:"交面"},
+                { text:"交渉", value:"交渉"},
                 ],
             report:''
         }
@@ -97,13 +99,27 @@ export default {
                         format = '受電：　　件\n成約：　　件\n[hr]業務報告'
                         hint = '吉澤さんに送信されます'
                         break;
+                    case '調査':
+                        format = '計算：　　件\n架電：　　件\n郵送開封：　　時間\n番付：　　時間\n[hr]業務報告\n'
+                        hint = '調査 全員に送信されます'
+                        break;
                     case '交面':
                         format = '交面架電：　　件\n交面実績：　　件\n意思確認：　　件\n[hr]業務報告\n'
-                        hint = '交面全員に送信されます'
+                        hint = '交面 全員に送信されます'
+                        break;
+                    case '交渉':
+                        format = '交渉架電：　　件\n交渉受電：　　件\n和解：　　件\n再交渉：　　件\n[hr]業務報告\n'
+                        hint = '交渉 全員に送信されます'
                         break;
                 }
                 this.report = format
                 return {format:format,hint:hint}
+            }
+        },
+        created(){
+            if(this.$auth.user){
+                this.selectedDivision = this.$auth.user.division
+                this.name = this.$auth.user.name
             }
         }
     }

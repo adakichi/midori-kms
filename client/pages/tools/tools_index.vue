@@ -29,6 +29,12 @@ export default {
                     to:"/tools/workReport",
                     description:"Chatwork宛の業務報告書",
                     icon:"mdi-clipboard-account-outline"
+                },
+                {
+                    title:"問題解決掲示板",
+                    to:"/tools/issues",
+                    description:"問題提起等の掲示板",
+                    icon:"mdi-forum"
                 }
 
             ],

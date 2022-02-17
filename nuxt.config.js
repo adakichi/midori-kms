@@ -3,12 +3,15 @@ import colors from 'vuetify/es5/util/colors'
 export default {
   //IPアドレスで外部からアクセス可能にする為追加
   server: {
-    host: '0.0.0.0' // デフォルト: localhost
+    // host: '192.168.101.204' // デフォルト: localhost
+    host: process.env.DEPLOY_HOST // デフォルト: localhost
   },
 
   //auth middleware設定
   router:{
-    // middleware:['auth']
+    //アクセス制限を解除する場合は、下記をコメントアウトしてください。
+    //アクセス制限をONにしている場合、制限をしないページには auth:false　を設定してください。
+    middleware:['auth']
   },
 
   //auth情報追加
@@ -25,8 +28,9 @@ export default {
       }
     },
     redirect:{
-      login: '/users/login',
-      logout: '/users/login'
+      login:  '/users/login',
+      logout: '/users/login',
+      home:   '/'
     }
 },
 
@@ -82,7 +86,9 @@ export default {
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {},
+  axios: {
+    baseURL:process.env.API_BASE_URL
+  },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
@@ -106,4 +112,5 @@ export default {
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   }
+
 }
