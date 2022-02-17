@@ -1050,6 +1050,21 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/payment_schedules' ; throw err}
     console.log(' > '+ options.id +'支払い予定取得\n--- sucess ---')
+    res.send(rows)
+  })
+})
+
+
+//顧客毎の支払予定の削除
+app.delete('/payment_agency/customer/payment_schedules',(req,res)=>{
+  console.log('\n---Delete Customer payment_schedules: \n >計画を削除します 受任番号:' + req.body.customerId + ' ---')
+  const ids = req.body.id
+  console.log('ids:',ids)
+  const sql = 'DELETE FROM payment_schedules WHERE payment_schedule_id in (?);'
+  db_payment_agency.query(sql,[ids],(err,rows,fields)=>{
+    if(err){ err.whichApi= 'delete /payment_agency/customer/cis' ; throw err}
+    console.log('--- sucess ---')
+    logger.log('\n---Delete Customer Cis: \n >計画を削除しました 受任番号:' + req.body.customerId + '\ncis ids:' + ids + ' ---')
     res.send(rows)    
   })
 })

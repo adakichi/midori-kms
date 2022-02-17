@@ -144,7 +144,7 @@
                             <v-row>
                                 <v-col>
                                     <span><v-checkbox
-                                    label="変則(他に選択肢がなければこれ)"
+                                    label="イレギュラー(他に選択肢がなければこれ)"
                                     v-model="irregular"
                                     ></v-checkbox></span>
                                     <v-select
@@ -394,13 +394,16 @@
                 <v-row>
                     <v-col>
                         <v-app-bar>
-                            <v-btn>予定作成</v-btn>
-                            <v-btn>確定</v-btn>
+                            <v-btn @click="deleteAllPs">予定削除</v-btn>
                         </v-app-bar>
                         <v-data-table
+                        v-model="selectedPs"
                         :headers="paymentSchedulesHeaders"
                         :items="paymentSchedules"
-                        :items-per-page="30"
+                        item-key="payment_schedule_id"
+                        :items-per-page="-1"
+                        selectable-key="isSelectable"
+                        show-select
                         show-group-by
                         >
                         </v-data-table>
@@ -649,6 +652,8 @@ export default {
             customerId:0,
             customer:{},
             customerCis:[],
+            paymentSchedules:[],
+            selectedPs:[],
             //dialog関係
             dialog:false,
             createScheduleDialog:false,
@@ -767,9 +772,6 @@ export default {
         contentsOfSettlements(){
             return this.$store.getters['pa/getContentsOfSettlements']
         },
-        paymentSchedules(){
-            return this.arr = this.$store.getters['pa/getPaymentSchedules']
-        }
     },
     methods:{
         searchCustomer(){
@@ -780,6 +782,22 @@ export default {
         },
         goback(){
             this.$router.push('/payment_agency/customers')
+        },
+        getPaymentSchedules(){
+            this.$axios.get('api/payment_agency/customer/payment_schedules',{params:{ id:this.customerId, from:null, until:null, isPaidDate:null, isExpectedDate:null }})
+            .then(response=>{
+                const ps = response.data
+                console.log('ps:',ps)
+                const filterd = ps.map(item=>{
+                    if(item.expected_date === null){
+                        item.isSelectable = true
+                    } else {
+                        item.isSelectable = false
+                    }
+                    return item
+                })
+            this.paymentSchedules = filterd
+            })
         },
         getCustomerCis(){
             //select可能かどうかのpropsを追加して返す。
@@ -838,6 +856,8 @@ export default {
                 location.reload()
             })
         },
+
+        //支払い予定を作成する際に「予定作成」ボタンを推した時の処理。
         createPaymentSchedules(index){
             this.createScheduleDialog = true
             const settle = this.contentsOfSettlements[index]
@@ -867,6 +887,38 @@ export default {
             schedules[schedules.length-1].amount = lastAmount
             this.schedules = schedules
         },
+
+        //支払い予定をＤＢ登録する処理。
+        registerPaymentSchedules(){
+            //登録して良いかのValidation組む必要があるが、まず  は登録する。最悪あとから編集の方を先に作ればOKのはず。
+            // let data = this.schedules.map(ele => [ele.paymentAccountId,ele.amount,ele.date])
+            // console.log(data)
+            this.$axios.post('api/payment_agency/customer/register_payment_schedules',this.schedules)
+            .then(response =>{
+                if(response.data.errno){
+                    return alert('DB Error: \nCode: '+ response.data.code +'\neErrNo: '+ response.data.errno +'\nMes: '+ response.data.sqlMessage)
+                }
+                alert('登録が終わりました!')
+                this.getPaymentSchedules()
+                this.createScheduleDialog = false
+                this.tabs = 1
+            })
+        },
+        deleteAllPs(){
+            // const doOrNot = confirm('本当に削除しますか？')
+            // if(doOrNot === false ){ return }
+            let ids = new Array()
+            this.selectedPs.forEach(item=> {return ids.push(item.payment_schedule_id)})
+            this.$axios.delete('/api/payment_agency/customer/payment_schedules',{data:{id:ids,customerId:this.customer.customer_id}})
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                console.log(response.data)
+                alert(response.data.affectedRows + '件削除しました。')
+                this.selectedPs = []
+                const option ={id:this.customer.customer_id,from:null,until:null}
+                this.getPaymentSchedules()
+            })
+        },
         deleteAllCis(){
             const doOrNot = confirm('本当に削除しますか？')
             if(doOrNot === false ){ return }
@@ -879,22 +931,6 @@ export default {
                 alert(response.data.affectedRows + '件削除しました。')
                 this.selectedCustomerCis = []
                 this.getCustomerCis()
-            })
-        },
-        registerPaymentSchedules(){
-            //登録して良いかのValidation組む必要があるが、まず  は登録する。最悪あとから編集の方を先に作ればOKのはず。
-            // let data = this.schedules.map(ele => [ele.paymentAccountId,ele.amount,ele.date])
-            // console.log(data)
-            this.$axios.post('api/payment_agency/customer/register_payment_schedules',this.schedules)
-            .then(response =>{
-                if(response.data.errno){
-                    return alert('DB Error: \nCode: '+ response.data.code +'\neErrNo: '+ response.data.errno +'\nMes: '+ response.data.sqlMessage)
-                }
-                alert('登録が終わりました!')
-                const option ={id:this.customer.customer_id,from:null,until:null}
-                this.$store.dispatch('pa/getDbPaymentSchedules',option)
-                this.createScheduleDialog = false
-                this.tabs = 1
             })
         },
         postNewSchedule(){
@@ -1002,12 +1038,11 @@ export default {
             searchType:'jyunin'
         }
         this.getCustomerCis()
+        this.getPaymentSchedules()
         await this.$store.dispatch('pa/searchCustomers',{targetText:id,options:options})
         await this.$store.dispatch('getDbCreditors')
         await this.$store.dispatch('pa/getDbCreditorsAccounts')
         await this.$store.dispatch('pa/getDbContentsOfSettlements',id)
-            const option ={id:id,from:null,until:null}
-        await this.$store.dispatch('pa/getDbPaymentSchedules',option)
             const detailOption = {id:id}
         this.$axios.get('api/payment_agency/customer/detail',{params:detailOption})
             .then((response)=>{this.customer = response.data[0]})
