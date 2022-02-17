@@ -1174,8 +1174,8 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
   return new Promise((resolve,reject)=>{
   //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
           //だめならerrを投げよう。投げ方わからんけど。
-  //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
-  //手順2 table(customersのaccounts_receivable, deposit, advance_payment, temporary_receipt, confirm_payment)
+  //手順1 PSを更新　table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
+  //手順2 customersのお金関係更新　table(customersのaccounts_receivable, deposit, advance_payment, temporary_receipt, confirm_payment)
   //手順3 journal_bookに登録
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
@@ -1208,7 +1208,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             })
           }
 
-          //手順2
+          //手順2　customersのお金関係更新
           const updateCustomersSql = 'UPDATE customers SET deposit = deposit - ?, advance_payment = advance_payment - ?, confirm_payment = confirm_payment + ? WHERE customer_id = ?;'
           const updateCustomersValue = [
             editedScheduleObject.amount,  //業者への支払い金額　→　預り金額から減算
@@ -1263,7 +1263,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
 function createJournalArray(editedScheduleObject){
   //'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
   const motocho = 'ps' + editedScheduleObject.payment_schedule_id
-  const advancePayment = editedScheduleObject.advisory_fee + editedScheduleObject.commision 
+  const advancePayment = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1) + (parseInt(editedScheduleObject.commision,10) * 1.1)
   let journalArray = []
   journalArray.push([ motocho, '預り金', editedScheduleObject.amount, '預金', editedScheduleObject.amount, editedScheduleObject.customer_id])
   journalArray.push([ motocho, '前受金', advancePayment, '売上', advancePayment, editedScheduleObject.customer_id ])
@@ -1289,7 +1289,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
   //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,をnull（仮支払い日、仮金額、仮手数料、仮顧問料)
-  //手順2 table(customersのdepositを増やす)
+  //手順2 customersの金額を戻す table(customersのdepositを増やす)
   //手順3 journalArrayを削除する。
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
@@ -1317,7 +1317,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
           }
           console.log('rows2:',rows2)
 
-          //手順2
+          //手順2　customersの金額を戻す
           const updateCustomersSql = 'UPDATE customers SET deposit = deposit + ?, advance_payment = advance_payment + ?, confirm_payment = confirm_payment - ? WHERE customer_id = ?;'
           const updateCustomersValue = [
             editedScheduleObject.amount,  //業者への支払い金額　→　預り金額から減算
