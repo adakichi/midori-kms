@@ -499,6 +499,26 @@
                                     </template>
                                 </v-edit-dialog>
                             </template>
+
+                            <!-- メモ -->
+                            <template v-slot:item.memo="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialogMemo"
+                                    large
+                                    @save="saveCis(item)"
+                                    :return-value.sync="item.memo"
+                                >   
+                                    {{item.memo}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            v-model="item.memo"
+                                            label="メモ"
+                                            single-line
+                                            type="text"
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
                         </v-data-table>
                         <v-snackbar
                           v-model="snack"
@@ -636,6 +656,7 @@ export default {
             editTemporaryDialog:false,
             editDialogPaymentDay:false,
             editDialogExpectedAmount:false,
+            editDialogMemo:false,
             //////////
             targetText:'',
             activePicker:false,
@@ -718,6 +739,7 @@ export default {
                 {text:'実入金日',       value:'actual_deposit_date'},
                 {text:'実入金額',       value:'actual_deposit_amount'},
                 {text:'予定金額',       value:'expected_amount'},
+                {text:'メモ',       value:'memo'},
             ],
             selectedCustomerCis:[],
             updateValue:{},

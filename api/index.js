@@ -960,7 +960,7 @@ app.get('/payment_agency/customer/cis',(req,res)=>{
   const id = req.query.id
   console.log('\n---get Customer Cis ---',req.query.id)
   let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(cis.payment_day, "%Y/%m/%d")as payment_day, date_format(cir.actual_deposit_date, "%Y/%m/%d")as actual_deposit_date, cir.actual_deposit_amount, '
-      sql = sql + 'cis.expected_amount, cis.come_in_records_id FROM come_in_schedules as cis LEFT JOIN come_in_records as cir ON cis.come_in_records_id = cir.come_in_records_id WHERE cis.customer_id = ? '
+      sql = sql + 'cis.expected_amount, cis.memo, cis.come_in_records_id FROM come_in_schedules as cis LEFT JOIN come_in_records as cir ON cis.come_in_records_id = cir.come_in_records_id WHERE cis.customer_id = ? '
       sql = sql + 'ORDER BY payment_day'
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/cis' ; throw err}
