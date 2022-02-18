@@ -40,6 +40,11 @@ export default {
                     title:'顧客ページ',
                     description:'顧客毎のページ',
                     to:'/payment_agency/customers/'
+                },
+                {
+                    title:'仕訳帳',
+                    description:'仕訳帳のページ',
+                    to:'/payment_agency/journal_book/'
                 }
             ]
         }

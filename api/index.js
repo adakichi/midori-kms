@@ -1525,7 +1525,27 @@ const cancelConfirmPaymentScheduleTransaction = function(id){
   })
 }
 
-
+app.get('/payment_agency/journal_book/',(req,res)=>{
+  const options = JSON.parse(req.query.options)
+  let sql = 'SELECT *, DATE_FORMAT(date, "%Y/%m/%d %T")as date FROM journal_book as jb Left JOIN customers ON jb.customer_id = customers.customer_id '
+  let values = []
+  if(options.from){ 
+    sql + 'WHERE date < "' + options.from + '" '
+    values.push(options.from)
+  }
+  if(options.until){
+    if(sql.indexOf('WHERE')){
+      sql + 'AND date > "' + options.until + '" '
+    } else {
+      sql + 'WHERE date > "' + options.until + '" '
+    }
+    values.push(options.from)
+  }
+  db_payment_agency.query(sql,values,(err,rows,fields)=>{
+    if(err){ throw err}
+    res.send(rows)
+  })
+})
 
 // ---- Creditors 債権者情報   -------
 app.get('/creditors/',(req,res)=>{

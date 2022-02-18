@@ -134,6 +134,11 @@ export default {
           title: '顧客毎',
           to: '/payment_agency/customers/'
         },
+        {
+          icon: 'mdi-account',
+          title: '仕訳帳',
+          to: '/payment_agency/journal_book/'
+        },
       ],
       miniVariant: false,
       right: true,
