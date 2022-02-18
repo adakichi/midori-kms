@@ -903,6 +903,19 @@ app.get('/payment_agency/customer/detail',(req,res)=>{
   })
 })
 
+//カスタマーのProgress(進捗)変更
+app.put('/payment_agency/customer/progress',(req,res)=>{
+  console.log('\n--- get/customer progress---')
+  const values = [req.body.progress,req.body.id]
+  const sql = 'UPDATE customers SET progress = ? WHERE customer_id = ?'
+  db_payment_agency.query(sql,values,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'get payment_agency/customer/progress'; throw err}
+    console.log('> '+req.query.id+'の顧客 進捗変更\ -> ' + req.body.progress + 'n--- sucess ---')
+    logger.log('> '+req.query.id+'の顧客 進捗変更 -> ' + req.body.progress )
+    res.send(rows)
+  })
+})
+
 //customers の検索
 //text に検索文字列 optionsにTYPE等
 app.get('/payment_agency/customers/',(req,res)=>{

@@ -5,6 +5,23 @@
                 </v-app-bar>
                 <v-app-bar>
                     受：{{customerId}} {{customer?customer.name:'No Name'}}
+                    <v-spacer></v-spacer>
+                    <div>
+                      <v-edit-dialog
+                      large
+                      @save="updateProgress"
+                    >
+                      {{ customer.progress }}
+                      <template v-slot:input>
+                        <v-select
+                          v-model="customer.progress"
+                          :items="progressItems"
+                          label="進捗"
+                          single-line
+                        ></v-select>
+                      </template>
+                    </v-edit-dialog>
+                    </div>
                     <v-btn @click="goback">戻る</v-btn>
                 </v-app-bar>
         <v-row>
@@ -18,6 +35,7 @@
             <v-tab>支払い予定</v-tab>
             <v-tab>入金予定</v-tab>
             <v-tab>顧客情報</v-tab>
+            <v-tab>会計情報</v-tab>
         </v-tabs>
         <v-tabs-items v-model="tabs">
 
@@ -523,22 +541,6 @@
                                 </v-edit-dialog>
                             </template>
                         </v-data-table>
-                        <v-snackbar
-                          v-model="snack"
-                          :timeout="3000"
-                          :color="snackColor"
-                        >
-                          {{ snackText }}
-                          <template v-slot:action="{ attrs }">
-                            <v-btn
-                              v-bind="attrs"
-                              text
-                              @click="snack = false"
-                            >
-                              Close
-                            </v-btn>
-                          </template>
-                        </v-snackbar>
                     </v-col>
                 </v-row>
             </v-container>
@@ -547,6 +549,7 @@
         <!-- 顧客情報のタブ -->
         <v-tab-item>
             <v-card>
+                <v-card-text>
                 <v-container>
                     <v-row>
                         <v-col>
@@ -558,15 +561,28 @@
                     </v-row>
                     <v-row>
                         <v-col>
-                            <v-text-field label="氏名" disabled :value="customer.name"></v-text-field>
+                            <v-text-field label="氏名" :value="customer.name"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="カナ" disabled :value="customer.kana"></v-text-field>
+                            <v-text-field label="カナ" :value="customer.kana"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="口座摘要" disabled :value="customer.bank_account_name === null ? '登録ナシ' : customer.bank_account_name"></v-text-field>
+                            <v-text-field label="口座摘要" :value="customer.bank_account_name === null ? '登録ナシ' : customer.bank_account_name"></v-text-field>
                         </v-col>
                     </v-row>
+                </v-container>
+                </v-card-text>
+                <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn>更新</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-tab-item>
+
+        <!-- 会計情報 -->
+        <v-tab-item>
+            <v-card>
+            <v-container>
                     <v-row>
                         <v-col>
                             <v-text-field label="債務整理売掛金" disabled suffix=" 円" :value="customer.accounts_receivable"></v-text-field>
@@ -640,6 +656,23 @@
                 </v-tabs-items>
             </v-card>
         </v-dialog>
+                        <v-snackbar
+                          v-model="snack"
+                          :timeout="3000"
+                          :color="snackColor"
+                        >
+                          {{ snackText }}
+                          <template v-slot:action="{ attrs }">
+                            <v-btn
+                              v-bind="attrs"
+                              text
+                              @click="snack = false"
+                            >
+                              Close
+                            </v-btn>
+                          </template>
+                        </v-snackbar>
+
     </v-container>
 </template>
 
@@ -711,6 +744,7 @@ export default {
             winter:[10,11,12,1,2,3],
             typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
             pensionValues:['偶数','奇数',''],
+            progressItems:['代行中(整理済み)','代行中(整理途中)','業務終了(全社完済)','業務終了(途中辞任)',],
             //snack bar
             snack:'',
             snackColor:'',
@@ -787,7 +821,6 @@ export default {
             this.$axios.get('api/payment_agency/customer/payment_schedules',{params:{ id:this.customerId, from:null, until:null, isPaidDate:null, isExpectedDate:null }})
             .then(response=>{
                 const ps = response.data
-                console.log('ps:',ps)
                 const filterd = ps.map(item=>{
                     if(item.expected_date === null){
                         item.isSelectable = true
@@ -904,6 +937,8 @@ export default {
                 this.tabs = 1
             })
         },
+
+        //Payment schedules の削除
         deleteAllPs(){
             const doOrNot = confirm('本当に削除しますか？')
             if(doOrNot === false ){ return }
@@ -919,6 +954,8 @@ export default {
                 this.getPaymentSchedules()
             })
         },
+
+        //Come In Schedulesの削除
         deleteAllCis(){
             const doOrNot = confirm('本当に削除しますか？')
             if(doOrNot === false ){ return }
@@ -933,6 +970,8 @@ export default {
                 this.getCustomerCis()
             })
         },
+
+        //支払い予定の作成
         postNewSchedule(){
             const newSchedule = this.newSchedule
             //予定を回数分作る
@@ -1027,6 +1066,16 @@ export default {
                 this.snack = true
                 this.snackColor = 'success'
                 this.snackText = '成功しました。'
+            })
+        },
+        updateProgress(){
+            this.$axios.put('api/payment_agency/customer/progress',{id:this.customer.customer_id, progress:this.customer.progress})
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                console.log(response)
+                this.snack = true
+                this.snackColor = 'success'
+                this.snackText = '進捗を変更しました。  '                
             })
         }
     },
