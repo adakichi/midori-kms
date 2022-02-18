@@ -561,20 +561,20 @@
                     </v-row>
                     <v-row>
                         <v-col>
-                            <v-text-field label="氏名" :value="customer.name"></v-text-field>
+                            <v-text-field label="氏名" v-model="customer.name"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="カナ" :value="customer.kana"></v-text-field>
+                            <v-text-field label="カナ" v-model="customer.kana"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="口座摘要" :value="customer.bank_account_name === null ? '登録ナシ' : customer.bank_account_name"></v-text-field>
+                            <v-text-field label="口座摘要" v-model="customer.bank_account_name"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>
                 </v-card-text>
                 <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn>更新</v-btn>
+                            <v-btn @click="updateCustomerDetail">更新</v-btn>
                 </v-card-actions>
             </v-card>
         </v-tab-item>
@@ -1070,6 +1070,16 @@ export default {
         },
         updateProgress(){
             this.$axios.put('api/payment_agency/customer/progress',{id:this.customer.customer_id, progress:this.customer.progress})
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                console.log(response)
+                this.snack = true
+                this.snackColor = 'success'
+                this.snackText = '進捗を変更しました。  '                
+            })
+        },
+        updateCustomerDetail(){
+            this.$axios.put('api/payment_agency/customer/detail',{customer:this.customer})
             .then((response)=>{
                 if(response.data.error){ return alert(response.data.message)}
                 console.log(response)
