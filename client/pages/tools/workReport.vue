@@ -317,7 +317,6 @@ export default {
                     }).then(console.log('submit:Done!'))
                     }
                 }
-            }
         },
         computed:{
             divisionFormat(){
