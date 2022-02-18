@@ -312,19 +312,19 @@ export default {
                 let hint =''
                 switch(this.selectedDivision){
                     case '新規':
-                        format = '受電：　　件\n成約：　　件\n[hr]業務報告'
+                        format = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件\n[hr]業務報告'
                         hint = '吉澤さんに送信されます'
                         break;
                     case '調査':
-                        format = '計算：　　件\n架電：　　件\n郵送開封：　　時間\n番付：　　時間\n[hr]業務報告\n'
+                        format = '計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\n[hr]業務報告\n'
                         hint = '調査 全員に送信されます'
                         break;
                     case '交面':
-                        format = '交面架電：　　件\n交面実績：　　件\n意思確認：　　件\n[hr]業務報告\n'
+                        format = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件\n[hr]業務報告\n'
                         hint = '交面 全員に送信されます'
                         break;
                     case '交渉':
-                        format = '交渉架電：　　件\n交渉受電：　　件\n和解：　　件\n再交渉：　　件\n[hr]業務報告\n'
+                        format = '交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n[hr]業務報告\n'
                         hint = '交渉 全員に送信されます'
                         break;
                 }
