@@ -14,25 +14,230 @@
                 :items="division"
                 label="所属"
                 v-model="selectedDivision"></v-select>
-                </v-card-title>
+            </v-card-title>
             <v-card-text>
                 <v-form ref="form" @submit.prevent>
-                    <v-text-field
-                    v-model="name"
-                    :counter="10"
-                    label="名前"
-                    ></v-text-field>
-                    <v-textarea
-                    v-model="report"
-                    :hint="divisionFormat.hint"
-                    label="メモ">
-                    </v-textarea>
+                    <!-- 新規用 -->
+                    <v-row v-show="selectedDivision === '新規'? true :false">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.shinki.kaden"
+                            label="架電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.shinki.jyuden"
+                            label="受電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.shinki.seiyaku"
+                            label="成約"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+
+                    <!-- 調査 -->
+                    <v-row v-show="selectedDivision === '調査'? true :false">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chousa.keisan"
+                            label="計算"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chousa.kaden"
+                            label="架電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chousa.kaihuu"
+                            label="郵便開封"
+                            type="number"
+                            suffix="分"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chousa.bantuke"
+                            label="番付"
+                            type="number"
+                            suffix="分"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <!-- 中決/交面 -->
+                    <v-row v-show="isChuketuKomen">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chuketuKomen.chuketu"
+                            label="中決"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chuketuKomen.kaden"
+                            label="交面架電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chuketuKomen.jisseki"
+                            label="交面実績"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.chuketuKomen.ishikaku"
+                            label="意思確"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+
+                    <!-- 交渉 -->
+                    <v-row v-show="selectedDivision === '交渉'? true :false">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.koushou.kaden"
+                            label="架電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.koushou.jyuden"
+                            label="受電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.koushou.wakai"
+                            label="和解"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.koushou.saikoushou"
+                            label="再交渉"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+
+                    <!-- 完了 -->
+                    <v-row v-show="selectedDivision === '完了'? true :false">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.kanryou.kaden"
+                            label="架電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.kanryou.jyuden"
+                            label="受電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.kanryou.kanryoushorui"
+                            label="完了書類作成"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+
+                    <!-- 債務整理 -->
+                    <v-row v-show="selectedDivision === '債務整理'? true :false">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.saimuseiri.kaden"
+                            label="架電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.saimuseiri.jyuden"
+                            label="受電"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.saimuseiri.chat"
+                            label="チャット"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.saimuseiri.chousa"
+                            label="調査"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.saimuseiri.ginkou"
+                            label="銀行"
+                            type="number"
+                            suffix="分"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
+                            <v-textarea
+                            v-model="report"
+                            :hint="divisionFormat.hint"
+                            label="メモ">
+                            </v-textarea>
+                        </v-col>
+                    </v-row>
+                </v-form>
+            </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn @click="submit">送信</v-btn>
             </v-card-actions>
-                </v-form>
-                </v-card-text>
         </v-card>
         </v-col>
         </v-row>
@@ -46,13 +251,26 @@ export default {
     data() {
         return {
             name:'',
+            counter:{},
             selectedDivision:{},
             division:[
                 { text:"新規", value:"新規"},
                 { text:"調査", value:"調査"},
+                { text:"中決", value:"中決"},
                 { text:"交面", value:"交面"},
                 { text:"交渉", value:"交渉"},
+                { text:"完了", value:"完了"},
+                { text:"債務整理", value:"債務整理"},
                 ],
+            //各課の件数カウント用　わかりづらいので、OBJECTにして一つにまとめます。
+            counter:{
+                shinki:         {kaden:0, jyuden:0, seiyaku:0,},
+                chousa:         {keisan:0, kaden:0, kaihuu:0, bantuke:0},
+                chuketuKomen:   {chuketu:0, kaden:0, jisseki:0, ishikaku:0},
+                koushou:        {kaden:0, jyuden:0, wakai:0, saikoushou:0},
+                kanryou:        {kaden:0, jyuden:0, kanryoushorui:0},
+                saimuseiri:     {kaden:0, jyuden:0, chat:0, chousa:0, ginkou:0}
+            },
             report:''
         }
     },
@@ -112,6 +330,13 @@ export default {
                 }
                 this.report = format
                 return {format:format,hint:hint}
+            },
+            isChuketuKomen(){
+                if(this.selectedDivision === '中決' ||this.selectedDivision === '交面' ){
+                    return true
+                } else {
+                    return false
+                }
             }
         },
         created(){
