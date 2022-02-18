@@ -264,12 +264,12 @@ export default {
                 ],
             //各課の件数カウント用　わかりづらいので、OBJECTにして一つにまとめます。
             counter:{
-                shinki:         {kaden:0, jyuden:0, seiyaku:0,},
-                chousa:         {keisan:0, kaden:0, kaihuu:0, bantuke:0},
-                chuketuKomen:   {chuketu:0, kaden:0, jisseki:0, ishikaku:0},
-                koushou:        {kaden:0, jyuden:0, wakai:0, saikoushou:0},
-                kanryou:        {kaden:0, jyuden:0, kanryoushorui:0},
-                saimuseiri:     {kaden:0, jyuden:0, chat:0, chousa:0, ginkou:0}
+                shinki:         {kaden:null, jyuden:null, seiyaku:null,},
+                chousa:         {keisan:null, kaden:null, kaihuu:null, bantuke:null},
+                chuketuKomen:   {chuketu:null, kaden:null, jisseki:null, ishikaku:null},
+                koushou:        {kaden:null, jyuden:null, wakai:null, saikoushou:null},
+                kanryou:        {kaden:null, jyuden:null, kanryoushorui:null},
+                saimuseiri:     {kaden:null, jyuden:null, chat:null, chousa:null, ginkou:null}
             },
             report:''
         }
@@ -285,7 +285,23 @@ export default {
                 const result = window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
                 if(result){
                 let body = "[info][title]" + this.name + "[/title]"
-                    body = body + this.report + "[/info]"
+                let counterStrings = '[info]'
+                switch(this.selectedDivision){
+                    case '新規':
+                        counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件\n[hr]業務報告'
+                        break;
+                    case '調査':
+                        counterStrings  = '計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\n[hr]業務報告\n'
+                        break;
+                    case '交面':
+                        counterStrings = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件\n[hr]業務報告\n'
+                        break;
+                    case '交渉':
+                        counterStrings = '交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n[hr]業務報告\n'
+                        break;
+                }
+
+                    body = body + counterStrings + '[/info]' + this.report + "[/info]"
                     axios.post('/api/cw/send',{
                         content: body,
                         division:this.selectedDivision
@@ -308,28 +324,22 @@ export default {
         },
         computed:{
             divisionFormat(){
-                let format = ''
                 let hint =''
                 switch(this.selectedDivision){
                     case '新規':
-                        format = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件\n[hr]業務報告'
                         hint = '吉澤さんに送信されます'
                         break;
                     case '調査':
-                        format = '計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\n[hr]業務報告\n'
                         hint = '調査 全員に送信されます'
                         break;
                     case '交面':
-                        format = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件\n[hr]業務報告\n'
                         hint = '交面 全員に送信されます'
                         break;
                     case '交渉':
-                        format = '交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n[hr]業務報告\n'
                         hint = '交渉 全員に送信されます'
                         break;
                 }
-                this.report = format
-                return {format:format,hint:hint}
+                return {hint:hint}
             },
             isChuketuKomen(){
                 if(this.selectedDivision === '中決' ||this.selectedDivision === '交面' ){
