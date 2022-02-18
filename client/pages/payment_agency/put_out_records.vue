@@ -179,8 +179,6 @@ function convToOne(item){
     }
 }
 
-//Download用のaタグ作成用関数
-import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 
   //selectedからIDを取り出して配列にする
 function getIds(selected){
@@ -205,6 +203,8 @@ function todayString(){
     return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
 }
 
+//Download用のaタグ作成用関数
+import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 import {getNextWeek,judgePay} from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
 export default {
