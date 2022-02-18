@@ -247,7 +247,7 @@
 <script>
 import axios from 'axios'
 export default {
-    auth:false,
+    auth:true,
     data() {
         return {
             name:'',
@@ -264,12 +264,12 @@ export default {
                 ],
             //各課の件数カウント用　わかりづらいので、OBJECTにして一つにまとめます。
             counter:{
-                shinki:         {kaden:null, jyuden:null, seiyaku:null,},
-                chousa:         {keisan:null, kaden:null, kaihuu:null, bantuke:null},
-                chuketuKomen:   {chuketu:null, kaden:null, jisseki:null, ishikaku:null},
-                koushou:        {kaden:null, jyuden:null, wakai:null, saikoushou:null},
-                kanryou:        {kaden:null, jyuden:null, kanryoushorui:null},
-                saimuseiri:     {kaden:null, jyuden:null, chat:null, chousa:null, ginkou:null}
+                shinki:         {kaden:'', jyuden:'', seiyaku:'',},
+                chousa:         {keisan:'', kaden:'', kaihuu:'', bantuke:''},
+                chuketuKomen:   {chuketu:'', kaden:'', jisseki:'', ishikaku:''},
+                koushou:        {kaden:'', jyuden:'', wakai:'', saikoushou:''},
+                kanryou:        {kaden:'', jyuden:'', kanryoushorui:''},
+                saimuseiri:     {kaden:'', jyuden:'', chat:'', chousa:'', ginkou:''}
             },
             report:''
         }
@@ -279,9 +279,6 @@ export default {
                 this.$router.push(path)
             },
             submit(){
-                    if(this.name == '' || this.selectedDivision === undefined){
-                        alert('名前もしくは所属が空です。')
-                    }else{
                 const result = window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
                 if(result){
                 let body = "[info][title]" + this.name + "[/title]"
@@ -353,6 +350,8 @@ export default {
             if(this.$auth.user){
                 this.selectedDivision = this.$auth.user.division
                 this.name = this.$auth.user.name
+            } else {
+                this.name = 'guest'
             }
         }
     }
