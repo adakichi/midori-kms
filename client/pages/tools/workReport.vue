@@ -282,10 +282,10 @@ export default {
                 const result = window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
                 if(result){
                 let body = "[info][title]" + this.name + "[/title]"
-                let counterStrings = '[info]'
+                let counterStrings = ''
                 switch(this.selectedDivision){
                     case '新規':
-                        counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件\n[hr]業務報告'
+                        counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件'
                         break;
                     case '調査':
                         counterStrings  = '計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\n[hr]業務報告\n'
@@ -298,7 +298,7 @@ export default {
                         break;
                 }
 
-                    body = body + counterStrings + '[/info]' + this.report + "[/info]"
+                    body = body + '[info]' + counterStrings + '[/info][hr]業務報告\n' + this.report + "[/info]"
                     axios.post('/api/cw/send',{
                         content: body,
                         division:this.selectedDivision
