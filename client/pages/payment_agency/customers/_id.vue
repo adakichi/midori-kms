@@ -307,6 +307,12 @@
                                 <v-divider></v-divider>
                                 <v-row>
                                     <v-col>
+                                        手数料：{{settle.advisory_fee}}
+                                        顧問料：{{settle.commission}}
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
                                         イレギュラー
                                     </v-col>
                                 </v-row>
@@ -1111,7 +1117,7 @@ export default {
             let advance_payment = 0
             filterdSchedules.forEach(item=>{
                 deposit += item.amount
-                advance_payment += Number(item.commision) * 1.1
+                advance_payment += Number(item.commission) * 1.1
                 advance_payment += Number(item.advisory_fee) * 1.1
             })
             this.editedTemporaryValues.deposit = deposit

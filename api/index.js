@@ -605,7 +605,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   })
                 }
                 console.log('Done rows6!\n')
-                //5.2 合計値を取得　totalAdvanceMoney,totalCommision,totalAdovisoryFee,と３つの合計subTotal
+                //5.2 合計値を取得　totalAdvanceMoney,totalcommission,totalAdovisoryFee,と３つの合計subTotal
                 const resultGetSubTotals = getSubTotals(rows6)
                 console.log('resultGetSubTotals:',resultGetSubTotals)
                 let depositInsertValue          = 0 //預り金
@@ -618,7 +618,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   temporaryReceipt = 0
                 } else {
                   //入金額よりも次回支払い金額が小さい場合は、前受け金と預かり金に分ける
-                  advancePaymentInsertValue   = resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalCommision //手数料と顧問料の合計を前受け金に。
+                  advancePaymentInsertValue   = resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalcommission //手数料と顧問料の合計を前受け金に。
                   depositInsertValue          = resultGetSubTotals.totalAdvanceMoney
                   //前受け金と預かり金を入金額から引く
                   temporaryReceipt -= (advancePaymentInsertValue + depositInsertValue)
@@ -685,18 +685,18 @@ app.put('/payment_agency/matching',(req,res)=>{
   //関数１）取得したpayment_schedulesから立替金と顧問料と手数料を取得して合計金額を吐き出します。
   function getSubTotals(schedules){
     let totalAdvanceMoney = 0
-    let totalCommision = 0
+    let totalcommission = 0
     let totalAdovisoryFee = 0
     schedules.forEach(schedule=>{
       totalAdvanceMoney += schedule.amount
-      totalCommision    += (schedule.commision    * 1.1)
+      totalcommission    += (schedule.commission    * 1.1)
       totalAdovisoryFee += (schedule.advisory_fee * 1.1)
     })
     return {
       totalAdvanceMoney:totalAdvanceMoney,
-      totalCommision:totalCommision,
+      totalcommission:totalcommission,
       totalAdovisoryFee:totalAdovisoryFee,
-      subTotal:totalAdvanceMoney + totalCommision + totalAdovisoryFee
+      subTotal:totalAdvanceMoney + totalcommission + totalAdovisoryFee
     }
   }
   //関数２）journal bookへの登録
@@ -964,7 +964,7 @@ app.post('/payment_agency/new_account',(req,res)=>{
   console.log('\n--- post new account ---')
   console.log(req.body)
   let sql = 'INSERT INTO payment_accounts (customer_id, creditor_id, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, start_date, delayed_interest_rate, '
-      sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
+      sql = sql + 'irregular, pension, interest, bonus, addition, commission, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month) '
       sql = sql + 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
   db_payment_agency.query(sql,req.body,(err,rows,fields)=>{
@@ -980,7 +980,7 @@ app.get('/payment_agency/customer/settlements',(req,res)=>{
   console.log('\n--- get Customer settlements ---')
   const id = req.query.id
   let sql = 'SELECT payment_account_id, customer_id, pa.creditor_id, creditors.creditor_name, total_amount, monthly_amount, number_of_payments, monthly_payment_due_date, first_amount, DATE_FORMAT(start_date,"%Y/%m/%d") as start_date, type_of_delay, delayed_interest_rate, '
-      sql = sql + 'irregular, pension, interest, bonus, addition, commision, advisory_fee, account_comment, '
+      sql = sql + 'irregular, pension, interest, bonus, addition, commission, advisory_fee, account_comment, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder, summer_bonus_amount, summer_bonus_month, winter_bonus_amount, winter_bonus_month '
       sql = sql + 'from payment_accounts as pa inner join creditors on pa.creditor_id = creditors.creditor_id  where pa.customer_id = ? ;'
   db_payment_agency.query(sql,id,(err,rows,fields)=>{
@@ -1215,9 +1215,9 @@ app.put('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
 //仮出金の際のトランザクション
 const temporaryPayTransaction = function(editedScheduleObject,date){
   return new Promise((resolve,reject)=>{
-  //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
+  //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commission,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
           //だめならerrを投げよう。投げ方わからんけど。
-  //手順1 PSを更新　table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
+  //手順1 PSを更新　table(paymentschedulesのexpected_date,expected_amount,expected_commission,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
   //手順2 customersのお金関係更新　table(customersのaccounts_receivable, deposit, advance_payment, temporary_receipt, confirm_payment)
   //手順3 journal_bookに登録
   const customerId = editedScheduleObject.customer_id
@@ -1225,7 +1225,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
   db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
-    const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commision IS NULL OR expected_advisory_fee IS NULL) AND paid_date is null'
+    const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commission IS NULL OR expected_advisory_fee IS NULL) AND paid_date is null'
     db_payment_agency.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log(err0)
@@ -1235,11 +1235,11 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
       }
 
         //手順1
-        const updateScheduleSql = ' UPDATE payment_schedules SET expected_date =?, expected_amount = ?, expected_commision = ?, expected_advisory_fee = ? WHERE payment_schedule_id = ?;'
+        const updateScheduleSql = ' UPDATE payment_schedules SET expected_date =?, expected_amount = ?, expected_commission = ?, expected_advisory_fee = ? WHERE payment_schedule_id = ?;'
         const updateDataArray = [
           date,
           editedScheduleObject.amount,
-          editedScheduleObject.commision,
+          editedScheduleObject.commission,
           editedScheduleObject.advisory_fee,
           editedScheduleId          
         ]
@@ -1255,7 +1255,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
           const updateCustomersSql = 'UPDATE customers SET deposit = deposit - ?, advance_payment = advance_payment - ?, confirm_payment = confirm_payment + ? WHERE customer_id = ?;'
           const updateCustomersValue = [
             editedScheduleObject.amount,  //業者への支払い金額　→　預り金額から減算
-            ((editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)),    //　→　前受金から減算
+            ((editedScheduleObject.commission * 1.1) + (editedScheduleObject.advisory_fee * 1.1)),    //　→　前受金から減算
             editedScheduleObject.amount,  //業者への支払い金額　→　既に支払った金額に加算
             customerId
           ]
@@ -1306,7 +1306,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
 function createJournalArray(editedScheduleObject){
   //'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
   const motocho = 'ps' + editedScheduleObject.payment_schedule_id
-  const advancePayment = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1) + (parseInt(editedScheduleObject.commision,10) * 1.1)
+  const advancePayment = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1) + (parseInt(editedScheduleObject.commission,10) * 1.1)
   let journalArray = []
   journalArray.push([ motocho, '預り金', editedScheduleObject.amount, '預金', editedScheduleObject.amount, editedScheduleObject.customer_id])
   journalArray.push([ motocho, '前受金', advancePayment, '売上', advancePayment, editedScheduleObject.customer_id ])
@@ -1329,9 +1329,9 @@ app.delete('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
 //仮出金を取り消す際のトランザクション
 const cancelTemporaryPayTransaction = function(editedScheduleObject){
   return new Promise((resolve,reject)=>{
-  //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
+  //手順0 既に仮出金か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commission,expected_advisory_fee,を登録（仮支払い日、仮金額、仮手数料、仮顧問料)
           //だめならerrを投げよう。投げ方わからんけど。
-  //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,をnull（仮支払い日、仮金額、仮手数料、仮顧問料)
+  //手順1 table(paymentschedulesのexpected_date,expected_amount,expected_commission,expected_advisory_fee,をnull（仮支払い日、仮金額、仮手数料、仮顧問料)
   //手順2 customersの金額を戻す table(customersのdepositを増やす)
   //手順3 journalArrayを削除する。
   const customerId = editedScheduleObject.customer_id
@@ -1339,7 +1339,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
   db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
-    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date is null;'
+    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commission IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date is null;'
     db_payment_agency.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows0,fields)=>{
       if(err0 || rows0.length === 0){
         console.log('err:',err0)
@@ -1350,7 +1350,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
       console.log('rows0:',rows0)
 
         //手順1
-        const updateScheduleSql = ' UPDATE payment_schedules SET expected_date = null, expected_amount = null, expected_commision = null, expected_advisory_fee = null WHERE payment_schedule_id = ?;'          
+        const updateScheduleSql = ' UPDATE payment_schedules SET expected_date = null, expected_amount = null, expected_commission = null, expected_advisory_fee = null WHERE payment_schedule_id = ?;'          
             db_payment_agency.query(updateScheduleSql, editedScheduleId,(err2,rows2,fields2)=>{
           if(err2){
             console.log('err2:',err2)
@@ -1364,7 +1364,7 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
           const updateCustomersSql = 'UPDATE customers SET deposit = deposit + ?, advance_payment = advance_payment + ?, confirm_payment = confirm_payment - ? WHERE customer_id = ?;'
           const updateCustomersValue = [
             editedScheduleObject.amount,  //業者への支払い金額　→　預り金額から減算
-            ((editedScheduleObject.commision * 1.1) + (editedScheduleObject.advisory_fee * 1.1)),    //　→　前受金から減算
+            ((editedScheduleObject.commission * 1.1) + (editedScheduleObject.advisory_fee * 1.1)),    //　→　前受金から減算
             editedScheduleObject.amount,  //業者への支払い金額　→　既に支払った金額に加算
             customerId
           ]
@@ -1425,14 +1425,14 @@ app.put('/payment_agency/payment_schedules/confirm',(req,res)=>{
 //出金予定を確定させるトランザクション
 const confirmPaymentScheduleTransaction = function(id,date){
   return new Promise((resolve,reject)=>{
-  //手順0 既に（仮出金済み && paid_dateがNULL）か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,is not null && paid_date is null
+  //手順0 既に（仮出金済み && paid_dateがNULL）か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commission,expected_advisory_fee,is not null && paid_date is null
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 paid_date に処理日付を。
   const confirmScheduleId = id
   db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
-    const selectExpectedsIsNotNullAndPaidDateIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NULL;'
+    const selectExpectedsIsNotNullAndPaidDateIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commission IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NULL;'
     db_payment_agency.query(selectExpectedsIsNotNullAndPaidDateIsNullSql,confirmScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log('err:',err0)
@@ -1484,14 +1484,14 @@ app.delete('/payment_agency/payment_schedules/confirm',(req,res)=>{
 //出金予定を取り消しするトランザクション
 const cancelConfirmPaymentScheduleTransaction = function(id){
   return new Promise((resolve,reject)=>{
-  //手順0 既に（仮出金済み && paid_dateがNOT NULL）か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commision,expected_advisory_fee,is not null && paid_date is null
+  //手順0 既に（仮出金済み && paid_dateがNOT NULL）か確認 → table(paymentschedulesのexpected_date,expected_amount,expected_commission,expected_advisory_fee,is not null && paid_date is null
           //だめならerrを投げよう。投げ方わからんけど。
   //手順1 paid_date にnullを。
   const confirmScheduleId = id
   db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
     //手順0
-    const selectExpectedsIsNotNullAndPaidDateIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commision IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NOT NULL;'
+    const selectExpectedsIsNotNullAndPaidDateIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commission IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date IS NOT NULL;'
     db_payment_agency.query(selectExpectedsIsNotNullAndPaidDateIsNotNullSql,confirmScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
         console.log('err:',err0)

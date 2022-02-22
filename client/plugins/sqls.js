@@ -193,7 +193,7 @@ export const sqls = {
     let sql = ''
       sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount, date_format(ps.date, "%Y/%m/%d")as date, '
       sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
-      sql = sql + 'pa.creditor_id , pa.commision, pa.advisory_fee, creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
+      sql = sql + 'pa.creditor_id , pa.commission, pa.advisory_fee, creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
       sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
       sql = sql + 'WHERE customer_id = ? ORDER BY date;'
     return sql
@@ -209,7 +209,7 @@ export const sqls = {
     let sql = ''
     let values = []
     console.log(options)
-      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id, ps.amount, pa.advisory_fee, pa.commision, date_format(ps.date, "%Y/%m/%d")as date, '
+      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id, ps.amount, pa.advisory_fee, pa.commission, date_format(ps.date, "%Y/%m/%d")as date, '
       sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name, cu.customer_id, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
       sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
