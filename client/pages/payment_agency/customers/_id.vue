@@ -618,7 +618,10 @@
                     <v-tab-item>
                         <v-card>
                             <v-card-title>仮受金→預り金</v-card-title>
-                            <v-card-subtitle>仮受金残り：{{Number(customer.temporary_receipt) - (Number(editedTemporaryValues.deposit) + Number(editedTemporaryValues.advance_payment))}}</v-card-subtitle>
+                            <v-card-subtitle>
+                                仮受金残り：{{Number(customer.temporary_receipt) - (Number(editedTemporaryValues.deposit) + Number(editedTemporaryValues.advance_payment))}}
+                                <v-btn @click="depositAutoTransfer">来月までの</v-btn>
+                            </v-card-subtitle>
                             <v-card-text>
                                 <v-row>
                                     <v-col>
@@ -1087,6 +1090,24 @@ export default {
                 this.snackColor = 'success'
                 this.snackText = '進捗を変更しました。  '                
             })
+        },
+        depositAutoTransfer(){
+            const receipt = Number(this.customer.temporary_receipt)
+            const filterdSchedules = this.paymentSchedules.filter(item=>{
+                const date = moment(item.date)
+                if(date.isBefore(moment().add(1,'M')) && item.paid_date === null ){
+                    return true
+                }
+            })
+            let deposit = 0
+            let advance_payment = 0
+            filterdSchedules.forEach(item=>{
+                deposit += item.amount
+                advance_payment += Number(item.commision) * 1.1
+                advance_payment += Number(item.advisory_fee) * 1.1
+            })
+            this.editedTemporaryValues.deposit = deposit
+            this.editedTemporaryValues.advance_payment = advance_payment
         }
     },
     created(){
