@@ -1017,13 +1017,15 @@ export default {
             if(this.editedTemporaryValues.advance_payment === 0 && this.editedTemporaryValues.deposit === 0){ return alert('両方ともゼロ円です。')}
             const customer = this.customer
             let ev = this.editedTemporaryValues
+            //入力された前受金と預り金　= 合計
             const total = Number(ev.advance_payment) + Number(ev.deposit)
-            console.log('total:',total)
+            //仮受金-合計＝DiffResult
             const diffResult = Number(customer.temporary_receipt) - total
             ev.temporary_receipt = total
             ev.customerId = customer.customer_id
             console.log('ev:',ev)
-            if(diffResult >= 0 && customer.temporary_receipt !== ev.temporary_receipt){
+            console.log(customer.temporary_receipt,total,diffResult)
+            if(diffResult >= 0 ){
                 console.log(ev)
                 alert('yes:',ev)
                 this.$axios.post('api/payment_agency/customer/temp2deposit',ev)
