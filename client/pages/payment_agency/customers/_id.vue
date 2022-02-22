@@ -1014,6 +1014,7 @@ export default {
             console.log('openeditTemporaryDialog')
         },
         editTemporary2deposit(){
+            if(this.editedTemporaryValues.advance_payment === 0 && this.editedTemporaryValues.deposit === 0){ return alert('両方ともゼロ円です。')}
             const customer = this.customer
             let ev = this.editedTemporaryValues
             const total = Number(ev.advance_payment) + Number(ev.deposit)
@@ -1036,6 +1037,7 @@ export default {
             }
         },
         editTemporary2receivable(){
+            if( this.editedTemporaryValues.accounts_receivable === 0){ return alert('ゼロ円です。')}
             const customer = this.customer
             let ev = this.editedTemporaryValues
             const diffResult = Number(customer.temporary_receipt) - ev.accounts_receivable
