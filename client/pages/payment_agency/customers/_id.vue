@@ -641,7 +641,11 @@
                     <v-tab-item>
                         <v-card>
                             <v-card-title>仮受金→売掛金</v-card-title>
-                            <v-card-subtitle>仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}</v-card-subtitle>
+                            <v-card-subtitle>
+                                仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}
+                                売掛金残り：{{customer.accounts_receivable}}
+                                <v-btn @click="accountsReceivableAutoTransfer">全額</v-btn>
+                            </v-card-subtitle>
                             <v-card-text>
                             
                             <v-row>
@@ -1112,6 +1116,15 @@ export default {
             })
             this.editedTemporaryValues.deposit = deposit
             this.editedTemporaryValues.advance_payment = advance_payment
+        },
+        accountsReceivableAutoTransfer(){
+            //売掛金 > 仮受金
+            console.log(this.customer.accounts_receivable,this.customer.temporary_receipt)
+            if(Number(this.customer.accounts_receivable) > this.customer.temporary_receipt){
+                this.editedTemporaryValues.accounts_receivable = Number(this.customer.temporary_receipt)
+            } else {
+                this.editedTemporaryValues.accounts_receivable = this.customer.accounts_receivable
+            }
         }
     },
     created(){
