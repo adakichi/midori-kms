@@ -69,7 +69,7 @@
                     <v-data-table
                     :headers="headers"
                     :items="paymentSchedules"
-                    :items-per-page="50"
+                    :items-per-page="-1"
                     item-key="payment_schedule_id"
                     show-select
                     show-group-by
@@ -191,7 +191,7 @@ function getIds(selected){
 function turnPositiveIntoNegative(selecteds){
     return selecteds.map((itemObject)=>{
         itemObject.amount = -(itemObject.amount)
-        itemObject.commision = -(itemObject.commision)
+        itemObject.commission = -(itemObject.commission)
         itemObject.advisory_fee = -(itemObject.advisory_fee)
         return itemObject
     })
@@ -272,7 +272,7 @@ export default {
                 {text:'後 仮受金',  value:'temporary_receipt'},
                 {text:'後 支払い済み金額',   value:'confirm_payment'},
                 {text:'立替',       value:'sumAmount', groupable:false},
-                {text:'手数料',     value:'sumCommision', groupable:false},
+                {text:'手数料',     value:'sumcommission', groupable:false},
                 {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
             ]
         }

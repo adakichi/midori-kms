@@ -1120,6 +1120,7 @@ export default {
                 advance_payment += Number(item.commission) * 1.1
                 advance_payment += Number(item.advisory_fee) * 1.1
             })
+            console.log(filterdSchedules)
             this.editedTemporaryValues.deposit = deposit
             this.editedTemporaryValues.advance_payment = advance_payment
         },
