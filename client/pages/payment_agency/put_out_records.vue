@@ -367,7 +367,7 @@ export default {
 
             //②CSVダウンロード
             const total = totalAmount(this.okArray)
-            const fields = ['payment_schedule_id', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','kana']
+            const fields = ['recordKubun', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','kana']
             const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
             let exportText = json2csvParser.parse(this.okArray)
             exportText = exportText + '\n"2",,,,,' + this.okArray.length + ',' + total + ',' 
