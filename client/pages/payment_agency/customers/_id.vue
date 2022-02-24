@@ -649,7 +649,7 @@
                             <v-card-title>仮受金→売掛金</v-card-title>
                             <v-card-subtitle>
                                 仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}
-                                売掛金残り：{{customer.accounts_receivable}}
+                                売掛金残り：{{Number(customer.accounts_receivable) - Number(editedTemporaryValues.accounts_receivable)}}
                                 <v-btn @click="accountsReceivableAutoTransfer">全額</v-btn>
                             </v-card-subtitle>
                             <v-card-text>
