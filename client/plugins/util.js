@@ -154,7 +154,7 @@ const getIdsFromPaymentSchedules = function(schedulesArray){
 //カスタマーの配列と選択された配列を比較してdeposit（預り金）より多ければOKとする。
 //※重要※ リファクタリング案件　計算量を無視してます。（めんどい、というか今は完成スケジュール重視）重たくなったら、createSumPaidObjectとcreateAfterPaymentArray の結合というか　一回の計算量でおわるようにしてください。
 function judgePay(selectedArray,customersArray){
-    console.log('cusotmersArray',customersArray)
+    console.log('cusotmersArray:',customersArray)
     //実際の出金　OK/NG の判断処理
     let afterPaymentArray = createAfterPaymentArray(selectedArray,customersArray)
     return afterPaymentArray
@@ -163,7 +163,7 @@ function judgePay(selectedArray,customersArray){
 //※judgePay　用の関数 if(預かり金 > 支払い金額小計 && 仮出金していない) を判断する。すでに仮出金済みの案件
 //  その上で支払い金額をcustomersのdepositから引く＆ selectedArrayを支払いOKとする
 function createAfterPaymentArray(selectedArray,customersArray){
-
+    console.log('selectedArray:',selectedArray)
     let customersObject = customersArrayToObject(customersArray)
     const judgedSelectedArray = selectedArray.map(schedule =>{
         const customerId = schedule.customer_id

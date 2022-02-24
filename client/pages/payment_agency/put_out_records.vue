@@ -351,7 +351,6 @@ export default {
                 const customers = response.data
                 //預り金（前受等）があるか判断
                 const judgedData = judgePay(selected,customers)
-                console.log('judgedData:',judgedData)
                 this.selected = []
                 this.judgedSelectedArray = judgedData.judgedSelectedArray
                     const customersObject = judgedData.customersObject
@@ -368,7 +367,7 @@ export default {
 
             //②CSVダウンロード
             const total = totalAmount(this.okArray)
-            const fields = ['payment_schedule_id', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','name']
+            const fields = ['payment_schedule_id', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','kana']
             const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
             let exportText = json2csvParser.parse(this.okArray)
             exportText = exportText + '\n"2",,,,,' + this.okArray.length + ',' + total + ',' 
