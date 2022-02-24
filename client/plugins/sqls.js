@@ -226,6 +226,9 @@ export const sqls = {
       } else if(options.until){
         sql = sql + 'WHERE ps.date < ? '
         values.push(options.until)
+      } else if(options.until === undefined) {
+        sql = sql + 'WHERE ps.date < ? '
+        values.push(moment().add(1,'M').format('YYYY-MM-DD'))
       }
   
       //支払い済みを含めるかどうか
@@ -263,7 +266,6 @@ export const sqls = {
     },
 
     get_payment_agency_payment_schedules_customers_deposit:function(ids){
-      console.log(ids)
       const array = ids
       const count = array.length
       let sql = 'SELECT * FROM customers WHERE customer_id in (?'

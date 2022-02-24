@@ -16,6 +16,11 @@ import {matchCis,objIsEmpty} from '../client/plugins/util.js'
 app.use(cors())
 app.use(domain)
 
+//右のエラーが出たダメ下記を追加。[PayloadTooLargeError: request entity too large]
+app.use(express.json({limit: '50mb'})); // jsonをパースする際のlimitを設定
+app.use(express.urlencoded({limit: '50mb', extended: true}));// urlencodeされたボディをパースする際のlimitを設定
+
+
 //fs を使ってログファイル作成
 const out = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'info.log')
 const err = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'error.log')
@@ -451,7 +456,6 @@ app.get('/payment_agency/cir/importfile',(req,res)=>{
   console.log('--- get importfile ---')
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.importfile_select(options)
-  console.log(sql)
   db_payment_agency.query(sql,(err,rows,fields)=>{
     if(err){ throw err }
     console.log('--- success!!(get importfile) ' + rows.length + '件 ---')
@@ -641,7 +645,6 @@ app.put('/payment_agency/matching',(req,res)=>{
                 //5.3 各変数にcustomers登録用の数字が入ってるはずなので、これをcusotmersに登録する。
                 const updateCustomersSql = 'UPDATE customers SET accounts_receivable = accounts_receivable - ?, deposit = deposit + ?, advance_payment = advance_payment + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?;'
                 const updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue, customerId]
-                console.log('update customers values:',updateCustomersValue)
                 db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err7,rows7,fields7)=>{
                   if(err7){
                     console.log('err7:',err7)
@@ -652,7 +655,6 @@ app.put('/payment_agency/matching',(req,res)=>{
                   console.log('rows7:',rows7)
                   //3. journal book に仕分を登録
                   const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId)
-                  console.log('journalbookdata:',journalBookData)
                   db_payment_agency.query(journalBookData.sql,journalBookData.values,(err8,rows8,fields8)=>{
                     if(err8){
                       console.log('err8:',err8)
@@ -1177,7 +1179,7 @@ app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
   db_payment_agency.query(sql,ids,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/payment_schedules/customers_deposit' ; throw err}
     console.log('--- Get pa/ps/customer deposit sucess ---')
-    res.send(rows)    
+    res.send(rows)
   })
 })
 
@@ -1186,8 +1188,8 @@ app.get('/payment_agency/payment_schedules',(req,res)=>{
   console.log('\n---get All payment_schedules ---')
   const options = JSON.parse(JSON.stringify(req.query))
   const convertedData = sqls.get_payment_agency_payment_schedules(options)
-    const values = convertedData.values
-    const sql    = convertedData.sql
+  const values = convertedData.values
+  const sql    = convertedData.sql
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/payment_schedules' ; throw err}
     console.log('--- get All payment_schedules sucess ---')

@@ -137,6 +137,22 @@
                 </v-tabs-items>
             </v-col>
         </v-row>
+                        <v-snackbar
+                          v-model="snack"
+                          :timeout="3000"
+                          :color="snackColor"
+                        >
+                          {{ snackText }}
+                          <template v-slot:action="{ attrs }">
+                            <v-btn
+                              v-bind="attrs"
+                              text
+                              @click="snack = false"
+                            >
+                              Close
+                            </v-btn>
+                          </template>
+                        </v-snackbar>
     </v-container>
 </template>
 
@@ -274,7 +290,11 @@ export default {
                 {text:'立替',       value:'sumAmount', groupable:false},
                 {text:'手数料',     value:'sumcommission', groupable:false},
                 {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
-            ]
+            ],
+            //snack bar
+            snack:'',
+            snackColor:'',
+            snackText:'',
         }
     },
     computed:{
@@ -309,6 +329,11 @@ export default {
             this.$axios.get('api/payment_agency/payment_schedules',{params:option})
             .then((response)=>{
                 this.paymentSchedules = response.data
+                if(option.until === undefined){
+                    this.snack = true
+                    this.snackColor = 'warning'
+                    this.snackText = '「～まで」の範囲指定が無かったので、一ヶ月後までの予定のみ取得しました。'
+                }
             })
         },
         judgementPaid(){
@@ -317,13 +342,16 @@ export default {
             const selected = this.selected
             this.selected = [] //初期化
             if(selected.length <= 0){ return alert('Error : 選択されてません！！')}
+            //selectedからカスタマーのIDを抽出
             const ids = getIdsFromPaymentSchedules(selected)
+            console.log('ids:',ids)
             //預り金があるか等の確認の為顧客情報を取得
             this.$axios.get('api/payment_agency/payment_schedules/customers_deposit',{params:{ids:ids}})
             .then((response)=>{
                 const customers = response.data
                 //預り金（前受等）があるか判断
                 const judgedData = judgePay(selected,customers)
+                console.log('judgedData:',judgedData)
                 this.selected = []
                 this.judgedSelectedArray = judgedData.judgedSelectedArray
                     const customersObject = judgedData.customersObject

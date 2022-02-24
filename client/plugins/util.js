@@ -169,17 +169,17 @@ function createAfterPaymentArray(selectedArray,customersArray){
         const customerId = schedule.customer_id
         const amount     = parseInt(schedule.amount,10)
         const advisoryFee= parseInt(schedule.advisory_fee,10)    * 1.1
-        const commision  = parseInt(schedule.commision,10)       * 1.1
+        const commission  = parseInt(schedule.commission,10)       * 1.1
         
-        //depositとamount && (adovisoryFee + commision) とadvance_payment を比較する。かつ まだ仮出金になってないことの確認
-        if(customersObject[customerId].deposit >= amount && customersObject[customerId].advance_payment >= (advisoryFee + commision) && schedule.expected_date === null ){
+        //depositとamount && (adovisoryFee + commission) とadvance_payment を比較する。かつ まだ仮出金になってないことの確認
+        if(customersObject[customerId].deposit >= amount && customersObject[customerId].advance_payment >= (advisoryFee + commission) && schedule.expected_date === null ){
             //depositからamountを減算
             customersObject[customerId].deposit -= amount
-            //advance_paymentから　advisoryFeeとcommisionを減算
-            customersObject[customerId].advance_payment -= advisoryFee + commision
+            //advance_paymentから　advisoryFeeとcommissionを減算
+            customersObject[customerId].advance_payment -= advisoryFee + commission
             //小計に加算
             customersObject[customerId].sumAmount += amount
-            customersObject[customerId].sumCommision += commision
+            customersObject[customerId].sumCommission += commission
             customersObject[customerId].sumAdvisoryFee += advisoryFee
             //confirm_payment(支払い済み金額)にamountを加算
             customersObject[customerId].confirm_payment += amount
@@ -198,7 +198,7 @@ function createAfterPaymentArray(selectedArray,customersArray){
         let customerObject = {}
         customersArray.forEach((customer)=>{
             customer.sumAmount = 0
-            customer.sumCommision = 0
+            customer.sumCommission = 0
             customer.sumAdvisoryFee = 0
             customer.depositBeforeJudge = customer.deposit
             customer.accountsReceivableBeforeJudge = customer.accounts_receivable
@@ -216,13 +216,13 @@ function createSumPaidObject(selectedArray){
         const customerId = parseInt(schedule.customer_id,10)
         const amount     = parseInt(schedule.amount,10)
         const advisoryFee= parseInt(schedule.advisory_fee,10)
-        const commision  = parseInt(schedule.commision,10)
+        const commission  = parseInt(schedule.commission,10)
         if(sumPaidObject[customerId]){
             sumPaidObject[customerId].amount        += amount 
             sumPaidObject[customerId].advisoryFee   += advisoryFee 
-            sumPaidObject[customerId].commision     += commision 
+            sumPaidObject[customerId].commission     += commission 
         } else {
-            sumPaidObject[customerId] = {customerId:customerId,amount:amount,advisoryFee:advisoryFee,commision:commision}
+            sumPaidObject[customerId] = {customerId:customerId,amount:amount,advisoryFee:advisoryFee,commission:commission}
         }
     })
     return sumPaidObject    
