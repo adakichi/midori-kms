@@ -619,6 +619,7 @@
                 <v-tabs v-model="editTemporaryDialogTabs">
                     <v-tab>仮受金→預り金</v-tab>
                     <v-tab>仮受金→売掛金</v-tab>
+                    <v-tab><span class="red--text">売掛金→仮受金</span></v-tab>
                 </v-tabs>
                 <v-tabs-items v-model="editTemporaryDialogTabs">
                     <v-tab-item>
@@ -663,6 +664,28 @@
                             <v-card-actions>
                                 <v-spacer></v-spacer>
                                 <v-btn @click="editTemporary2receivable">編集</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-tab-item>
+                    <!-- 売掛金→仮受金 -->
+                    <v-tab-item>
+                        <v-card>
+                            <v-card-title><span class="red--text">売掛金→仮受金</span></v-card-title>
+                            <v-card-subtitle>
+                                仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}
+                                売掛金残り：{{Number(customer.accounts_receivable) - Number(editedTemporaryValues.accounts_receivable)}}
+                                <strong class="red">※売掛金が増えます。基本的にはやらないでください※</strong>
+                            </v-card-subtitle>
+                            <v-card-text>
+                            <v-row>
+                                <v-col>
+                                    <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedTemporaryValues.accounts_receivable"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn v-show='$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false ' @click="editReceivable2Temporary">編集</v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-tab-item>
@@ -1067,6 +1090,27 @@ export default {
             } else {
                 console.log(ev)
                 alert('編集しません。')
+            }
+        },
+        editReceivable2Temporary(){
+            const result = confirm('本当によろしいですか？')
+            if(result){
+            const customer = this.customer
+            let ev = this.editedTemporaryValues
+            const diffResult = Number(customer.temporary_receipt) - ev.accounts_receivable
+            ev.temporary_receipt = ev.accounts_receivable
+            ev.customerId = customer.customer_id
+            console.log('ev:',ev)
+            if(diffResult <= 0 && customer.temporary_receipt !== ev.temporary_receipt){
+                this.$axios.post('api/payment_agency/customer/receivable2Temporary',ev)
+                .then(responce=>{
+                    alert(responce.data)
+                    location.reload()
+                })
+            } else {
+                console.log(ev)
+                alert('編集しません。')
+            }
             }
         },
         saveCis(e){
