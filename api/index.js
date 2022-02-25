@@ -893,6 +893,21 @@ app.get('/payment_agency/cis/',(req,res)=>{
   })
 })
 
+//紐づけ済みのCISから実入金と予定金額が違う物を検索
+app.get('/payment_agency/cis/diff',(req,res)=>{
+  let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
+  sql = sql + 'expected_amount, cis.come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis '
+  sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
+  sql = sql + 'INNER JOIN come_in_records as cir ON cis.come_in_records_id = cir.come_in_records_id '
+  sql = sql + 'WHERE cis.expected_amount != cir.actual_deposit_amount;'
+  db_payment_agency.query(sql,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'get /payment_agency/cis/diff' ;throw err}
+    console.log('\n--- Get /payment_agency/cis/diff ---\napi server:\n---x---x---x---x---')
+    res.send(rows)
+  })
+})
+
+
 //post come_in_schedules
 app.post('/payment_agency/cis/',(req,res)=>{
   console.log('\n--- pg cis ---')
