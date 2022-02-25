@@ -188,16 +188,16 @@ function createAfterPaymentArray(selectedArray,customersArray){
         } else {
             schedule.isCanPay = false
         }
-        schedule.recordKubun = '1'
+        schedule.recordKubun = 1
         switch(schedule.kind){
             case '普通':
-                schedule.kind = '1'
+                schedule.kind = 1
                 break
             case '当座':
-                schedule.kind = '2'
+                schedule.kind = 2
                 break
             case '貯蓄':
-                schedule.kind = '4'
+                schedule.kind = 4   
                 break
         }
 

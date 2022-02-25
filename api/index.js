@@ -612,10 +612,11 @@ app.put('/payment_agency/matching',(req,res)=>{
                 //5.2 合計値を取得　totalAdvanceMoney,totalcommission,totalAdovisoryFee,と３つの合計subTotal
                 const resultGetSubTotals = getSubTotals(rows6)
                 console.log('resultGetSubTotals:',resultGetSubTotals)
-                let depositInsertValue          = 0 //預り金
-                let advancePaymentInsertValue   = 0 //前受金
-                let temporaryReceiptInsertValue = 0 //仮受金
+                let depositInsertValue          = 0   //預り金
+                let advancePaymentInsertValue   = 0   //前受金
+                let temporaryReceiptInsertValue = 0   //仮受金
                 let accountsReceivableInsertValue = 0 //売掛金の減らす額
+                console.log('temporaryReceipt:',temporaryReceipt)
                 if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals.subTotal === 0 ){
                   //入金額よりも次回支払い金額の方が大きい場合,or次回支払い無し全て仮受金に入れて処理を終わる
                   temporaryReceiptInsertValue = temporaryReceipt
@@ -625,11 +626,15 @@ app.put('/payment_agency/matching',(req,res)=>{
                   advancePaymentInsertValue   = resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalcommission //手数料と顧問料の合計を前受け金に。
                   depositInsertValue          = resultGetSubTotals.totalAdvanceMoney
                   //前受け金と預かり金を入金額から引く
+                  console.log('手数料顧問料マイナス前',temporaryReceipt)
                   temporaryReceipt -= (advancePaymentInsertValue + depositInsertValue)
+                  console.log('手数料顧問料マイナス後',temporaryReceipt)
                   
                   //売掛金がある場合には残りの入金額を売掛金に充てる。
+                  console.log('accountReceivable(売掛金):',accountsReceivable)
                   if(accountsReceivable > 0){
-                    
+
+                    console.log('売掛<仮受金:',accountsReceivable < temporaryReceipt)
                     if(accountsReceivable < temporaryReceipt){
                       //入金額の残額が売掛金よりも多ければ売掛がゼロになるまで。
                       accountsReceivableInsertValue = accountsReceivable
@@ -638,13 +643,18 @@ app.put('/payment_agency/matching',(req,res)=>{
                       //売掛金の方が多ければ入金額の残額全て。
                       accountsReceivableInsertValue = temporaryReceipt
                       temporaryReceipt -= temporaryReceipt
-
                     }
+                    console.log('判定後の売掛金への挿入金額:',accountsReceivableInsertValue,'判定後の売掛金への挿入金額:',temporaryReceipt)
                   }
+
+                  //残ったtemporarryReceiptをtemporarryReceiptInsertValueへ
+                  temporaryReceiptInsertValue = temporaryReceipt
                 }
                 //5.3 各変数にcustomers登録用の数字が入ってるはずなので、これをcusotmersに登録する。
                 const updateCustomersSql = 'UPDATE customers SET accounts_receivable = accounts_receivable - ?, deposit = deposit + ?, advance_payment = advance_payment + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?;'
                 const updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue, customerId]
+                console.log('sql',updateCustomersSql)
+                console.log('val',updateCustomersValue)
                 db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err7,rows7,fields7)=>{
                   if(err7){
                     console.log('err7:',err7)
@@ -655,6 +665,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   console.log('rows7:',rows7)
                   //3. journal book に仕分を登録
                   const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId)
+                  console.log('sql:',journalBookData.sql,'value:',journalBookData.values)
                   db_payment_agency.query(journalBookData.sql,journalBookData.values,(err8,rows8,fields8)=>{
                     if(err8){
                       console.log('err8:',err8)
@@ -1203,6 +1214,40 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
     })
   })
 })
+
+//カスタマーの売掛金を外部から振り替えてくる作業(SAIZO/LU)
+app.post('/payment_agency/customer/saizo2receivable',(req,res)=>{
+  console.log('pa/customer/receivable2Temporary')
+  const temporary = req.body.temporary_receipt
+  const receivable = req.body.accounts_receivable
+  const customerId = req.body.customerId
+  db_payment_agency.beginTransaction((err)=>{
+    if(err){ err.whichApi= 'get payment_agency/customer/receivable2Temporary'; throw err}
+
+    //最初にcustomersの金額を変更
+    const sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?'
+    const val1 = [receivable, temporary, customerId]
+    db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
+      if(err1){ err1.whichApi= 'receivable2Temporary: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+
+      //journal_bookに登録
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const motocho = 'receivable2Temporary' + moment().format('YYYY-MM-DD-HHmmss')
+      const val2 = [
+        [motocho, '売掛金', receivable, '仮受金', receivable, customerId]  //売掛金 仮受金
+      ]
+        db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
+          if(err2){ err2.whichApi= 'receivable2Temporary: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+          db_payment_agency.commit((err0)=>{
+            if(err0){err0.whichApi= 'receivable2Temporary: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
+            logger.log('振替処理 receivable2Temporary>',req.body)
+            res.send('振替処理おわりました。')
+          })
+      })
+    })
+  })
+})
+
 
 //出金処理時に、顧客ごとの預り金がどれくらいあるか比べる為、顧客番号の配列をvaluesとして、depositのみ取得して返す。
 app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
