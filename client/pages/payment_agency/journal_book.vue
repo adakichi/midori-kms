@@ -9,9 +9,6 @@
                         class="mx-4"
                         >
                         </v-text-field>
-                        <v-spacer></v-spacer>
-                        <v-btn @click="submitData">登録</v-btn>
-
                     <v-spacer></v-spacer>
                     <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>

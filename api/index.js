@@ -1235,32 +1235,31 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
 })
 
 //カスタマーの売掛金を外部から振り替えてくる作業(SAIZO/LU)
-app.post('/payment_agency/customer/saizo2receivable',(req,res)=>{
-  console.log('pa/customer/receivable2Temporary')
-  const temporary = req.body.temporary_receipt
-  const receivable = req.body.accounts_receivable
+app.post('/payment_agency/customer/importReceivable',(req,res)=>{
+  console.log('pa/customer/importReceivable')
+  const receivable = req.body.value
+  const importFrom = req.body.importFrom
   const customerId = req.body.customerId
+  const creditorsId  = req.body.creditorsId
   db_payment_agency.beginTransaction((err)=>{
-    if(err){ err.whichApi= 'get payment_agency/customer/receivable2Temporary'; throw err}
+    if(err){ err.whichApi= 'get pa/customer/importReceivable'; throw err}
 
     //最初にcustomersの金額を変更
-    const sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?'
-    const val1 = [receivable, temporary, customerId]
+    const sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable + ? WHERE customer_id = ?'
+    const val1 = [receivable, customerId]
     db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
-      if(err1){ err1.whichApi= 'receivable2Temporary: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+      if(err1){ err1.whichApi= 'importReceivable: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       //journal_bookに登録
-      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
-      const motocho = 'receivable2Temporary' + moment().format('YYYY-MM-DD-HHmmss')
-      const val2 = [
-        [motocho, '売掛金', receivable, '仮受金', receivable, customerId]  //売掛金 仮受金
-      ]
-        db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
-          if(err2){ err2.whichApi= 'receivable2Temporary: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+      const sql2 = 'INSERT INTO journal_book_for_receivale (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const motocho = customerId + ':' + creditorsId
+      const val2 = [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
+        db_payment_agency.query(sql2,[[val2]],(err2,rows2,fields2)=>{
+          if(err2){ err2.whichApi= 'importReceivable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
           db_payment_agency.commit((err0)=>{
-            if(err0){err0.whichApi= 'receivable2Temporary: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-            logger.log('振替処理 receivable2Temporary>',req.body)
-            res.send('振替処理おわりました。')
+            if(err0){err0.whichApi= 'importReceivable: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
+            logger.log('振替処理 importReceivable>',req.body)
+            res.send('売掛importおわりました。')
           })
       })
     })

@@ -591,7 +591,7 @@
             <v-container>
                     <v-row>
                         <v-col>
-                            <v-text-field label="債務整理売掛金" disabled suffix=" 円" :value="customer.accounts_receivable"></v-text-field>
+                            <v-text-field label="債務整理売掛金" suffix=" 円" :value="customer.accounts_receivable" @click="openEditReceivableDialog"></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field label="支払い済み債務" disabled suffix=" 円" :value="customer.confirm_payment"></v-text-field>
@@ -612,6 +612,21 @@
             </v-card>
         </v-tab-item>
         </v-tabs-items>
+        <!-- 売掛金の編集ダイアログ -->
+        <v-dialog v-model="editReceivableDialog">
+            <v-card>
+                <v-card-title>売掛金　←　外部</v-card-title>
+                <v-card-text>
+                    <v-select :items="contentsOfSettlements" v-model="importFromCreditor" label="債権者" item-text="creditor_name" item-value="creditor_id"></v-select>
+                    <v-select :items="importFromItems" v-model="importFrom" label="読込元"></v-select>
+                    <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedReceivableValue"></v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>   
+                    <v-btn @click="loadingReceivable">インポート</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
 
         <!-- 仮受金の振替ダイアログ -->
         <v-dialog v-model="editTemporaryDialog">
@@ -731,6 +746,12 @@ export default {
             editDialogPaymentDay:false,
             editDialogExpectedAmount:false,
             editDialogMemo:false,
+            /////売掛金編集関係/////
+            editReceivableDialog:false,
+            editedReceivableValue:0,
+            importFrom:'',
+            importFromItems:['SAIZO','LU'],
+            importFromCreditor:'',
             //////////
             targetText:'',
             activePicker:false,
@@ -1041,6 +1062,19 @@ export default {
                 alert('登録されました。')
             })
         },
+        /////////売掛金編集ダイアログ関係///////////////////////////////////////
+        openEditReceivableDialog(){
+            this.editReceivableDialog = true
+        },
+        loadingReceivable(){
+            if(this.editedReceivableValue === 0 || this.importFrom === '' || this.importFromCreditor === ''){return alert('数字が空？\nもしくは読込元を選択してください。')}
+            this.$axios.post('api/payment_agency/customer/importReceivable/',{value:this.editedReceivableValue,customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor})
+            .then(response=>{
+                console.log(response.data)
+            })
+        },
+        ////////////////////////////////////////////////
+
         openEditTemporaryDialog(){
             this.editedTemporaryValues.temporary_receipt = this.customer.temporary_receipt
             this.editTemporaryDialog = true
