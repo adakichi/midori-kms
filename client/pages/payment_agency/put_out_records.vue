@@ -12,9 +12,9 @@
                     <div>
                     <v-menu
                      ref="menu"
-                     v-model="menu"
+                     v-model="menuFrom"
                      :close-on-content-click="false"
-                     :return-value.sync="dateRange"
+                     :return-value.sync="dateRange[0]"
                      transition="scale-transition"
                      offset-y
                      left
@@ -22,8 +22,8 @@
                     >
                         <template v-slot:activator="{on, attrs}">
                             <v-text-field
-                             v-model="dateRange"
-                             label="範囲を選択してください"
+                             v-model="dateRange[0]"
+                             label="検索 開始位置"
                              prepend-icon="mdi-calendar"
                              readonly
                              v-bind="attrs"
@@ -31,14 +31,48 @@
                              ></v-text-field>
                         </template>
                     <v-date-picker
-                     v-model="dateRange"
-                     range
+                     v-model="dateRange[0]"
                     >
                     <v-spacer></v-spacer>
                     <v-btn
                      text
                      color="primary"
-                     @click="$refs.menu.save(dateRange)"
+                     @click="$refs.menu.save(dateRange[0])"
+                     >OK
+                    </v-btn>
+                    </v-date-picker>
+                    </v-menu>
+                    </div>
+
+                    <div>
+                    <v-menu
+                     ref="menu"
+                     v-model="menuUntil"
+                     :close-on-content-click="false"
+                     :return-value.sync="dateRange[1]"
+                     transition="scale-transition"
+                     offset-y
+                     left
+                     min-width="auto"
+                    >
+                        <template v-slot:activator="{on, attrs}">
+                            <v-text-field
+                             v-model="dateRange[1]"
+                             label="検索 終了日"
+                             prepend-icon="mdi-calendar"
+                             readonly
+                             v-bind="attrs"
+                             v-on="on"
+                             ></v-text-field>
+                        </template>
+                    <v-date-picker
+                     v-model="dateRange[1]"
+                    >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                     text
+                     color="primary"
+                     @click="$refs.menu.save(dateRange[1])"
                      >OK
                     </v-btn>
                     </v-date-picker>
@@ -229,7 +263,8 @@ export default {
         return{
             isPaidDate:false,
             isExpectedDate:false,
-            menu:false,
+            menuFrom:false,
+            menuUntil:false,
             isMatched:false,    //マッチ済みかどうかのスイッチ。これで仮出金解除等のボタンの表示のON/OFFを切り替える。
 
             //メインのDataTable用 配列
@@ -238,7 +273,7 @@ export default {
             editedCustomersArray:[],
             okArray:[],
             ngArray:[],
-            dateRange:[],
+            dateRange:['',''],
             selected:[],
             tabs:null,
             headers:[
@@ -288,7 +323,7 @@ export default {
                 {text:'後 仮受金',  value:'temporary_receipt'},
                 {text:'後 支払い済み金額',   value:'confirm_payment'},
                 {text:'立替',       value:'sumAmount', groupable:false},
-                {text:'手数料',     value:'sumcommission', groupable:false},
+                {text:'手数料',     value:'sumCommission', groupable:false},
                 {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
             ],
             //snack bar
