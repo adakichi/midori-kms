@@ -3,12 +3,22 @@
         <v-row>
             <v-col>
                 <v-app-bar>
+                        <v-text-field
+                        v-model="search"
+                        label="検索"
+                        class="mx-4"
+                        >
+                        </v-text-field>
+                        <v-spacer></v-spacer>
+                        <v-btn @click="submitData">登録</v-btn>
+
                     <v-spacer></v-spacer>
                     <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>
                 <v-data-table
                 :items="journalBook"
                 :headers="journalBookHeaders"
+                :search="search"
                 >
                 </v-data-table>
             </v-col>
@@ -24,6 +34,7 @@ export default {
     data(){
         return{
             journalBook:[],
+            search:'',
             journalBookHeaders:[
                 { text:'元帳',  value:'motocho'},
                 { text:'日付',  value:'date'},

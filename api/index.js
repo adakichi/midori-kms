@@ -617,14 +617,16 @@ app.put('/payment_agency/matching',(req,res)=>{
                 let temporaryReceiptInsertValue = 0   //仮受金
                 let accountsReceivableInsertValue = 0 //売掛金の減らす額
                 console.log('temporaryReceipt:',temporaryReceipt)
+
                 if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals.subTotal === 0 ){
-                  //入金額よりも次回支払い金額の方が大きい場合,or次回支払い無し全て仮受金に入れて処理を終わる
+                  //入金額よりも次回支払い金額の方が大きい場合　or　次回支払い無し全て仮受金に入れて処理を終わる
                   temporaryReceiptInsertValue = temporaryReceipt
                   temporaryReceipt = 0
                 } else {
                   //入金額よりも次回支払い金額が小さい場合は、前受け金と預かり金に分ける
                   advancePaymentInsertValue   = resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalcommission //手数料と顧問料の合計を前受け金に。
                   depositInsertValue          = resultGetSubTotals.totalAdvanceMoney
+                  
                   //前受け金と預かり金を入金額から引く
                   console.log('手数料顧問料マイナス前',temporaryReceipt)
                   temporaryReceipt -= (advancePaymentInsertValue + depositInsertValue)
@@ -635,10 +637,12 @@ app.put('/payment_agency/matching',(req,res)=>{
                   if(accountsReceivable > 0){
 
                     console.log('売掛<仮受金:',accountsReceivable < temporaryReceipt)
+                    
                     if(accountsReceivable < temporaryReceipt){
                       //入金額の残額が売掛金よりも多ければ売掛がゼロになるまで。
                       accountsReceivableInsertValue = accountsReceivable
                       temporaryReceipt -= accountsReceivable
+
                     } else if(accountsReceivable > temporaryReceipt){
                       //売掛金の方が多ければ入金額の残額全て。
                       accountsReceivableInsertValue = temporaryReceipt
