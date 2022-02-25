@@ -598,7 +598,7 @@ app.put('/payment_agency/matching',(req,res)=>{
               let temporaryReceipt = cirAmount //入金額
               
               //5.1 customerの直近27日以内のpayment_scheduleを取得 valueはcustomer_id,cisの支払い予定日の27日後の日付
-              const selectSchedulesSql = 'SELECT * FROM payment_schedules as ps LEFT OUTER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE pa.customer_id = ? AND ps.date <= ?;'
+              const selectSchedulesSql = 'SELECT * FROM payment_schedules as ps LEFT OUTER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE pa.customer_id = ? AND ps.date <= ? AND ps.expected_date is null ;'
               const after27days = moment(data.cis.payment_day).add(27,'d').format('YYYY-MM-DD')
               console.log('customerID,after27days',[customerId,after27days])
               db_payment_agency.query(selectSchedulesSql,[customerId,after27days],(err6,rows6,fields6)=>{
@@ -608,7 +608,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                     throw err6
                   })
                 }
-                console.log('Done rows6!\n')
+                console.log('Done rows6!\n',rows6)
                 //5.2 合計値を取得　totalAdvanceMoney,totalcommission,totalAdovisoryFee,と３つの合計subTotal
                 const resultGetSubTotals = getSubTotals(rows6)
                 console.log('resultGetSubTotals:',resultGetSubTotals)
@@ -637,7 +637,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   if(accountsReceivable > 0){
 
                     console.log('売掛<仮受金:',accountsReceivable < temporaryReceipt)
-                    
+
                     if(accountsReceivable < temporaryReceipt){
                       //入金額の残額が売掛金よりも多ければ売掛がゼロになるまで。
                       accountsReceivableInsertValue = accountsReceivable
@@ -670,7 +670,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   //3. journal book に仕分を登録
                   const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId)
                   console.log('sql:',journalBookData.sql,'value:',journalBookData.values)
-                  db_payment_agency.query(journalBookData.sql,journalBookData.values,(err8,rows8,fields8)=>{
+                  db_payment_agency.query(journalBookData.sql,[journalBookData.values],(err8,rows8,fields8)=>{
                     if(err8){
                       console.log('err8:',err8)
                       return db_payment_agency.rollback(()=>{
@@ -721,7 +721,7 @@ app.put('/payment_agency/matching',(req,res)=>{
     //(valuesArray)updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
 
     const motocho = 'cir'+ cirId
-    const sql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
+    const sql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
     let postJournalVals = []
     console.log('valuesArray:',valuesArray)
     //売掛金 accounts_receivableInsertValue
