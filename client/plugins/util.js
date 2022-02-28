@@ -188,6 +188,11 @@ function createAfterPaymentArray(selectedArray,customersArray){
         } else {
             schedule.isCanPay = false
         }
+        //支払いに必要な金額を追加
+        customersObject[customerId].requiredAmount += (amount + advisoryFee + commission)
+        customersObject[customerId].requiredDeposit         += amount
+        customersObject[customerId].requiredAdvancePayment  += (advisoryFee + commission)
+
         schedule.recordKubun = 1
         switch(schedule.kind){
             case '普通':
@@ -217,6 +222,9 @@ function createAfterPaymentArray(selectedArray,customersArray){
             customer.accountsReceivableBeforeJudge = customer.accounts_receivable
             customer.advancePaymentBeforeJudge     = customer.advance_payment
             customer.temporaryReceiptBeforeJudge   = customer.temporary_receipt
+            customer.requiredAmount                = 0
+            customer.requiredDeposit               = 0
+            customer.requiredAdvancePayment        = 0
             customerObject[customer.customer_id]   = customer
         })
         return customerObject

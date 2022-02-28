@@ -322,6 +322,9 @@ export default {
                 {text:'前 仮受金',  value:'temporaryReceiptBeforeJudge'},
                 {text:'後 仮受金',  value:'temporary_receipt'},
                 {text:'後 支払い済み金額',   value:'confirm_payment'},
+                {text:'必要預り金',   value:'requiredDeposit'},
+                {text:'必要前受金',   value:'requiredAdvancePayment'},
+                {text:'必要金額',   value:'requiredAmount'},
                 {text:'立替',       value:'sumAmount', groupable:false},
                 {text:'手数料',     value:'sumCommission', groupable:false},
                 {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
