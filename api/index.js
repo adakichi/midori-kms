@@ -1629,14 +1629,14 @@ app.get('/payment_agency/journal_book/',(req,res)=>{
   let sql = 'SELECT *, DATE_FORMAT(date, "%Y/%m/%d %T")as date FROM journal_book as jb Left JOIN customers ON jb.customer_id = customers.customer_id '
   let values = []
   if(options.from){ 
-    sql + 'WHERE date < "' + options.from + '" '
+    sql + 'WHERE date <= "' + options.from + '" '
     values.push(options.from)
   }
   if(options.until){
     if(sql.indexOf('WHERE')){
-      sql + 'AND date > "' + options.until + '" '
+      sql + 'AND date >= "' + options.until + '" '
     } else {
-      sql + 'WHERE date > "' + options.until + '" '
+      sql + 'WHERE date >= "' + options.until + '" '
     }
     values.push(options.from)
   }

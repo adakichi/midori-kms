@@ -141,9 +141,9 @@ export const sqls = {
     if(options.from && options.until){
       sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '"'
     } else if(options.until){
-      sql = sql + 'WHERE cis.payment_day < "' + options.until + '"'
+      sql = sql + 'WHERE cis.payment_day <= "' + options.until + '"'
     } else if(options.from){
-      sql = sql + 'WHERE cis.payment_day > "' + options.from + '"'
+      sql = sql + 'WHERE cis.payment_day >= "' + options.from + '"'
     } else {
       from = moment().format('YYYY-MM-DD')
       until = moment().add(30,'days').format('YYYY-MM-DD')
@@ -222,13 +222,13 @@ export const sqls = {
         sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
         values.push(options.from,options.until)
       } else if(options.from){
-        sql = sql + 'WHERE ps.date > ? '  
+        sql = sql + 'WHERE ps.date >= ? '  
         values.push(options.from)
       } else if(options.until){
-        sql = sql + 'WHERE ps.date < ? '
+        sql = sql + 'WHERE ps.date <= ? '
         values.push(options.until)
       } else if(options.until === undefined) {
-        sql = sql + 'WHERE ps.date < ? '
+        sql = sql + 'WHERE ps.date <= ? '
         values.push(moment().add(1,'M').format('YYYY-MM-DD'))
       }
   
@@ -287,9 +287,9 @@ export const sqls = {
       if(from && until){
         sql = sql + 'WHERE downloadDate "' + from + '" BETWEEN "' + until + '" '
       } else if(from){
-        sql = sql + 'WHERE downloadDate < "' + from + '" '
+        sql = sql + 'WHERE downloadDate <= "' + from + '" '
       } else if(until){
-        sql = sql + 'WHERE downloadDate > "' + until + '" '
+        sql = sql + 'WHERE downloadDate >= "' + until + '" '
       }
     }
 
