@@ -307,8 +307,8 @@
                                 <v-divider></v-divider>
                                 <v-row>
                                     <v-col>
-                                        手数料：{{settle.advisory_fee}}
-                                        顧問料：{{settle.commission}}
+                                        手数料：{{settle.commission}}
+                                        顧問料：{{settle.advisory_fee}}
                                     </v-col>
                                 </v-row>
                                 <v-row>
