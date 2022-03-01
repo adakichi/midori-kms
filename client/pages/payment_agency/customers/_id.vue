@@ -750,7 +750,7 @@ export default {
             editReceivableDialog:false,
             editedReceivableValue:0,
             importFrom:'',
-            importFromItems:['SAIZO','LU'],
+            importFromItems:['SAIZO','LU','GR'],
             importFromCreditor:'',
             //////////
             targetText:'',
@@ -1068,9 +1068,13 @@ export default {
         },
         loadingReceivable(){
             if(this.editedReceivableValue === 0 || this.importFrom === '' || this.importFromCreditor === ''){return alert('数字が空？\nもしくは読込元を選択してください。')}
+            const doNot = !confirm('本当に登録しますか？')
+            if(doNot){ return alert('キャンセル')}
             this.$axios.post('api/payment_agency/customer/importReceivable/',{value:this.editedReceivableValue,customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor})
             .then(response=>{
-                console.log(response.data)
+                if(response.data.error){ return alert(response.data.messsage)}
+                alert(response.data)
+                this.editReceivableDialog = true
             })
         },
         ////////////////////////////////////////////////

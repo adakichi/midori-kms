@@ -1239,6 +1239,7 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
   const importFrom = req.body.importFrom
   const customerId = req.body.customerId
   const creditorsId  = req.body.creditorsId
+  console.log(req.body)
   db_payment_agency.beginTransaction((err)=>{
     if(err){ err.whichApi= 'get pa/customer/importReceivable'; throw err}
 
@@ -1248,15 +1249,19 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
     db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
       if(err1){ err1.whichApi= 'importReceivable: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
+      console.log(' >DB処理１　OK')
       //journal_bookに登録
       const sql2 = 'INSERT INTO journal_book_for_receivale (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
       const motocho = customerId + ':' + creditorsId
       const val2 = [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
         db_payment_agency.query(sql2,[[val2]],(err2,rows2,fields2)=>{
           if(err2){ err2.whichApi= 'importReceivable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+          console.log(' >DB処理2 OK')
+
           db_payment_agency.commit((err0)=>{
             if(err0){err0.whichApi= 'importReceivable: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
             logger.log('振替処理 importReceivable>',req.body)
+            console.log('売掛importおわりました。\n振替処理 importReceivable>',req.body)
             res.send('売掛importおわりました。')
           })
       })
