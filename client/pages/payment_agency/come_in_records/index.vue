@@ -199,10 +199,12 @@ export default {
             const options = {
                 searchType:this.searchType,
                 searchText:this.searchText,
-                until:getMonthAfterNext()
+                until:getMonthAfterNext(),
+                isMatched:false
             }
             this.$axios.get('api/payment_agency/cis',{params:options})
             .then((response)=>{
+                if(response.data.length <= 0){ return alert('検索結果ゼロ')}
                 this.searchResult = response.data
             })
         },

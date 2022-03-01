@@ -550,6 +550,7 @@ app.put('/payment_agency/matching',(req,res)=>{
     return new Promise((resolve,reject) => {
       const cisId         = data.cis.come_in_schedules_id
       const customerId    = data.cis.customer_id
+      const cisAmount     = data.cis.expected_amount
       const cirId         = data.cir.come_in_records_id
       const cirAmount     = data.cir.actual_deposit_amount
       const cisVal = [cirId,cisId]
@@ -617,15 +618,22 @@ app.put('/payment_agency/matching',(req,res)=>{
                 console.log('temporaryReceipt:',temporaryReceipt)
 
                 if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals.subTotal === 0 ){
-                  //入金額よりも次回支払い金額の方が大きい場合　or　次回支払い無し全て仮受金に入れて処理を終わる
+                  //入金額よりも次回支払い金額の方が大きい場合　or　次回支払い無し  は全て仮受金に入れて処理を終わる
                   temporaryReceiptInsertValue = temporaryReceipt
                   temporaryReceipt = 0
                 } else {
-                  //入金額よりも次回支払い金額が小さい場合は、前受け金と預かり金に分ける
-                  advancePaymentInsertValue   = resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalcommission //手数料と顧問料の合計を前受け金に。
-                  depositInsertValue          = resultGetSubTotals.totalAdvanceMoney
+                  //入金額よりも次回支払い金額が小さい場合は
+                  //1.予定金額よりも,入金額が大きい場合　は予定金額を超えた部分は全て仮受金に入れる。
+                  if(temporaryReceipt > cisAmount){
+                    temporaryReceiptInsertValue += (temporaryReceipt - cisAmount)
+                    temporaryReceipt -= (temporaryReceipt - cisAmount)
+                  }
+
+                  //2.前受け金と預かり金に分ける
+                  advancePaymentInsertValue   += resultGetSubTotals.totalAdovisoryFee + resultGetSubTotals.totalcommission //手数料と顧問料の合計を前受け金に。
+                  depositInsertValue          += resultGetSubTotals.totalAdvanceMoney
                   
-                  //前受け金と預かり金を入金額から引く
+                  //3.前受け金と預かり金を入金額から引く
                   console.log('手数料顧問料マイナス前',temporaryReceipt)
                   temporaryReceipt -= (advancePaymentInsertValue + depositInsertValue)
                   console.log('手数料顧問料マイナス後',temporaryReceipt)
@@ -638,19 +646,19 @@ app.put('/payment_agency/matching',(req,res)=>{
 
                     if(accountsReceivable < temporaryReceipt){
                       //入金額の残額が売掛金よりも多ければ売掛がゼロになるまで。
-                      accountsReceivableInsertValue = accountsReceivable
+                      accountsReceivableInsertValue += accountsReceivable
                       temporaryReceipt -= accountsReceivable
 
                     } else if(accountsReceivable > temporaryReceipt){
                       //売掛金の方が多ければ入金額の残額全て。
-                      accountsReceivableInsertValue = temporaryReceipt
+                      accountsReceivableInsertValue += temporaryReceipt
                       temporaryReceipt -= temporaryReceipt
                     }
                     console.log('判定後の売掛金への挿入金額:',accountsReceivableInsertValue,'判定後の売掛金への挿入金額:',temporaryReceipt)
                   }
 
                   //残ったtemporarryReceiptをtemporarryReceiptInsertValueへ
-                  temporaryReceiptInsertValue = temporaryReceipt
+                  temporaryReceiptInsertValue += temporaryReceipt
                 }
                 //5.3 各変数にcustomers登録用の数字が入ってるはずなので、これをcusotmersに登録する。
                 const updateCustomersSql = 'UPDATE customers SET accounts_receivable = accounts_receivable - ?, deposit = deposit + ?, advance_payment = advance_payment + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?;'
