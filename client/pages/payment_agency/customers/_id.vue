@@ -622,8 +622,9 @@
                     <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedReceivableValue"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
-                    <v-spacer></v-spacer>   
-                    <v-btn @click="loadingReceivable">インポート</v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="loadingReceivable(false)">インポート</v-btn>
+                    <v-btn @click="loadingReceivable(true)" color="warning">反対仕訳</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -1066,11 +1067,17 @@ export default {
         openEditReceivableDialog(){
             this.editReceivableDialog = true
         },
-        loadingReceivable(){
+        loadingReceivable(e){
             if(this.editedReceivableValue === 0 || this.importFrom === '' || this.importFromCreditor === ''){return alert('数字が空？\nもしくは読込元を選択してください。')}
-            const doNot = !confirm('本当に登録しますか？')
+            let doNot = !confirm('本当に登録しますか？')
             if(doNot){ return alert('キャンセル')}
-            this.$axios.post('api/payment_agency/customer/importReceivable/',{value:this.editedReceivableValue,customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor})
+            let data = {value:this.editedReceivableValue,customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor}
+            if(e){
+                data.option = true
+                doNot = !confirm('これは反対仕訳です、間違いありませんか？')
+            }
+            if(doNot ){ return alert('キャンセル')}
+            this.$axios.post('api/payment_agency/customer/importReceivable/',data)
             .then(response=>{
                 if(response.data.error){ return alert(response.data.messsage)}
                 alert(response.data)

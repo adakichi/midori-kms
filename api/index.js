@@ -1243,25 +1243,42 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
 //カスタマーの売掛金を外部から振り替えてくる作業(SAIZO/LU)
 app.post('/payment_agency/customer/importReceivable',(req,res)=>{
   console.log('pa/customer/importReceivable')
-  const receivable = req.body.value
+  const receivable = Number(req.body.value)
   const importFrom = req.body.importFrom
   const customerId = req.body.customerId
   const creditorsId  = req.body.creditorsId
+  //制御用
+  const reverse  = req.body.option
   console.log(req.body)
   db_payment_agency.beginTransaction((err)=>{
     if(err){ err.whichApi= 'get pa/customer/importReceivable'; throw err}
 
     //最初にcustomersの金額を変更
-    const sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable + ? WHERE customer_id = ?'
+    let sql1 = ''
+      //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
+      if(reverse){
+        sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable - ? WHERE customer_id = ?'
+      } else {
+        sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable + ? WHERE customer_id = ?'
+      }
     const val1 = [receivable, customerId]
+    console.log('val1:',val1)
     db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
       if(err1){ err1.whichApi= 'importReceivable: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       console.log(' >DB処理１　OK')
       //journal_bookに登録
+
       const sql2 = 'INSERT INTO journal_book_for_receivale (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      let val2 = []
       const motocho = customerId + ':' + creditorsId
-      const val2 = [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
+      //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
+      if(reverse){
+        val2 = [motocho, '売上('+importFrom+')', receivable, '売掛金', receivable, customerId]  //売掛金 売上
+      } else {
+        val2 = [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
+      }
+      console.log('val2:',val2)
         db_payment_agency.query(sql2,[[val2]],(err2,rows2,fields2)=>{
           if(err2){ err2.whichApi= 'importReceivable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
           console.log(' >DB処理2 OK')
@@ -1276,7 +1293,6 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
     })
   })
 })
-
 
 //出金処理時に、顧客ごとの預り金がどれくらいあるか比べる為、顧客番号の配列をvaluesとして、depositのみ取得して返す。
 app.get('/payment_agency/payment_schedules/customers_deposit',(req,res)=>{
