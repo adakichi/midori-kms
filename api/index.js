@@ -1269,7 +1269,7 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
       console.log(' >DB処理１　OK')
       //journal_bookに登録
 
-      const sql2 = 'INSERT INTO journal_book_for_receivale (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
       let val2 = []
       const motocho = customerId + ':' + creditorsId
       //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
