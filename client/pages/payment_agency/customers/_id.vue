@@ -851,7 +851,7 @@ export default {
             winter:[10,11,12,1,2,3],
             typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
             pensionValues:['偶数','奇数',''],
-            progressItems:['代行中(整理済み)','代行中(整理途中)','業務終了(全社完済)','業務終了(途中辞任)',],
+            progressItems:['代行中(整理済み)','代行中(整理途中)','業務終了(全社完済)','業務終了(途中辞任)','業務終了(自己返済)'],
             //snack bar
             snack:'',
             snackColor:'',
