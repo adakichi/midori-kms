@@ -1255,13 +1255,15 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
 
     //最初にcustomersの金額を変更
     let sql1 = ''
+    let val1 = []
       //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
       if(reverse){
-        sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable - ? WHERE customer_id = ?'
+        sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable - ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?'
+        val1 = [receivable, receivable, customerId]
       } else {
         sql1 = 'UPDATE customers set accounts_receivable = accounts_receivable + ? WHERE customer_id = ?'
+        val1 = [receivable, customerId]
       }
-    const val1 = [receivable, customerId]
     console.log('val1:',val1)
     db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
       if(err1){ err1.whichApi= 'importReceivable: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
@@ -1274,12 +1276,17 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
       const motocho = customerId + ':' + creditorsId
       //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
       if(reverse){
-        val2 = [motocho, '売上('+importFrom+')', receivable, '売掛金', receivable, customerId]  //売掛金 売上
+        val2 = [
+          [motocho, '売上('+importFrom+')', receivable, '売掛金', receivable, customerId],  //売掛金 売上
+          [motocho, '売掛金', receivable, '仮受金', receivable, customerId],  //売掛金 仮受金
+        ]
       } else {
-        val2 = [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
+        val2 = [
+          [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
+        ]
       }
       console.log('val2:',val2)
-        db_payment_agency.query(sql2,[[val2]],(err2,rows2,fields2)=>{
+        db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
           if(err2){ err2.whichApi= 'importReceivable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
           console.log(' >DB処理2 OK')
 
