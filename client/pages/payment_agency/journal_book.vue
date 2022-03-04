@@ -43,6 +43,7 @@ export default {
                 { text:'貸方',  value:'credit'},
                 { text:'番号',  value:'customer_id'},
                 { text:'名前',  value:'name'},
+                { text:'メモ',  value:'memo'},
             ]
         }
     },
