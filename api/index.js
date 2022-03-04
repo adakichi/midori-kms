@@ -1241,9 +1241,11 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
 })
 
 //カスタマーの売掛金を外部から振り替えてくる作業(SAIZO/LU)
+//optionがtrueの場合は反対仕訳。
 app.post('/payment_agency/customer/importReceivable',(req,res)=>{
   console.log('pa/customer/importReceivable')
   const receivable = Number(req.body.value)
+  const memo       = req.body.memo
   const importFrom = req.body.importFrom
   const customerId = req.body.customerId
   const creditorsId  = req.body.creditorsId
@@ -1271,17 +1273,17 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
       console.log(' >DB処理１　OK')
       //journal_bookに登録
 
-      const sql2 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
       let val2 = []
       const motocho = customerId + ':' + creditorsId
       //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
       if(reverse){
         val2 = [
-          [motocho, '売上('+importFrom+')', receivable, '売掛金', receivable, customerId],  //売掛金 売上
+          [motocho, '売上('+importFrom+')', receivable, '売掛金', receivable, memo, customerId],  //売掛金 売上
         ]
       } else {
         val2 = [
-          [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, customerId]  //売掛金 売上
+          [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, memo, customerId]  //売掛金 売上
         ]
       }
       console.log('val2:',val2)
@@ -1311,9 +1313,9 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
                 console.log(' >DB処理41 OK')
 
                 //4-2
-                const sql42 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+                const sql42 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
                 const val42 = [
-                  [motocho, '売掛金', receivable, '仮受金', receivable, customerId],  //売掛金 売上
+                  [motocho, '売掛金', receivable, '仮受金', receivable, memo, customerId],  //売掛金 売上
                 ]
                 db_payment_agency.query(sql42,[val42],(err42,rows42,fields42)=>{
                   if(err42){ err42.whichApi= 'importReceivable: @42'; db_payment_agency.rollback(()=>{ throw err42 })}
@@ -1332,6 +1334,160 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
                 logger.log('振替処理 importReceivable>',req.body)
                 console.log('売掛importおわりました。\n振替処理 importReceivable>',req.body)
                 res.send('売掛importおわりました。')
+              })    
+            }
+          })
+      })
+    })
+  })
+})
+
+//カスタマーの預り金を仮受金に戻す処理
+//optionがtrueの場合は反対仕訳。
+app.post('/payment_agency/customer/editedDeposit',(req,res)=>{
+  console.log('pa/customer/editDeposit')
+  logger.log('pa/customer/editDeposit')
+  const deposit = Number(req.body.value)
+  const memo       = req.body.memo
+  const customerId = req.body.customerId
+  //制御用
+  const reverse  = req.body.option
+  db_payment_agency.beginTransaction((err)=>{
+    if(err){ err.whichApi= 'get pa/customer/editDeposit'; throw err}
+
+    //最初にcustomersの金額を変更
+    let sql1 = ''
+    let val1 = []
+      //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
+      if(reverse){
+        sql1 = 'UPDATE customers set deposit = deposit + ?, temporary_receipt = temporary_receipt - ? WHERE customer_id = ?'
+        val1 = [deposit, deposit, customerId]
+      } else {
+        sql1 = 'UPDATE customers set deposit = deposit - ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?'
+        val1 = [deposit, deposit, customerId]
+      }
+    console.log('val1:',val1)
+    db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
+      if(err1){ err1.whichApi= 'editedDepost: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+
+      console.log(' >DB処理１　OK')
+      //journal_bookに登録
+
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
+      let val2 = []
+      const motocho = customerId + ':editedDeposit'
+      //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
+      if(reverse){
+        val2 = [
+          [motocho, '仮受金', deposit, '預り金', deposit, memo, customerId],  //売掛金 売上
+        ]
+      } else {
+        val2 = [
+          [motocho, '預り金', deposit, '仮受金', deposit, memo, customerId],  //売掛金 売上
+        ]
+      }
+      console.log('val2:',val2)
+        db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
+          if(err2){ err2.whichApi= 'editedDeposit: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+          console.log(' >DB処理2 OK')
+
+          //3もしも預り金がマイナスになったら、ロールバックする。
+          //3-1 カスタマーデータ取得
+          const sql3 = 'SELECT * FROM customers WHERE customer_id = ?'
+          const val3 = customerId
+          db_payment_agency.query(sql3,val3,(err3,rows3,fields3)=>{
+            if(err3){ err3.whichApi= 'editedDeposit: @3'; db_payment_agency.rollback(()=>{ throw err3 })}
+            console.log(' >DB処理3 OK')
+
+            //3-2売掛金がマイナスか判定する
+            console.log('判定',rows3[0].deposit < 0 )
+            console.log('VAL:',rows3[0].deposit)
+            if(rows3[0].deposit < 0 ){
+              const err = '預り金がマイナスになったので処理を中止しました。'
+              db_payment_agency.rollback(()=>{ throw err })
+            } else {
+              db_payment_agency.commit((err0)=>{
+                if(err0){err0.whichApi= 'editedDeposit: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
+                logger.log('振替処理 editedDeposit>',req.body)
+                console.log('預り金の処理おわりました。',req.body)
+                res.send('預り金の処理おわりました。')
+              })    
+            }
+          })
+      })
+    })
+  })
+})
+
+//カスタマーの前受金を仮受金に戻す処理
+//optionがtrueの場合は反対仕訳。
+app.post('/payment_agency/customer/editedAdvancePayment',(req,res)=>{
+  console.log('pa/customer/editAdvancePayment')
+  logger.log('pa/customer/editAdvancePayment')
+  const AdvancePayment = Number(req.body.value)
+  const memo       = req.body.memo
+  const customerId = req.body.customerId
+  //制御用
+  const reverse  = req.body.option
+  db_payment_agency.beginTransaction((err)=>{
+    if(err){ err.whichApi= 'get pa/customer/editAdvancePayment'; throw err}
+
+    //最初にcustomersの金額を変更
+    let sql1 = ''
+    let val1 = []
+      //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
+      if(reverse){
+        sql1 = 'UPDATE customers set Advance_payment = Advance_payment + ?, temporary_receipt = temporary_receipt - ? WHERE customer_id = ?'
+        val1 = [AdvancePayment, AdvancePayment, customerId]
+      } else {
+        sql1 = 'UPDATE customers set Advance_payment = Advance_payment - ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?'
+        val1 = [AdvancePayment, AdvancePayment, customerId]
+      }
+    console.log('val1:',val1)
+    db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
+      if(err1){ err1.whichApi= 'editedDepost: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+
+      console.log(' >DB処理１　OK')
+      //journal_bookに登録
+
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
+      let val2 = []
+      const motocho = customerId + ':editedAdvancePayment'
+      //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
+      if(reverse){
+        val2 = [
+          [motocho, '仮受金', AdvancePayment, '前受金', AdvancePayment, memo, customerId],  //売掛金 売上
+        ]
+      } else {
+        val2 = [
+          [motocho, '前受金', AdvancePayment, '仮受金', AdvancePayment, memo, customerId],  //売掛金 売上
+        ]
+      }
+      console.log('val2:',val2)
+        db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
+          if(err2){ err2.whichApi= 'editedAdvancePayment: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+          console.log(' >DB処理2 OK')
+
+          //3もしも預り金がマイナスになったら、ロールバックする。
+          //3-1 カスタマーデータ取得
+          const sql3 = 'SELECT * FROM customers WHERE customer_id = ?'
+          const val3 = customerId
+          db_payment_agency.query(sql3,val3,(err3,rows3,fields3)=>{
+            if(err3){ err3.whichApi= 'editedAdvancePayment: @3'; db_payment_agency.rollback(()=>{ throw err3 })}
+            console.log(' >DB処理3 OK')
+
+            //3-2売掛金がマイナスか判定する
+            console.log('判定',rows3[0].advance_payment < 0 )
+            console.log('VAL:',rows3[0].advance_payment)
+            if(rows3[0].advance_payment < 0 ){
+              const err = '預り金がマイナスになったので処理を中止しました。'
+              db_payment_agency.rollback(()=>{ throw err })
+            } else {
+              db_payment_agency.commit((err0)=>{
+                if(err0){err0.whichApi= 'editedAdvancePayment: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
+                logger.log('振替処理 editedAdvancePayment>',req.body)
+                console.log('前受金の処理おわりました。',req.body)
+                res.send('前受金の処理おわりました。')
               })    
             }
           })

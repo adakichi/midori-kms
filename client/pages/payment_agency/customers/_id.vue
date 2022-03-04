@@ -599,10 +599,10 @@
                     </v-row>
                     <v-row>
                         <v-col>
-                            <v-text-field label="預かり金" disabled suffix=" 円" :value="customer.deposit"></v-text-field>
+                            <v-text-field label="預かり金" suffix=" 円" :value="customer.deposit" @click="openEditDepositDialog"></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="前受金" disabled suffix=" 円" :value="customer.advance_payment"></v-text-field>
+                            <v-text-field label="前受金" suffix=" 円" :value="customer.advance_payment" @click="openEditAdvancePaymentDialog"></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field label="仮受金" suffix=" 円" :value="customer.temporary_receipt" @click="openEditTemporaryDialog"></v-text-field>
@@ -620,11 +620,49 @@
                     <v-select :items="importFromCreditorItems" v-model="importFromCreditor" label="債権者" item-text="creditor_name" item-value="creditor_id"></v-select>
                     <v-select :items="importFromItems" v-model="importFrom" label="読込元"></v-select>
                     <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedReceivableValue"></v-text-field>
+                    <v-text-field label="仕訳メモ" v-model="editedReceivableMemo"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn @click="loadingReceivable(false)">インポート</v-btn>
                     <v-btn @click="loadingReceivable(true)" color="warning">反対仕訳</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- 預り金の編集ダイアログ -->
+        <v-dialog v-model="editDepositDialog">
+            <v-card>
+                <v-card-title>預り金　→　仮受金</v-card-title>
+                <v-card-subtitle>
+                    預り金残り：{{Number(customer.deposit) - Number(editedDepositValue)}}                
+                </v-card-subtitle>
+                <v-card-text>
+                    <v-text-field label="預り金" type="number" suffix=" 円" v-model="editedDepositValue"></v-text-field>
+                    <v-text-field label="仕訳メモ" v-model="editedDepositMemo"></v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="editedDeposit(false)">インポート</v-btn>
+                    <v-btn @click="editedDeposit(true)" color="warning">反対仕訳</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <!-- 前受金の編集ダイアログ -->
+        <v-dialog v-model="editAdvancePaymentDialog">
+            <v-card>
+                <v-card-title>前受金　→　仮受金</v-card-title>
+                <v-card-subtitle>
+                    前受金残り：{{Number(customer.advance_payment) - Number(editedAdvancePaymentValue)}}                
+                </v-card-subtitle>
+                <v-card-text>
+                    <v-text-field label="前受金" type="number" suffix=" 円" v-model="editedAdvancePaymentValue"></v-text-field>
+                    <v-text-field label="仕訳メモ" v-model="editedAdvancePaymentMemo"></v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="editedAdvancePayment(false)">インポート</v-btn>
+                    <v-btn @click="editedAdvancePayment(true)" color="warning">反対仕訳</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -750,9 +788,20 @@ export default {
             /////売掛金編集関係/////
             editReceivableDialog:false,
             editedReceivableValue:0,
+            editedReceivableMemo:'',
             importFrom:'',
             importFromItems:['SAIZO','LU','GR'],
             importFromCreditor:'',
+            //////////
+            /////預り金編集関係/////
+            editDepositDialog:false,
+            editedDepositValue:0,
+            editedDepositMemo:'',
+            //////////
+            /////前受金編集関係/////
+            editAdvancePaymentDialog:false,
+            editedAdvancePaymentValue:0,
+            editedAdvancePaymentMemo:'',
             //////////
             targetText:'',
             activePicker:false,
@@ -1081,7 +1130,7 @@ export default {
             if(this.editedReceivableValue === 0 || this.importFrom === '' || this.importFromCreditor === ''){return alert('数字が空？\nもしくは読込元を選択してください。')}
             let doNot = !confirm('本当に登録しますか？')
             if(doNot){ return alert('キャンセル')}
-            let data = {value:this.editedReceivableValue,customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor}
+            let data = {value:this.editedReceivableValue, memo:this.editedReceivableMemo, customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor}
             if(e){
                 data.option = true
                 doNot = !confirm('これは反対仕訳です、間違いありませんか？')
@@ -1089,13 +1138,63 @@ export default {
             if(doNot ){ return alert('キャンセル')}
             this.$axios.post('api/payment_agency/customer/importReceivable/',data)
             .then(response=>{
-                if(response.data.error){ return alert(response.data.messsage)}
+                if(response.data.error){ return alert(response.data.message)}
                 this.popupSnackBar(response.data)
                 this.refreshCustomer()
                 this.editReceivableDialog = false
                 this.editedReceivableValue = 0
                 this.importFrom = ''
                 this.importFromCreditor = ''
+            })
+        },
+        ////////////////////////////////////////////////
+
+        /////////預り金編集ダイアログ関係///////////////////////////////////////
+        openEditDepositDialog(){
+            this.editDepositDialog = true
+        },
+        editedDeposit(e){
+            if(this.editedDepositValue === 0 ){return alert('数字が空？')}
+            let doNot = !confirm('本当に登録しますか？')
+            if(doNot){ return alert('キャンセル')}
+            let data = {value:this.editedDepositValue, memo:this.editedDepositMemo, customerId:this.customerId,importFrom:this.importFrom}
+            if(e){
+                data.option = true
+                doNot = !confirm('これは反対仕訳です、間違いありませんか？')
+            }
+            if(doNot ){ return alert('キャンセル')}
+            this.$axios.post('api/payment_agency/customer/editedDeposit',data)
+            .then(response=>{
+                if(response.data.error){ return alert(response.data.message)}
+                this.popupSnackBar(response.data)
+                this.refreshCustomer()
+                this.editDepositDialog = false
+                this.editedDepositValue = 0
+            })
+        },
+        ////////////////////////////////////////////////
+
+        /////////前受金編集ダイアログ関係///////////////////////////////////////
+        openEditAdvancePaymentDialog(){
+            this.editAdvancePaymentDialog = true
+        },
+        editedAdvancePayment(e){
+            if(this.editedAdvancePaymentValue === 0 ){return alert('数字が空？')}
+            let doNot = !confirm('本当に登録しますか？')
+            if(doNot){ return alert('キャンセル')}
+            let data = {value:this.editedAdvancePaymentValue, memo:this.editedAdvancePaymentMemo, customerId:this.customerId,importFrom:this.importFrom}
+            if(e){
+                data.option = true
+                doNot = !confirm('これは反対仕訳です、間違いありませんか？')
+            }
+            if(doNot ){ return alert('キャンセル')}
+            this.$axios.post('api/payment_agency/customer/editedAdvancePayment',data)
+            .then(response=>{
+                if(response.data.error){ return alert(response.data.message)}
+                this.popupSnackBar(response.data)
+                this.refreshCustomer()
+                this.editAdvancePaymentDialog = false
+                this.editedAdvancePaymentValue = 0
             })
         },
         ////////////////////////////////////////////////
