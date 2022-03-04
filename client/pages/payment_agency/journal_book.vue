@@ -4,18 +4,20 @@
             <v-col>
                 <v-app-bar>
                         <v-text-field
-                        v-model="search"
-                        label="検索"
+                        v-model="filter"
+                        label="フィルター"
                         class="mx-4"
                         >
                         </v-text-field>
                     <v-spacer></v-spacer>
+                    <v-btn @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
+                    <v-btn @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
                     <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>
                 <v-data-table
                 :items="journalBook"
                 :headers="journalBookHeaders"
-                :search="search"
+                :search="filter"
                 >
                 </v-data-table>
             </v-col>
@@ -31,7 +33,7 @@ export default {
     data(){
         return{
             journalBook:[],
-            search:'',
+            filter:'',
             journalBookHeaders:[
                 { text:'元帳',  value:'motocho'},
                 { text:'日付',  value:'date'},
@@ -45,10 +47,11 @@ export default {
         }
     },
     methods:{
-        getJournalBook(){
+        getJournalBook(table){
             const options = {
                 until:null,
-                from:null
+                from:null,
+                table:table
             }
             this.$axios.get('api/payment_agency/journal_book/',{params:{options:options}})
             .then((response)=>{
@@ -65,9 +68,12 @@ export default {
             const link = createDownloadATag(exportText)
             link.click()
         },
+        search(){
+
+        }
     },
     created(){
-        this.getJournalBook()
+        this.getJournalBook('journal_book')
     }
 }
 </script>
