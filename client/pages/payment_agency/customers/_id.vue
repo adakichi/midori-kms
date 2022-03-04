@@ -617,7 +617,7 @@
             <v-card>
                 <v-card-title>売掛金　←　外部</v-card-title>
                 <v-card-text>
-                    <v-select :items="contentsOfSettlements" v-model="importFromCreditor" label="債権者" item-text="creditor_name" item-value="creditor_id"></v-select>
+                    <v-select :items="importFromCreditorItems" v-model="importFromCreditor" label="債権者" item-text="creditor_name" item-value="creditor_id"></v-select>
                     <v-select :items="importFromItems" v-model="importFrom" label="読込元"></v-select>
                     <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedReceivableValue"></v-text-field>
                 </v-card-text>
@@ -864,8 +864,18 @@ export default {
         contentsOfSettlements(){
             return this.$store.getters['pa/getContentsOfSettlements']
         },
+        importFromCreditorItems(){
+            const item = {creditor_id:'0',creditor_name:'その他'}
+            let settle = this.$store.getters['pa/getContentsOfSettlements'].map(ele=>{return ele})
+            settle.push(item)
+            return settle
+        }
     },
     methods:{
+        refreshCustomer(){
+        this.$axios.get('api/payment_agency/customer/detail',{params:{id:this.$route.params.id}})
+            .then((response)=>{this.customer = response.data[0]})
+        },
         searchCustomer(){
             this.$store.dispatch('pa/searchCustomers',this.targetText)
         },
@@ -1080,12 +1090,17 @@ export default {
             this.$axios.post('api/payment_agency/customer/importReceivable/',data)
             .then(response=>{
                 if(response.data.error){ return alert(response.data.messsage)}
-                alert(response.data)
-                this.editReceivableDialog = true
+                this.popupSnackBar(response.data)
+                this.refreshCustomer()
+                this.editReceivableDialog = false
+                this.editedReceivableValue = 0
+                this.importFrom = ''
+                this.importFromCreditor = ''
             })
         },
         ////////////////////////////////////////////////
 
+        //仮受金編集ダイアログ関係///////////////////////
         openEditTemporaryDialog(){
             this.editedTemporaryValues.temporary_receipt = this.customer.temporary_receipt
             this.editTemporaryDialog = true
@@ -1104,12 +1119,10 @@ export default {
             console.log('ev:',ev)
             console.log(customer.temporary_receipt,total,diffResult)
             if(diffResult >= 0 ){
-                console.log(ev)
-                alert('yes:',ev)
                 this.$axios.post('api/payment_agency/customer/temp2deposit',ev)
-                .then(responce=>{
-                    alert(responce.data)
-                    location.reload()
+                .then(response=>{
+                    this.popupSnackBar(response.data)
+                    this.refreshCustomer()
                     })
             } else {
                 console.log(ev)
@@ -1125,12 +1138,10 @@ export default {
             ev.customerId = customer.customer_id
             console.log('ev:',ev)
             if(diffResult >= 0 && customer.temporary_receipt !== ev.temporary_receipt){
-                console.log(ev)
-                alert('yes:',ev)
                 this.$axios.post('api/payment_agency/customer/temp2receivable',ev)
-                .then(responce=>{
-                    alert(responce.data)
-                    location.reload()
+                .then(response=>{
+                    this.popupSnackBar(response.data)
+                    this.refreshCustomer()
                     })
             } else {
                 console.log(ev)
@@ -1148,9 +1159,9 @@ export default {
             console.log('ev:',ev)
             if(diffResult <= 0 && customer.temporary_receipt !== ev.temporary_receipt){
                 this.$axios.post('api/payment_agency/customer/receivable2Temporary',ev)
-                .then(responce=>{
-                    alert(responce.data)
-                    location.reload()
+                .then(response=>{
+                    this.popupSnackBar(response.data)
+                    this.refreshCustomer()
                 })
             } else {
                 console.log(ev)
@@ -1158,43 +1169,7 @@ export default {
             }
             }
         },
-        saveCis(e){
-            console.log(e)
-            const doNot = !confirm('編集しますか？')
-            if(doNot){ return }
-            this.$axios.put('api/payment_agency/customer/cis',e)
-            .then(response=>{
-                if(response.data.error){
-                     alert(response.data.message)
-                    this.snack = true
-                    this.snackColor = 'warning'
-                    this.snackText = '失敗しました。'
-                     }
-                this.snack = true
-                this.snackColor = 'success'
-                this.snackText = '成功しました。'
-            })
-        },
-        updateProgress(){
-            this.$axios.put('api/payment_agency/customer/progress',{id:this.customer.customer_id, progress:this.customer.progress})
-            .then((response)=>{
-                if(response.data.error){ return alert(response.data.message)}
-                console.log(response)
-                this.snack = true
-                this.snackColor = 'success'
-                this.snackText = '進捗を変更しました。  '                
-            })
-        },
-        updateCustomerDetail(){
-            this.$axios.put('api/payment_agency/customer/detail',{customer:this.customer})
-            .then((response)=>{
-                if(response.data.error){ return alert(response.data.message)}
-                console.log(response)
-                this.snack = true
-                this.snackColor = 'success'
-                this.snackText = '進捗を変更しました。  '                
-            })
-        },
+        //一ヶ月以内の支払い金額の自動計算ホタン
         depositAutoTransfer(){
             const receipt = Number(this.customer.temporary_receipt)
             const filterdSchedules = this.paymentSchedules.filter(item=>{
@@ -1214,6 +1189,7 @@ export default {
             this.editedTemporaryValues.deposit = deposit
             this.editedTemporaryValues.advance_payment = advance_payment
         },
+        //売掛金の残りを自動挿入
         accountsReceivableAutoTransfer(){
             //売掛金 > 仮受金
             console.log(this.customer.accounts_receivable,this.customer.temporary_receipt)
@@ -1222,6 +1198,43 @@ export default {
             } else {
                 this.editedTemporaryValues.accounts_receivable = this.customer.accounts_receivable
             }
+        },
+        ////////////////////////////////////////////////////////////////////
+        saveCis(e){
+            console.log(e)
+            const doNot = !confirm('編集しますか？')
+            if(doNot){ return }
+            this.$axios.put('api/payment_agency/customer/cis',e)
+            .then(response=>{
+                if(response.data.error){
+                     alert(response.data.message)
+                    this.popupSnackBar('失敗しました。','warning')
+                     }
+                this.popupSnackBar('成功しました。')
+            })
+        },
+        updateProgress(){
+            this.$axios.put('api/payment_agency/customer/progress',{id:this.customer.customer_id, progress:this.customer.progress})
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                console.log(response)
+                this.popupSnackBar('進捗を変更しました。')
+            })
+        },
+        updateCustomerDetail(){
+            this.$axios.put('api/payment_agency/customer/detail',{customer:this.customer})
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                console.log(response)
+                this.popupSnackBar('進捗を変更しました。')
+            })
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
         }
     },
     created(){
@@ -1237,9 +1250,7 @@ export default {
         await this.$store.dispatch('getDbCreditors')
         await this.$store.dispatch('pa/getDbCreditorsAccounts')
         await this.$store.dispatch('pa/getDbContentsOfSettlements',id)
-            const detailOption = {id:id}
-        this.$axios.get('api/payment_agency/customer/detail',{params:detailOption})
-            .then((response)=>{this.customer = response.data[0]})
+        this.refreshCustomer()
         this.banks = await this.$store.getters['pa/getCreditorsAccounts']
         this.newSchedule.customer_id = id
         })()
