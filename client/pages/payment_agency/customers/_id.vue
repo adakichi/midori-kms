@@ -625,7 +625,7 @@
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn @click="loadingReceivable(false)">インポート</v-btn>
-                    <v-btn @click="loadingReceivable(true)" color="warning">反対仕訳</v-btn>
+                    <v-btn @click="loadingReceivable(true)" color="warning"  v-show="isAdmin">反対仕訳</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -644,7 +644,7 @@
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn @click="editedDeposit(false)">インポート</v-btn>
-                    <v-btn @click="editedDeposit(true)" color="warning">反対仕訳</v-btn>
+                    <v-btn @click="editedDeposit(true)" color="warning"  v-show="isAdmin">反対仕訳</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -662,7 +662,7 @@
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn @click="editedAdvancePayment(false)">インポート</v-btn>
-                    <v-btn @click="editedAdvancePayment(true)" color="warning">反対仕訳</v-btn>
+                    <v-btn @click="editedAdvancePayment(true)" color="warning"  v-show="isAdmin">反対仕訳</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -739,7 +739,7 @@
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
-                                <v-btn v-show='$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false ' @click="editReceivable2Temporary">編集</v-btn>
+                                <v-btn v-show="isAdmin" @click="editReceivable2Temporary">編集</v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-tab-item>
@@ -918,6 +918,9 @@ export default {
             let settle = this.$store.getters['pa/getContentsOfSettlements'].map(ele=>{return ele})
             settle.push(item)
             return settle
+        },
+        isAdmin(){
+            return this.$auth.user ? (this.$auth.user.isAdmin === 1 ? true : false ) : false
         }
     },
     methods:{
