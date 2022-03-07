@@ -692,6 +692,11 @@
                                         <v-text-field label="前受金" type="number" suffix=" 円" v-model="editedTemporaryValues.advance_payment"></v-text-field>
                                     </v-col>
                                 </v-row>
+                                <v-row>
+                                    <v-col>
+                                        <v-text-field label="仕訳メモ" v-model="editedTemporaryValues.memo"></v-text-field>
+                                    </v-col>
+                                </v-row>
                             </v-card-text>
                             <v-card-actions>
                             <v-spacer></v-spacer>
@@ -714,6 +719,11 @@
                                     <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedTemporaryValues.accounts_receivable"></v-text-field>
                                 </v-col>
                             </v-row>
+                            <v-row>
+                                <v-col> 
+                                    <v-text-field label="仕訳メモ" v-model="editedTemporaryValues.memo"></v-text-field>
+                                </v-col>
+                            </v-row>
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
@@ -734,6 +744,11 @@
                             <v-row>
                                 <v-col>
                                     <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedTemporaryValues.accounts_receivable"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col>
+                                    <v-text-field label="仕訳メモ" v-model="editedTemporaryValues.memo"></v-text-field>
                                 </v-col>
                             </v-row>
                             </v-card-text>
@@ -889,7 +904,7 @@ export default {
             ],
             selectedCustomerCis:[],
             updateValue:{},
-            editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0, accounts_receivable:0},
+            editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0, accounts_receivable:0,memo:''},
 
             //validate rules
             required: value => !!value || "必ず入力してください",
@@ -927,6 +942,9 @@ export default {
         refreshCustomer(){
         this.$axios.get('api/payment_agency/customer/detail',{params:{id:this.$route.params.id}})
             .then((response)=>{this.customer = response.data[0]})
+        },
+        refresheditedTemporaryValues(){
+            this.editedTemporaryValues = {deposit:0,advance_payment:0,temporary_receipt:0, accounts_receivable:0,memo:''}
         },
         searchCustomer(){
             this.$store.dispatch('pa/searchCustomers',this.targetText)
@@ -1225,6 +1243,8 @@ export default {
                 .then(response=>{
                     this.popupSnackBar(response.data)
                     this.refreshCustomer()
+                    this.refresheditedTemporaryValues()
+                    this.editTemporaryDialog = false
                     })
             } else {
                 console.log(ev)
@@ -1238,12 +1258,14 @@ export default {
             const diffResult = Number(customer.temporary_receipt) - ev.accounts_receivable
             ev.temporary_receipt = ev.accounts_receivable
             ev.customerId = customer.customer_id
-            console.log('ev:',ev)
+            console.log('ev:',ev,'diffResult >= 0',diffResult >= 0,'customer.temporary_receipt !== ev.temporary_receipt',customer.temporary_receipt !== ev.temporary_receipt)
             if(diffResult >= 0 && customer.temporary_receipt !== ev.temporary_receipt){
                 this.$axios.post('api/payment_agency/customer/temp2receivable',ev)
                 .then(response=>{
                     this.popupSnackBar(response.data)
                     this.refreshCustomer()
+                    this.refresheditedTemporaryValues()
+                    this.editTemporaryDialog = false
                     })
             } else {
                 console.log(ev)
@@ -1255,15 +1277,15 @@ export default {
             if(result){
             const customer = this.customer
             let ev = this.editedTemporaryValues
-            const diffResult = Number(customer.temporary_receipt) - ev.accounts_receivable
             ev.temporary_receipt = ev.accounts_receivable
             ev.customerId = customer.customer_id
-            console.log('ev:',ev)
-            if(diffResult <= 0 && customer.temporary_receipt !== ev.temporary_receipt){
+            if(customer.temporary_receipt !== ev.temporary_receipt){
                 this.$axios.post('api/payment_agency/customer/receivable2Temporary',ev)
                 .then(response=>{
                     this.popupSnackBar(response.data)
                     this.refreshCustomer()
+                    this.refresheditedTemporaryValues()
+                    this.editTemporaryDialog = false
                 })
             } else {
                 console.log(ev)

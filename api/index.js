@@ -1143,6 +1143,7 @@ app.post('/payment_agency/customer/temp2deposit',(req,res)=>{
   const advance = req.body.advance_payment
   const temporary = req.body.temporary_receipt
   const customerId = req.body.customerId
+  const memo       = req.body.memo
   db_payment_agency.beginTransaction((err)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/temp2deposit'; throw err}
 
@@ -1153,11 +1154,11 @@ app.post('/payment_agency/customer/temp2deposit',(req,res)=>{
       if(err1){ err1.whichApi= 'temp2deposit: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       //journal_bookに登録
-      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
       const motocho = 'temp2deposit' + moment().format('YYYY-MM-DD-HHmmss')
       const val2 = [
-        [motocho, '仮受金', deposit, '預り金', deposit, customerId], //預り金
-        [motocho, '仮受金', advance, '前受金', advance, customerId]  //前受金
+        [motocho, '仮受金', deposit, '預り金', deposit, memo, customerId], //預り金
+        [motocho, '仮受金', advance, '前受金', advance, memo, customerId]  //前受金
       ]
         db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
           if(err2){ err2.whichApi= 'temp2deposit: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
@@ -1178,6 +1179,7 @@ app.post('/payment_agency/customer/receivable2Temporary',(req,res)=>{
   const temporary = req.body.temporary_receipt
   const receivable = req.body.accounts_receivable
   const customerId = req.body.customerId
+  const memo       = req.body.memo
   db_payment_agency.beginTransaction((err)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/receivable2Temporary'; throw err}
 
@@ -1188,10 +1190,10 @@ app.post('/payment_agency/customer/receivable2Temporary',(req,res)=>{
       if(err1){ err1.whichApi= 'receivable2Temporary: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       //journal_bookに登録
-      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
       const motocho = 'receivable2Temporary' + moment().format('YYYY-MM-DD-HHmmss')
       const val2 = [
-        [motocho, '売掛金', receivable, '仮受金', receivable, customerId]  //売掛金 仮受金
+        [motocho, '売掛金', receivable, '仮受金', receivable, memo, customerId]  //売掛金 仮受金
       ]
         db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
           if(err2){ err2.whichApi= 'receivable2Temporary: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
@@ -1213,6 +1215,7 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
   const temporary = req.body.temporary_receipt
   const receivable = req.body.accounts_receivable
   const customerId = req.body.customerId
+  const memo       = req.body.memo
   db_payment_agency.beginTransaction((err)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/temp2deposit'; throw err}
 
@@ -1223,10 +1226,10 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
       if(err1){ err1.whichApi= 'temp2receivable: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       //journal_bookに登録
-      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
       const motocho = 'temp2receivable' + moment().format('YYYY-MM-DD-HHmmss')
       const val2 = [
-        [motocho, '仮受金', receivable, '売掛金', receivable, customerId]  //売掛金 仮受金
+        [motocho, '仮受金', receivable, '売掛金', receivable, memo, customerId]  //売掛金 仮受金
       ]
         db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
           if(err2){ err2.whichApi= 'temp2receiveable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
