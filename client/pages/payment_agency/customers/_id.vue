@@ -674,6 +674,7 @@
                     <v-tab>仮受金→預り金</v-tab>
                     <v-tab>仮受金→売掛金</v-tab>
                     <v-tab><span class="red--text">売掛金→仮受金</span></v-tab>
+                    <v-tab>仮受金→本人返金</v-tab>
                 </v-tabs>
                 <v-tabs-items v-model="editTemporaryDialogTabs">
                     <v-tab-item>
@@ -758,6 +759,33 @@
                             </v-card-actions>
                         </v-card>
                     </v-tab-item>
+                    <!-- 仮受金→本人返金 -->
+                    <v-tab-item>
+                        <v-card>
+                            <v-card-title><span>仮受金→本人返金</span></v-card-title>
+                            <v-card-subtitle>
+                                仮受金残り：{{Number(customer.temporary_receipt) - Number(refund.amount)}}
+                                <strong class="red">※実際の返金処理は手動で必要です。※</strong>
+                            </v-card-subtitle>
+                            <v-card-text>
+                            <v-row>
+                                <v-col>
+                                    <v-text-field label="返金額" type="number" suffix=" 円" v-model="refund.amount"></v-text-field>
+                                    <v-text-field label="出金日" type="date" suffix=" 円" v-model="refund.date"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col>
+                                    <v-text-field label="仕訳メモ" v-model="refund.memo"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn v-show="isAdmin" @click="doRefund">編集</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-tab-item>
                 </v-tabs-items>
             </v-card>
         </v-dialog>
@@ -818,6 +846,9 @@ export default {
             editedAdvancePaymentValue:0,
             editedAdvancePaymentMemo:'',
             //////////
+            /////仮受金
+            refund:{amount:0,date:'',memo:''},
+            //////////////////////////
             targetText:'',
             activePicker:false,
             startDate:'',
@@ -1323,7 +1354,23 @@ export default {
                 this.editedTemporaryValues.accounts_receivable = this.customer.accounts_receivable
             }
         },
-        ////////////////////////////////////////////////////////////////////
+        doRefund(){
+            const doNot = !confirm('編集しますか？')
+            if(doNot){ return }
+            const data = {amount:this.refund.amount,memo:this.refund.memo,customerId:this.customerId,date:this.refund.date+' 00:00:00'}
+            this.$axios.post('api/payment_agency/customer/refund',data)
+            .then(response=>{
+                if(response.data.error){
+                    this.popupSnackBar('失敗しました。','warning')
+                    alert(response.data.message)
+                    return
+                    }
+                this.popupSnackBar(response.data)
+                this.refreshCustomer()
+                this.editTemporaryDialog = false
+            })
+        },
+        ///////仮受金の話はここまで/////////////////////////////////////////////////////////////
         saveCis(e){
             console.log(e)
             const doNot = !confirm('編集しますか？')

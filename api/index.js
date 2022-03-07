@@ -1499,6 +1499,39 @@ app.post('/payment_agency/customer/editedAdvancePayment',(req,res)=>{
   })
 })
 
+//お客さんへの返金処理。
+app.post('/payment_agency/customer/refund',(req,res)=>{
+  console.log('POST /payment_agency/customer/refund')
+  console.log('req.body:',req.body)
+  const amount = req.body.amount
+  const date = req.body.date
+  db_payment_agency.beginTransaction(err=>{
+    if(err){throw err}
+
+    //出金額を仮受金から減らす。
+    const sql1 = 'UPDATE customers SET temporary_receipt = temporary_receipt - ? WHERE customer_id = ?'
+    const values1 = [amount, req.body.customerId]
+    db_payment_agency.query(sql1,values1,(err1,rows1,fields1)=>{
+      if(err1){ err1.whichApi= 'customer/refund: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+
+      //仕訳データ入力
+      const sql2 = 'INSERT INTO journal_book (date, motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES (?);'
+      const motocho = '返金'+req.body.customerId
+      const values2 = [date, motocho,'仮受金', amount, '預金', amount, req.body.memo, req.body.customerId]
+      console.log(sql2)
+      db_payment_agency.query(sql2,[values2],(err2,rows2,fields2)=>{
+        if(err2){ err2.whichApi= 'customer/refund: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+
+        db_payment_agency.commit((err0)=>{
+          if(err0){err0.whichApi= 'customer/refund: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
+          logger.log('返金処理 refund>',req.body)
+          console.log('返金処理 refund>',req.body)
+          res.send('返金の処理おわりました。')
+        })
+})
+    })
+  })
+})
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
