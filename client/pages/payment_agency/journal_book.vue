@@ -19,7 +19,40 @@
                 :headers="journalBookHeaders"
                 :search="filter"
                 >
+                            <template v-slot:item.memo="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialogMemo"
+                                    large
+                                    @save="saveMemo(item)"
+                                    :return-value.sync="item.memo"
+                                >   
+                                    {{item.memo}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            v-model="item.memo"
+                                            label="メモ"
+                                            single-line
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
                 </v-data-table>
+                        <v-snackbar
+                          v-model="snack"
+                          :timeout="3000"
+                          :color="snackColor"
+                        >
+                          {{ snackText }}
+                          <template v-slot:action="{ attrs }">
+                            <v-btn
+                              v-bind="attrs"
+                              text
+                              @click="snack = false"
+                            >
+                              Close
+                            </v-btn>
+                          </template>
+                        </v-snackbar>
             </v-col>
         </v-row>
     </v-container>
@@ -34,6 +67,10 @@ export default {
         return{
             journalBook:[],
             filter:'',
+            editDialogMemo:false,
+            snack:true,
+            snackColor:'sucess',
+            snackText:'',
             journalBookHeaders:[
                 { text:'元帳',  value:'motocho'},
                 { text:'日付',  value:'date'},
@@ -68,6 +105,29 @@ export default {
             let exportText = json2csvParser.parse(this.journalBook)
             const link = createDownloadATag(exportText)
             link.click()
+        },
+        saveMemo(e){
+        console.log(e)
+        e.options = Object.keys(e)[0]
+        const doNot = !confirm('編集しますか？')
+        if(doNot){ return }
+        this.$axios.put('api/payment_agency/journal_book',e)
+        .then(response=>{
+            if(response.data.error){
+                console.log(response.data)
+                alert(response.data.message)
+                this.popupSnackBar('失敗しました。','warning')
+            }
+            console.log(response.data)
+            this.popupSnackBar(response.data)
+            })
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
         },
         search(){
 
