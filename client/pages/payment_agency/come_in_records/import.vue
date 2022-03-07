@@ -192,7 +192,7 @@ export default {
         match(importDate,insertIds){
             console.log(importDate)
             console.log(insertIds)
-            this.$axios.post('api/payment_agency/matching',{insertIds:insertIds,baseDate:importDate})
+            this.$axios.post('api/payment_agency/matching',{insertIds:insertIds,baseDate:importDate,bank:this.fileInfo.bankName})
             .then(response=>{
                 console.log(response)
                 if(response.data.error){

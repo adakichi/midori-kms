@@ -469,6 +469,7 @@ app.post('/payment_agency/matching',(req,res)=>{
   console.log('\n--- post payment_agency/matching ----')
   const baseDate = req.body.baseDate
   const fileIds = req.body.insertIds
+  const bank = req.body.bank
   const until   = moment(baseDate).add(27,'days').format('YYYY-MM-DD')
   let getCirSql = 'SELECT come_in_records_id, customer_id, come_in_name, actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id, file_row_number FROM come_in_records WHERE come_in_records_id IN (?);'
   const getCisSql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis INNER JOIN customers on cis.customer_id = customers.customer_id WHERE cis.payment_day <= "' + until + '" AND cis.come_in_records_id is null ORDER BY payment_day;'
@@ -493,7 +494,7 @@ app.post('/payment_agency/matching',(req,res)=>{
       console.log('\n\nmatchedArray count:',matchedArray.length,'\nmatchedArray:',matchedArray)
       //マッチング処理された配列でDB登録処理
       Promise.all(matchedArray.map(arr=>{
-        return matchingTransaction(arr)
+        return matchingTransaction(arr,bank)
       })).then((response)=>{
         console.log(response)
         logger.log('pa matching:',response)
@@ -507,12 +508,20 @@ app.post('/payment_agency/matching',(req,res)=>{
 app.put('/payment_agency/matching',(req,res)=>{
   console.log('\n---put pg matching ---')
   console.log('req.body.length:',req.body.length)
-  Promise.all(req.body.map(arr=>{
-    return matchingTransaction(arr)
-  })).then((response)=>{
-    console.log('promise all result response:',response)
-    logger.log('pa matching:',response)
-    res.send(resObject(response))
+  //銀行名取得の為importfile検索
+  const fileId = req.body.cir.importfile_id
+  const sql = 'SELECT bankname FROM importfile_for_come_in_records WHERE importfile_id = ?;'
+  db_payment_agency.query(sql,fileId,(err,rows,fields)=>{
+    if(err){ throw err }
+    console.log('rows:',rows)
+    const bank = rows[0]
+    Promise.all(req.body.map(arr=>{
+      return matchingTransaction(arr,bank)
+    })).then((response)=>{
+      console.log('promise all result response:',response)
+      logger.log('pa matching:',response)
+      res.send(resObject(response))
+    })  
   })
 })
 
@@ -531,7 +540,7 @@ app.put('/payment_agency/matching',(req,res)=>{
 
   ////////////////////////////////////////////
   //繰り返し用のSQLのFunction
-  const matchingTransaction = function(data){
+  const matchingTransaction = function(data,bank){
     console.log('func matchingTransaction')
     //1.cis　登録
     //2.cir　登録
@@ -674,7 +683,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   }
                   console.log('rows7:',rows7)
                   //3. journal book に仕分を登録
-                  const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId)
+                  const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId,bank)
                   console.log('sql:',journalBookData.sql,'value:',journalBookData.values)
                   db_payment_agency.query(journalBookData.sql,[journalBookData.values],(err8,rows8,fields8)=>{
                     if(err8){
@@ -723,7 +732,7 @@ app.put('/payment_agency/matching',(req,res)=>{
     }
   }
   //関数２）journal bookへの登録
-  function convPostJournalBook(cirId,valuesArray, customerId){
+  function convPostJournalBook(cirId,valuesArray, customerId,bank){
     //(valuesArray)updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
 
     const motocho = 'cir'+ cirId
@@ -732,22 +741,22 @@ app.put('/payment_agency/matching',(req,res)=>{
     console.log('valuesArray:',valuesArray)
     //売掛金 accounts_receivableInsertValue
     if(valuesArray[0] > 0){
-      postJournalVals.push([motocho, '預金', valuesArray[0], '売掛金', valuesArray[0], customerId])
+      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[0], '売掛金', valuesArray[0], customerId])
     }
 
     //預り金 depositInsertValue
     if(valuesArray[1] > 0){
-      postJournalVals.push([motocho, '預金', valuesArray[1], '預り金', valuesArray[1], customerId])
+      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[1], '預り金', valuesArray[1], customerId])
     }
 
     //前受金 advancePaymentInsertValue
     if(valuesArray[2] > 0){
-      postJournalVals.push([motocho, '預金', valuesArray[2], '前受金', valuesArray[2], customerId])
+      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[2], '前受金', valuesArray[2], customerId])
     }
 
     //仮受金 temporaryReceiptInsertValue
     if(valuesArray[3] > 0){
-      postJournalVals.push([motocho, '預金', valuesArray[3], '仮受金', valuesArray[3], customerId])
+      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[3], '仮受金', valuesArray[3], customerId])
     }
     return {sql:sql,values:postJournalVals}
   }

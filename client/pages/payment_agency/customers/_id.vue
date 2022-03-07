@@ -848,8 +848,8 @@ export default {
             editedAdvancePaymentMemo:'',
             //////////
             /////仮受金
-            refund:{amount:0,date:moment().format('YYYY-MM-DD'),memo:'',bank:'三井住友'},
-            refundAccounts:['三井住友','四国','ペイペイ'],
+            refund:{amount:0,date:moment().format('YYYY-MM-DD'),memo:'',bank:'ﾐﾂｲｽﾐﾄﾓ'},
+            refundAccounts:['ﾐﾂｲｽﾐﾄﾓ','四国','ペイペイ'],
             //////////////////////////
             targetText:'',
             activePicker:false,
