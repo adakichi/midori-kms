@@ -770,6 +770,7 @@
                             <v-card-text>
                             <v-row>
                                 <v-col>
+                                    <v-select label="出金銀行" v-model="refund.bank" :items="refundAccounts"></v-select>
                                     <v-text-field label="返金額" type="number" suffix=" 円" v-model="refund.amount"></v-text-field>
                                     <v-text-field label="出金日" type="date" suffix=" 円" v-model="refund.date"></v-text-field>
                                 </v-col>
@@ -847,7 +848,8 @@ export default {
             editedAdvancePaymentMemo:'',
             //////////
             /////仮受金
-            refund:{amount:0,date:'',memo:''},
+            refund:{amount:0,date:moment().format('YYYY-MM-DD'),memo:'',bank:'三井住友'},
+            refundAccounts:['三井住友','四国','ペイペイ'],
             //////////////////////////
             targetText:'',
             activePicker:false,
@@ -1357,7 +1359,7 @@ export default {
         doRefund(){
             const doNot = !confirm('編集しますか？')
             if(doNot){ return }
-            const data = {amount:this.refund.amount,memo:this.refund.memo,customerId:this.customerId,date:this.refund.date+' 00:00:00'}
+            const data = {amount:this.refund.amount,memo:this.refund.memo,customerId:this.customerId,date:this.refund.date+' 00:00:00',bank:this.refund.bank}
             this.$axios.post('api/payment_agency/customer/refund',data)
             .then(response=>{
                 if(response.data.error){
