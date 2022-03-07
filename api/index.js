@@ -1719,7 +1719,7 @@ function createJournalArray(editedScheduleObject){
   const motocho = 'ps' + editedScheduleObject.payment_schedule_id
   const advancePayment = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1) + (parseInt(editedScheduleObject.commission,10) * 1.1)
   let journalArray = []
-  journalArray.push([ motocho, '預り金', editedScheduleObject.amount, '預金', editedScheduleObject.amount, editedScheduleObject.customer_id])
+  journalArray.push([ motocho, '預り金', editedScheduleObject.amount, '預金[ﾍﾟｲﾍﾟｲ]', editedScheduleObject.amount, editedScheduleObject.customer_id])
   journalArray.push([ motocho, '前受金', advancePayment, '売上', advancePayment, editedScheduleObject.customer_id ])
   return journalArray
 }
