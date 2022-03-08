@@ -419,6 +419,8 @@
                     <v-col>
                         <v-app-bar>
                             <v-btn @click="deleteAllPs">予定削除</v-btn>
+                            <v-spacer></v-spacer>
+                            予定：残債務{{sumPaymentSchedules.sumAmount}}　予定：手数料{{sumPaymentSchedules.sumAdvisoryFee+sumPaymentSchedules.sumCommission}}
                         </v-app-bar>
                         <v-data-table
                         v-model="selectedPs"
@@ -444,6 +446,7 @@
                         <v-app-bar>
                             <v-btn @click="registerComeInRecordsDialog = true">入金予定登録</v-btn>
                             <v-btn @click="deleteAllCis">予定一括削除登録</v-btn>
+                            <v-spacer></v-spacer>入金予定合計：{{sumCis}}
                             <div>
                                 <v-dialog v-model="registerComeInRecordsDialog">
                                 <v-card>
@@ -455,7 +458,9 @@
                                             <v-col>
                                                 <v-row>
                                                 <v-col>
-                                                    必要総額{{sumPaymentSchedules.sumTotal}}<br>
+                                                    {{sumPaymentSchedules}}
+                                                    {{Number(customer.accounts_receivable) - (Number(customer.deposit) + Number(customer.advance_payment) + Number(customer.temporary_receipt))}}
+                                                    必要総額{{Number(sumPaymentSchedules.sumTotal) + Number(customer.accounts_receivable) - (Number(customer.deposit) + Number(customer.advance_payment) + Number(customer.temporary_receipt))}}<br>
                                                     月額ベース：{{sumPaymentSchedules.sumTotal / newSchedule.amount}}回<br>
                                                     回数ベース：{{sumPaymentSchedules.sumTotal / newSchedule.repeat_count}}円
                                                 </v-col>
@@ -617,6 +622,23 @@
                         </v-col>
                         <v-col>
                             <v-text-field label="仮受金" suffix=" 円" :value="customer.temporary_receipt" @click="openEditTemporaryDialog"></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
+                            <v-text-field label="入金予定金額合計" disabled suffix=" 円" :value="sumCis" ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="予定：必要金額" disabled suffix=" 円" :value="(sumPaymentSchedules.sumTotal+sumPaymentSchedules.sumAdvisoryFee+sumPaymentSchedules.sumCommission)" ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="予定：残債務額合計" disabled suffix=" 円" :value="sumPaymentSchedules.sumTotal" ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="予定：手数料金額(税込)合計" disabled suffix=" 円" :value="sumPaymentSchedules.sumCommission" ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field label="予定：顧問料(税込)合計" disabled suffix=" 円" :value="sumPaymentSchedules.sumAdvisoryFee" ></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -928,10 +950,12 @@ export default {
                 {text:'金額',   value:'amount'},
             ],
             paymentSchedulesHeaders:[
-                {text:'date',   value:'date'},
+                {text:'date',     value:'date'},
                 {text:'実入金日', value:'paid_date'},
-                {text:'債権者', value:'creditor_name'},
-                {text:'金額',   value:'amount'}
+                {text:'債権者',   value:'creditor_name'},
+                {text:'金額',     value:'amount'},
+                {text:'顧問料',   value:'advisory_fee'},
+                {text:'手数料',   value:'commission'},
             ],
 
             //入金予定の部分用
@@ -941,6 +965,7 @@ export default {
                 due_date:'末日',
                 amount:1000
             },
+            sumCis:0,
             customerCisHeaders:[
                 {text:'予定日',         value:'payment_day'},
                 {text:'実入金日',       value:'actual_deposit_date'},
@@ -1012,8 +1037,8 @@ export default {
                     if(item.expected_date === null){
                         item.isSelectable = true
                         sumAmount      += item.amount
-                        sumAdvisoryFee += item.advisory_fee
-                        sumCommission  += item.commission
+                        sumAdvisoryFee += item.advisory_fee * 1.1
+                        sumCommission  += item.commission * 1.1
                     } else {
                         item.isSelectable = false
                     }
@@ -1033,6 +1058,7 @@ export default {
                 const filterd = cis.map(item=>{
                     if(item.come_in_records_id === null){
                         item.isSelectable = true
+                        this.sumCis += Number(item.expected_amount)
                     } else {
                         item.isSelectable = false
                     }
@@ -1166,9 +1192,10 @@ export default {
 
         //支払い予定の作成
         postNewScheduleAuto(){
+            const total = this.sumPaymentSchedules.sumTotal + Number(this.customer.accounts_receivable) - (Number(this.customer.deposit) + Number(this.customer.advance_payment) + Number(this.customer.temporary_receipt))
             const monthly  = this.newSchedule.amount
-            const number   = Math.ceil(this.sumPaymentSchedules.sumTotal / monthly)
-            const fraction = this.sumPaymentSchedules.sumTotal % monthly
+            const number   = Math.ceil(total / monthly)
+            const fraction = total % monthly
             if(number > 120){ return this.popupSnackBar('Error!! 自動で一度に立てられるのは120回までです!!','warning')}
             const doNot = !confirm('毎月 ' + monthly + '円を　'+(number - 1)+'回\n最後に端数'+fraction+'円の\n合計' + number + '回で予定を立てますか？')
             if(doNot){ return this.popupSnackBar('キャンセルしました。','warning')}
@@ -1207,7 +1234,7 @@ export default {
             .then((response)=>{
                 if(response.data.error){return alert(response.data.message)}
                 this.registerComeInRecordsDialog = false
-                this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+                this.getCustomerCis()
                 this.popupSnackBar('登録しました')
             })
                 ///////////ここまで///////////////
@@ -1242,7 +1269,7 @@ export default {
             .then((response)=>{
                 if(response.data.error){return alert(response.data.message)}
                 this.registerComeInRecordsDialog = false
-                this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+                this.getCustomerCis()
                 this.popupSnackBar('登録しました')
             })
         },
