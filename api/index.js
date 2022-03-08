@@ -507,20 +507,21 @@ app.post('/payment_agency/matching',(req,res)=>{
 //CIS と CIRのマッチング処理
 app.put('/payment_agency/matching',(req,res)=>{
   console.log('\n---put pg matching ---')
-  console.log('req.body.length:',req.body.length)
   //銀行名取得の為importfile検索
-  const fileId = req.body.cir.importfile_id
+  console.log('req body:',req.body[0].cir.importfile_id)
+  const fileId = req.body[0].cir.importfile_id
   const sql = 'SELECT bankname FROM importfile_for_come_in_records WHERE importfile_id = ?;'
   db_payment_agency.query(sql,fileId,(err,rows,fields)=>{
     if(err){ throw err }
-    console.log('rows:',rows)
-    const bank = rows[0]
+    const rows2Json = JSON.parse(JSON.stringify(rows[0]))
+    console.log('rows:',rows2Json.bankname)
+    const bank = rows2Json.bankname
     Promise.all(req.body.map(arr=>{
       return matchingTransaction(arr,bank)
     })).then((response)=>{
       console.log('promise all result response:',response)
       logger.log('pa matching:',response)
-      res.send(resObject(response))
+      res.send('紐づけしました。')
     })  
   })
 })

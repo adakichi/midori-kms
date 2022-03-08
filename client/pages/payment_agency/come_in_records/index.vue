@@ -103,6 +103,22 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+                        <v-snackbar
+                          v-model="snack"
+                          :timeout="3000"
+                          :color="snackColor"
+                        >
+                          {{ snackText }}
+                          <template v-slot:action="{ attrs }">
+                            <v-btn
+                              v-bind="attrs"
+                              text
+                              @click="snack = false"
+                            >
+                              Close
+                            </v-btn>
+                          </template>
+                        </v-snackbar>
     </v-container>
 </template>
 
@@ -128,6 +144,12 @@ export default {
             //入金or未入金or両方
             radioPaid:'false',
             //
+            //snackBar
+            snack:true,
+            snackColor:'sucess',
+            snackText:'',
+            ////▲▲▲▲▲▲▲▲▲▲▲▲▲//////
+
             deleteFlag:'false',
             headers:[
                 { text:'action',                value:'action'},
@@ -219,11 +241,13 @@ export default {
                 ]
                 this.$axios.put('api/payment_agency/matching',matched)
                 .then((response)=>{
-                    console.log('response: ',response.data)
-                    this.selectItem = {}
+                    if(response.data.error){ console.log('true');return alert(response.data.message)}
+                    this.selectItem = []
                     this.dialog = false
+                    this.searchResult = []
                     this.selectedSearchResult = []
                     this.upda()
+                    this.popupSnackBar(response.data)
                 })
             }
         },
@@ -235,7 +259,14 @@ export default {
                     this.selected = []
                     this.upda()
                 })
-        }
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
+        },
     },  
     created(){
         this.upda()
