@@ -133,7 +133,7 @@ export const sqls = {
     console.log('get payment~ options:',options)
     let from = ''
     let until = ''
-    let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
+    let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, cis.memo, '
         sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis '
         sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
 
