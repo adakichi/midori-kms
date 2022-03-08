@@ -449,27 +449,38 @@
                                 <v-card>
                                     <v-card-text>
                                         <v-row>
-                                            <v-col col="6" xs="6" md="12" lg="12">
+                                            <v-col col="6" xs="6">
                                                 <v-date-picker v-model="newSchedule.payment_day"></v-date-picker>
                                             </v-col>
-                                        </v-row>
-                                        <v-row>
-                                            <v-col col="12" xs="12" md="12" lg="12">
-                                                <v-text-field v-model="newSchedule.amount" type="number" label="金額" suffix="　円"></v-text-field>
-                                            </v-col>
-                                            <v-col col="12" xs="12" md="12" lg="12">
-                                                <v-text-field v-model="newSchedule.repeat_count" type="number" label="繰り返し" suffix="　回"></v-text-field>
-                                            </v-col>
-                                            <v-col col="12" xs="12" md="12" lg="12">
-                                                <v-select
-                                                v-model="newSchedule.due_date"
-                                                label="支払日"
-                                                :items="dueDate"
-                                                ></v-select>
+                                            <v-col>
+                                                <v-row>
+                                                <v-col>
+                                                    必要総額{{sumPaymentSchedules.sumTotal}}<br>
+                                                    月額ベース：{{sumPaymentSchedules.sumTotal / newSchedule.amount}}回<br>
+                                                    回数ベース：{{sumPaymentSchedules.sumTotal / newSchedule.repeat_count}}円
+                                                </v-col>
+                                                </v-row>
+                                                <v-row>
+                                                <v-col col="12" xs="12" md="12" lg="12">
+                                                    <v-text-field v-model="newSchedule.amount" type="number" label="金額" suffix="　円"></v-text-field>
+                                                </v-col>
+                                                <v-col col="12" xs="12" md="12" lg="12">
+                                                    <v-text-field v-model="newSchedule.repeat_count" type="number" label="繰り返し" suffix="　回"></v-text-field>
+                                                </v-col>
+                                                <v-col col="12" xs="12" md="12" lg="12">
+                                                    <v-select
+                                                    v-model="newSchedule.due_date"
+                                                    label="支払日"
+                                                    :items="dueDate"
+                                                    ></v-select>
+                                                </v-col>
+                                                </v-row>
                                             </v-col>
                                         </v-row>
                                     </v-card-text>
                                     <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn @click="postNewScheduleAuto">自動登録</v-btn>
                                         <v-btn @click="postNewSchedule">登録</v-btn>
                                     </v-card-actions>
                                 </v-card>
@@ -812,6 +823,7 @@
 
 <script>
 const moment = require('moment')
+import {sumPs} from '/midori-kms/client/plugins/util.js'
 export default {
     layout : 'pa',
     data(){
@@ -820,6 +832,7 @@ export default {
             customer:{},
             customerCis:[],
             paymentSchedules:[],
+            sumPaymentSchedules:{},
             selectedPs:[],
             //dialog関係
             dialog:false,
@@ -926,7 +939,7 @@ export default {
                 payment_day:null,
                 repeat_count:1,
                 due_date:'末日',
-                amount:0
+                amount:1000
             },
             customerCisHeaders:[
                 {text:'予定日',         value:'payment_day'},
@@ -992,16 +1005,25 @@ export default {
             this.$axios.get('api/payment_agency/customer/payment_schedules',{params:{ id:this.customerId, from:null, until:null, isPaidDate:null, isExpectedDate:null }})
             .then(response=>{
                 const ps = response.data
+                let sumAmount     = 0
+                let sumAdvisoryFee = 0
+                let sumCommission  = 0
                 const filterd = ps.map(item=>{
                     if(item.expected_date === null){
                         item.isSelectable = true
+                        sumAmount      += item.amount
+                        sumAdvisoryFee += item.advisory_fee
+                        sumCommission  += item.commission
                     } else {
                         item.isSelectable = false
                     }
                     return item
                 })
+                console.log('sumamount',sumAmount)
+            this.sumPaymentSchedules = {sumAmount:sumAmount, sumAdvisoryFee:sumAdvisoryFee, sumCommission:sumCommission,sumTotal:sumAmount+sumAdvisoryFee+sumCommission}
             this.paymentSchedules = filterd
             })
+
         },
         getCustomerCis(){
             //select可能かどうかのpropsを追加して返す。
@@ -1143,8 +1165,56 @@ export default {
         },
 
         //支払い予定の作成
+        postNewScheduleAuto(){
+            const monthly  = this.newSchedule.amount
+            const number   = Math.ceil(this.sumPaymentSchedules.sumTotal / monthly)
+            const fraction = this.sumPaymentSchedules.sumTotal % monthly
+            if(number > 120){ return this.popupSnackBar('Error!! 自動で一度に立てられるのは120回までです!!','warning')}
+            const doNot = !confirm('毎月 ' + monthly + '円を　'+(number - 1)+'回\n最後に端数'+fraction+'円の\n合計' + number + '回で予定を立てますか？')
+            if(doNot){ return this.popupSnackBar('キャンセルしました。','warning')}
+                this.newSchedule = {amount:monthly,repeat_count:number,payment_day:this.newSchedule.payment_day,due_date:this.newSchedule.due_date}
+                
+                //ここからはpostNewScheduleをコピー
+            const newSchedule = this.newSchedule
+            if(newSchedule.payment_day === null){ return this.popupSnackBar('日付が選択されてません！','warning')}
+            //予定を回数分作る
+            let schedules =[{
+                id:this.customer.customer_id,
+                amount:newSchedule.amount,
+                date:moment(newSchedule.payment_day).format('YYYY/MM/DD')
+            }]
+            const duedate = newSchedule.due_date === '末日'? 31 : newSchedule.due_date
+            let baseDate = moment(newSchedule.payment_day)
+            const year = baseDate.year()
+            const month = baseDate.month()+1
+            console.log(schedules)
+            let nextDate = moment(year+'/'+month+'/'+duedate).format('YYYY/MM/DD')
+            for(let i = 2; i <= newSchedule.repeat_count; i++){
+                nextDate = moment(baseDate).add(i-1,'month').format('YYYY/MM/DD')
+                schedules.push(
+                    {
+                        id:this.customer.customer_id,
+                        amount:newSchedule.amount,
+                        date:nextDate
+                    }
+                )
+            }
+            //autoの処理として最終回の支払い金額を端数に変更する。
+            schedules[schedules.length-1].amount = fraction
+            /////////////
+            console.log(schedules)
+            this.$axios.post('/api/payment_agency/customer/cis',schedules)
+            .then((response)=>{
+                if(response.data.error){return alert(response.data.message)}
+                this.registerComeInRecordsDialog = false
+                this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
+                this.popupSnackBar('登録しました')
+            })
+                ///////////ここまで///////////////
+        },
         postNewSchedule(){
             const newSchedule = this.newSchedule
+            if(newSchedule.payment_day === null){ return this.popupSnackBar('日付が選択されてません！','warning')}
             //予定を回数分作る
             let schedules =[{
                 id:this.customer.customer_id,
@@ -1173,7 +1243,7 @@ export default {
                 if(response.data.error){return alert(response.data.message)}
                 this.registerComeInRecordsDialog = false
                 this.$store.dispatch('pa/getDbCustomerCis',this.customer.customer_id)
-                alert('登録されました。')
+                this.popupSnackBar('登録しました')
             })
         },
         /////////売掛金編集ダイアログ関係///////////////////////////////////////

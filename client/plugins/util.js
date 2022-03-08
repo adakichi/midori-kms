@@ -288,6 +288,23 @@ function forwardingAddress (division){
     return {from: from, to: toRoomId}
 }
 
+//id_vueで、積立設定の際に必要な残り金額の計算
+const sumPs = function(ps){
+    let sumAmount     = 0
+    let sumAdvisoryFee = 0
+    let sumCommission  = 0
+    ps.forEach(ele=>{
+        //isSelecetable がTrueってことはまだ出金していないってこと。
+        console.log('ele',ele)
+        if(ele.isSelectable){
+            sumAmount     += ele.amount
+            sumAdvisoryFee += ele.advisory_fee
+            sumCommission  += ele.commission
+        }
+    })
+    return {sumAmount:sumAmount, sumAdvisoryFee:sumAdvisoryFee, sumCommission:sumCommission,sumTotal:Number(sumPaymentSchedules.sumAmount) + Number(sumPaymentSchedules.sumAdvisoryFee) + Number(sumPaymentSchedules.sumCommission)}
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -424,6 +441,7 @@ export {
     getIdsFromPaymentSchedules,
     judgePay,
     forwardingAddress,
+    sumPs,
     ////////////////////
     zenkana2BigHankana,
     zenkana2Hankana,   
