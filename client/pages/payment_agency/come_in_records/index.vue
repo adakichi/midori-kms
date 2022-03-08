@@ -169,7 +169,8 @@ export default {
                 { text:'LU',                value:'lu_id'},
                 { text:'payment_day',       value:'payment_day'},
                 { text:'expected_amount',   value:'expected_amount'},
-                { text:'come_in_records_id', value:'come_in_records_id'}
+                { text:'come_in_records_id', value:'come_in_records_id'},
+                { text:'メモ',               value:'memo'},
             ]
         }
     },
