@@ -290,10 +290,11 @@
                                         総額：{{settle.total_amount}}円
                                         月額：{{settle.monthly_amount}}円
                                         初回：{{settle.first_amount}}
+                                        初回支払い:{{settle.start_date}}
                                         毎月：{{settle.monthly_payment_due_date}}
                                         回数：{{settle.number_of_payments}}回
                                         懈怠設定：{{settle.type_of_delay}}
-                                        懈怠利率：{{settle.delayed_interest_rate}}
+                                        懈怠利率：{{settle.delayed_interest_rate}} %
                                     </v-col>
                                     <v-col>
                                         <v-btn @click="createPaymentSchedules(index)">予定作成</v-btn>
@@ -422,12 +423,21 @@
                             <v-spacer></v-spacer>
                             予定：残債務{{sumPaymentSchedules.sumAmount}}　予定：手数料{{sumPaymentSchedules.sumAdvisoryFee+sumPaymentSchedules.sumCommission}}
                         </v-app-bar>
+                        <v-app-bar>
+                            <v-text-field
+                            v-model="filterPs"
+                            label="フィルター"
+                            class="mx-4"
+                            >
+                        </v-text-field>
+                        </v-app-bar>
                         <v-data-table
                         v-model="selectedPs"
                         :headers="paymentSchedulesHeaders"
                         :items="paymentSchedules"
                         item-key="payment_schedule_id"
                         :items-per-page="-1"
+                        :search="filterPs"
                         selectable-key="isSelectable"
                         show-select
                         show-group-by
@@ -949,6 +959,7 @@ export default {
                 {text:'日付',   value:'date'},
                 {text:'金額',   value:'amount'},
             ],
+            filterPs:'',    //出金予定のフィルター用検索文字列
             paymentSchedulesHeaders:[
                 {text:'date',     value:'date'},
                 {text:'実入金日', value:'paid_date'},
@@ -1084,6 +1095,7 @@ export default {
                 this.monthlyPaymentDueDate,
                 this.firstAmount,
                 this.startDate,
+                this.typeOfDelay,
                 this.delayedInterestRate,
                 this.irregular,
                 this.pension,
