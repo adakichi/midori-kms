@@ -446,7 +446,7 @@
                         <v-app-bar>
                             <v-btn @click="registerComeInRecordsDialog = true">入金予定登録</v-btn>
                             <v-btn @click="deleteAllCis">予定一括削除登録</v-btn>
-                            <v-spacer></v-spacer>入金予定合計：{{sumCis}}
+                            <v-spacer></v-spacer>入金予定合計：{{sumCis}}　入金回数{{cisCount.isNotSelectable}}/{{cisCount.isSelectable + cisCount.isNotSelectable}}
                             <div>
                                 <v-dialog v-model="registerComeInRecordsDialog">
                                 <v-card>
@@ -966,6 +966,7 @@ export default {
                 amount:1000
             },
             sumCis:0,
+            cisCount:{isSelectable:0,isNotSelectable:0},
             customerCisHeaders:[
                 {text:'予定日',         value:'payment_day'},
                 {text:'実入金日',       value:'actual_deposit_date'},
@@ -1055,15 +1056,19 @@ export default {
             this.$axios.get('api/payment_agency/customer/cis',{params:{id:this.customerId}})
             .then(response=>{
                 const cis = response.data
+                const count = {isSelectable:0,isNotSelectable:0}
                 const filterd = cis.map(item=>{
                     if(item.come_in_records_id === null){
                         item.isSelectable = true
                         this.sumCis += Number(item.expected_amount)
+                        count.isSelectable++
                     } else {
                         item.isSelectable = false
+                        count.isNotSelectable++
                     }
                     return item
                 })
+            this.cisCount = count
             this.customerCis = filterd
             })
         },
