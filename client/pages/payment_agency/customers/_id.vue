@@ -629,10 +629,10 @@
                             <v-text-field label="入金予定金額合計" disabled suffix=" 円" :value="sumCis" ></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="予定：必要金額" disabled suffix=" 円" :value="(sumPaymentSchedules.sumTotal+sumPaymentSchedules.sumAdvisoryFee+sumPaymentSchedules.sumCommission)" ></v-text-field>
+                            <v-text-field label="予定：必要金額" disabled suffix=" 円" :value="(sumPaymentSchedules.sumTotal)" ></v-text-field>
                         </v-col>
                         <v-col>
-                            <v-text-field label="予定：残債務額合計" disabled suffix=" 円" :value="sumPaymentSchedules.sumTotal" ></v-text-field>
+                            <v-text-field label="予定：残債務額合計" disabled suffix=" 円" :value="sumPaymentSchedules.sumAmount" ></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field label="予定：手数料金額(税込)合計" disabled suffix=" 円" :value="sumPaymentSchedules.sumCommission" ></v-text-field>
