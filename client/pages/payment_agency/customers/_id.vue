@@ -239,29 +239,34 @@
                             <v-container>
                                 <v-row>
                                     <v-col>
-                                        <v-select v-model="bankname" item-text="bankname" item-value="bankcode" :items="accounts" label="銀行名"></v-select>
-                                    </v-col>
-                                    <v-col>
-                                        <v-select v-model="bankcode" item-text="bankcode" item-value="bankcode" :items="accounts" label="銀行コード"></v-select>
+                                        <v-select v-model="selectedAccount" return-object item-text="selectItem" item-value="selectItem" :items="accounts" label="セレクトアイテム"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-select v-model="branchname" item-text="branchname" item-value="branchcode" :items="accounts" label="支店名"></v-select>
+                                        <v-text-field disabled v-model="selectedAccount.bankname" label="銀行名"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-select v-model="branchcode" item-text="branchcode" item-value="branchcode" :items="accounts" label="支店コード"></v-select>
+                                        <v-text-field disabled v-model="selectedAccount.bankcode" label="銀行コード"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        <v-text-field disabled v-model="selectedAccount.branchname" label="支店名"></v-text-field>
+                                    </v-col>
+                                    <v-col>
+                                        <v-text-field disabled v-model="selectedAccount.branchcode" label="支店コード"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col md="2" lg="2">
-                                        <v-select v-model="kind" :items="kinds" label="種別"></v-select>
+                                        <v-text-field disabled v-model="selectedAccount.kind" label="種別"></v-text-field>
                                     </v-col>
                                     <v-col md="4" lg="4">
                                         <v-text-field v-model="accountNumber" label="口座番号"></v-text-field>
                                     </v-col>
                                     <v-col md="6" lg="6">
-                                        <v-text-field v-model="accountHolder" label="口座名義"></v-text-field>
+                                        <v-text-field disabled v-model="selectedAccount.account_holder" label="口座名義"></v-text-field>
                                     </v-col>
                                 </v-row>
                             </v-container>
@@ -939,11 +944,11 @@ export default {
             //items
             dueDate:['末日',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
             banks:[],
-            kinds:['普通','当座'],
             summer:[4,5,6,7,8,9],
             winter:[10,11,12,1,2,3],
             typeOfDelayArray:['2回','2回分','1回','1回分','3回','3回分','その他'],
             pensionValues:['偶数','奇数',''],
+            selectedAccount:{},
             progressItems:['代行中(整理済み)','代行中(整理途中)','業務終了(全社完済)','業務終了(途中辞任)','業務終了(自己返済)'],
             //snack bar
             snack:'',
@@ -1002,11 +1007,18 @@ export default {
         creditors(){
             return this.$store.getters['getCreditors']
         },
+
+        //和解登録時の口座関係を良い感じに加工するやーつ。
         accounts(){
             const data = this.banks.filter((account)=>{
                 return account.creditor_id == this.creditor
             })
-            return data
+            const givenData = data.map((account)=>{
+                account.selectItem = account.bankname + ':' + account.bankcode + ' / ' + account.branchname + ':' + account.branchcode + '/口座種別:' + account.kind + '/'+ account.account_holder
+                return account
+            })
+            console.log(givenData)
+            return givenData
         },
         contentsOfSettlements(){
             return this.$store.getters['pa/getContentsOfSettlements']
@@ -1105,11 +1117,11 @@ export default {
                 this.commission,
                 this.advisoryFee,
                 this.accountComment,
-                this.bankcode,
-                this.branchcode,
-                this.kind,
+                this.selectedAccount.bankcode,
+                this.selectedAccount.branchcode,
+                this.selectedAccount.kind,
                 this.accountNumber,
-                this.accountHolder,
+                this.selectedAccount.accountHolder,
                 this.summerBonusAmount,
                 this.summerBonusDate,
                 this.winterBonusAmount,
