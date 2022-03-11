@@ -68,9 +68,11 @@ export default {
             journalBook:[],
             filter:'',
             editDialogMemo:false,
+            //snackBar
             snack:true,
             snackColor:'sucess',
             snackText:'',
+            ////▲▲▲▲▲▲▲▲▲▲▲▲▲//////
             journalBookHeaders:[
                 { text:'元帳',  value:'motocho'},
                 { text:'日付',  value:'date'},
