@@ -972,6 +972,7 @@ export default {
                 {text:'金額',     value:'amount'},
                 {text:'顧問料',   value:'advisory_fee'},
                 {text:'手数料',   value:'commission'},
+                {text:'メモ',   value:'memo'}
             ],
 
             //入金予定の部分用
