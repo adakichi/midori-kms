@@ -246,8 +246,17 @@
                     </v-tab-item>
                     <v-tab-item>
                         <v-card>
-                            <v-card-title>編集履歴<v-spacer></v-spacer><v-btn>取得</v-btn></v-card-title>
-                            <v-card-text></v-card-text>
+                            <v-card-title>編集履歴<v-spacer></v-spacer><v-btn @click="getChaneLog">取得</v-btn></v-card-title>
+                            <v-card-subtitle>
+                                <v-text-field label="filter" v-model="changeLogSearchText"></v-text-field>
+                            </v-card-subtitle>
+                            <v-card-text>
+                                <v-data-table
+                                :items="changeLogs"
+                                :headers="changeLogHeaders"
+                                :search="changeLogSearchText"
+                                ></v-data-table>
+                            </v-card-text>
                         </v-card>
                     </v-tab-item>
                 </v-tabs-items>
@@ -278,6 +287,7 @@ export default {
             searchText:'',
             creditors:[],
             updateMemoDialog:false,
+            updateMemo:'',
             creditorsHeaders:[
                 {text:'名前',   value:'name'}
             ],
@@ -286,8 +296,17 @@ export default {
             //items ///////////////////////////
             okNg:['OK','NG'],
             interestString:['必要','不要','減率'],
-            contractCreater:['先方','みどり']
+            contractCreater:['先方','みどり'],
             /////////////////////////////
+
+            changeLogs:[],
+            changeLogSearchText:'',
+            changeLogHeaders:[
+                {text:'変更日', value:'date'},
+                {text:'変更日', value:'created_at'},
+                {text:'コメント',value:'memo'},
+                {text:'編集者',value:'editer'}
+            ]
         }
     },
     methods:{
@@ -295,7 +314,6 @@ export default {
             this.$axios.get('api/mkms/creditors')
             .then(response=>{
                 if(response.data.error){ return response.data.message }
-                console.log(response.data)
                 this.creditors = response.data
             })
         },
@@ -317,6 +335,13 @@ export default {
                 console.log(response.data)
                 this.updateMemo = ''
                 this.updateMemoDialog = false
+            })
+        },
+        getChaneLog(){
+            this.$axios.get('api/mkms/creditors/changeLog',{params:{id:this.selectedCreditor.id}})
+            .then(response=>{
+                if(response.data.error){ return alert(response.data.message)}
+                this.changeLogs = response.data
             })
         }
     },
