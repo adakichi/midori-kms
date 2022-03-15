@@ -222,7 +222,7 @@
                                             <v-text-field label="名前" :disabled="!isDisabled" outlined v-model="selectedCreditor.name"></v-text-field>
                                         </v-col>
                                         <v-col>
-                                            <v-text-field label="カナ" :disabled="!isDisabled" outlined v-model="selectedCreditor.kana"></v-text-field>
+                                            <v-text-field label="カナ" :disabled="!isDisabled" outlined v-model="selectedCreditor.name_kana"></v-text-field>
                                         </v-col>
                                     </v-row>
                                     <v-row>
