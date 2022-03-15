@@ -234,6 +234,9 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
+                                            <v-text-field label="郵便番号" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number"></v-text-field>
+                                        </v-col>
+                                        <v-col>
                                             <v-text-field label="住所" :disabled="!isDisabled" outlined v-model="selectedCreditor.address"></v-text-field>
                                         </v-col>
                                     </v-row>
