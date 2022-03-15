@@ -1999,8 +1999,8 @@ app.get('/creditors_accounts/',(req,res)=>{
 ///////////////////////////////////////////////////////////////////////
 
 //mkmsの債権者情報取得
-app.get('/creditors/mkms',(req,res)=>{
-  console.log('GET creditors/mkms')
+app.get('/mkms/creditors',(req,res)=>{
+  console.log('GET mkms/creditors')
   const sql = 'SELECT * FROM creditors'
   db_mkms.query(sql,(err,rows,fields)=>{
     if(err){err.whichApi= 'get /issues/'; throw err}
@@ -2008,6 +2008,33 @@ app.get('/creditors/mkms',(req,res)=>{
   })
 })
 
+app.put('/mkms/creditors/edit',(req,res)=>{
+  console.log('put mkms/creditors/edit')
+  const creditor = req.body.data
+  const memo = req.body.memo
+  const editer = req.body.editer
+  const sql1 = 'UPDATE creditors SET name = ?, name_kana = ?, caption = ?, old_name = ?, branch = ?, area = ?, accept = ?, survey_only = ?, survey_only_memo = ?, self_culculation = ?, caution = ?, phone_survey = ?, fax = ?, address = ?, survey_memo = ?, disclosure_period = ?, return_contract = ?,number = ?, can_wait = ?, accurued_interest = ?, future_interest = ?, minimum_payment = ?, contract_creator = ?, prescription_contract = ?, policy_memo_debt = ?, negotiation_memo_debt = ?, until_proposal = ?, maximum_proposal = ?, return_date = ?, policy_memo_overpayment = ?, negotiation_memo_overpayment = ?, contract_return = ?, trial_memo = ?, trial_maximum_proposal = ? WHERE id = ?;'
+  const values1 = [creditor.name, creditor.name_kana, creditor.caption, creditor.old_name, creditor.branch, creditor.area, creditor.accept, creditor.survey_only, creditor.survey_only_memo, creditor.self_culculation,creditor.caution, creditor.phone_survey,creditor.fax, creditor.address, creditor.survey_memo, creditor.disclosure_period, creditor.return_contract, creditor.number, creditor.can_wait, creditor.accurued_interest, creditor.future_interest, creditor.minimum_payment, creditor.contract_creator, creditor.prescription_contract, creditor.policy_memo_debt, creditor.negotiation_memo_debt, creditor.until_proposal, creditor.maximum_proposal, creditor.return_date, creditor.policy_memo_overpayment, creditor.negotiation_memo_overpayment, creditor.contract_return, creditor.trial_memo, creditor.trial_maximum_proposal, creditor.id]
+  db_mkms.beginTransaction((err)=>{
+    if(err){ console.log('err だよ');throw err }
+
+    db_mkms.query(sql1,values1,(err1,rows1,fields1)=>{
+      if(err1){ throw err1 }
+      console.log('->query1 done!')
+      const sql2 = 'INSERT INTO creditors_change_log (creditor_id, memo, editer) VALUES (?,?,?);'
+      const values2 = [creditor.id, memo, editer]
+      db_mkms.query(sql2,values2,(err2,rows2,field2)=>{
+        if(err2){ throw err2 }
+        db_mkms.commit(err0=>{
+          if(err0){throw err0}
+          logger.log('mkms/creditor ID:'+ creditor.id + '\n更新:' + memo)
+          console.log('mkms/creditor ID:'+ creditor.id + '\n更新:' + memo)
+          res.send('更新しました。')
+        })
+      })
+    })
+  })
+})
 
 
 //---- issuesのDB通信用 ----//
