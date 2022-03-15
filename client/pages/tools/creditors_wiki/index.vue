@@ -46,6 +46,7 @@
                                 <v-textarea label="概要" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption"></v-textarea>
                             </v-card-text>
                             <v-card-actions>
+                                <v-spacer></v-spacer>
                                 <v-btn @click="openUpdateDialog">編集ボタン</v-btn>
                             </v-card-actions>
                         </v-card>
@@ -215,7 +216,7 @@
                                 <v-container>
                                     <v-row>
                                         <v-col>
-                                            <v-text-field label="債権者ID" :disabled="!isDisabled" type="number" outlined v-model="selectedCreditor.id"></v-text-field>
+                                            <v-text-field label="SAIZO:ID" :disabled="!isDisabled" type="number" outlined v-model="selectedCreditor.saizo_id"></v-text-field>
                                         </v-col>
                                         <v-col>
                                             <v-text-field label="名前" :disabled="!isDisabled" outlined v-model="selectedCreditor.name"></v-text-field>
