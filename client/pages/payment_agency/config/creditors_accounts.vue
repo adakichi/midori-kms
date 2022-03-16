@@ -90,7 +90,7 @@ export default {
     },
     methods:{
         getAccounts(){
-            this.$axios.get('api/creditors_accounts')
+            this.$axios.get('api/payment_agency/creditors/accounts')
             .then(response=>{
                 if(response.data.error){ return response.data.message}
                 this.accounts = response.data
@@ -113,15 +113,20 @@ export default {
             this.newAccountDialog = true
         },
         registerNewAccount(){
-            const str = '債権者id:'+this.newAccount.creditor_id+'\n銀行名:'+this.newAccount.bankname+'\n銀行コード:'+this.newAccount.bankcode+'\n支店名:'+this.newAccount.branchname+'\n支店コード:'+this.branchcode+'\n口座種別:'+this.newAccount.kind
+            const str = '債権者id:'+this.newAccount.creditor_id+'\n銀行名:'+this.selectedBankAccount.bankname+'\n銀行コード:'+this.selectedBankAccount.bankcode+'\n支店名:'+this.selectedBankAccount.branchname+'\n支店コード:'+this.selectedBankAccount.branchcode+'\n口座種別:'+this.newAccount.kind
             const doNot = !confirm(str+'\nで登録してよろしいですか？')
             if(doNot){return this.registerOrupdate = true}
-            this.$axios.post('api/creditors/accounts')
+                this.newAccount.bankcode = this.selectedBankAccount.bankcode
+                this.newAccount.bankname = this.selectedBankAccount.bankname
+                this.newAccount.branchcode = this.selectedBankAccount.branchcode
+                this.newAccount.branchname = this.selectedBankAccount.branchname
+            this.$axios.post('api/payment_agency/creditors/accounts',this.newAccount)
                 .then(response=>{
                     if(response.data.error){ 
                         this.registerOrupdate = true
                         return response.data.message
                     }
+                    alert(response.data)
                     this.newAccountDialog = false
                     this.creditors = response.data
                     this.registerOrupdate = true
@@ -140,12 +145,17 @@ export default {
             const str = '債権者id:'+this.newAccount.creditor_id+'\n銀行名:'+this.newAccount.bankname+'\n銀行コード:'+this.newAccount.bankcode+'\n支店名:'+this.newAccount.branchname+'\n支店コード:'+this.branchcode+'\n口座種別:'+this.newAccount.kind
             const doNot = !confirm(str+'\nで更新してよろしいですか？')
             if(doNot){return this.registerOrupdate = true}
-            this.$axios.put('api/creditors/accounts')
+                this.newAccount.bankcode = this.selectedBankAccount.bankcode
+                this.newAccount.bankname = this.selectedBankAccount.bankname
+                this.newAccount.branchcode = this.selectedBankAccount.branchcode
+                this.newAccount.branchname = this.selectedBankAccount.branchname
+            this.$axios.put('api/payment_agency/creditors/accounts',this.newAccount)
                 .then(response=>{
                     if(response.data.error){ 
                         this.registerOrupdate = true
                         return response.data.message
                     }
+                    alert(response.data)
                     this.newAccountDialog = false
                     this.creditors = response.data
                     this.registerOrupdate = true

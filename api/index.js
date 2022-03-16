@@ -1995,7 +1995,7 @@ app.get('/creditors/',(req,res)=>{
 })
 
 //債権者の口座情報
-app.get('/creditors_accounts/',(req,res)=>{
+app.get('/payment_agency/creditors/accounts/',(req,res)=>{
   console.log('\n---- get creditors_accounts ----')
   const sql = 'select * from creditors_accounts'
   db_payment_agency.query(sql,(err,rows,fields)=>{
@@ -2006,11 +2006,11 @@ app.get('/creditors_accounts/',(req,res)=>{
 })
 
 //債権者の口座情報登録
-app.post('/creditors_accounts/',(req,res)=>{
+app.post('/payment_agency/creditors/accounts/',(req,res)=>{
   console.log('\n---- POST creditors_accounts ----')
   const data = req.body
   const sql = 'INSERT INTO creditors_accounts (creditor_id, bankname, bankcode, branchname, branchcode, kind, account_holder) VALUES (?,?,?,?,?,?,?);'
-  const val = [data.creditor_id, data.bankname,data,bankcode,data.branchname, data.branchcode, data.kind, data.account_holder]
+  const val = [data.creditor_id, data.bankname,data.bankcode,data.branchname, data.branchcode, data.kind, data.account_holder]
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
     if(err){ err.whichApi= 'POST creditors_accounts/' ;throw err}
     logger.log('post new Creditors_accounts ->',req.body)
@@ -2021,11 +2021,11 @@ app.post('/creditors_accounts/',(req,res)=>{
 
 
 //債権者の口座情報更新
-app.put('/creditors_accounts/',(req,res)=>{
+app.put('/payment_agency/creditors/accounts/',(req,res)=>{
   console.log('\n---- POST creditors_accounts ----')
   const data = req.body
   const sql = 'UPDATE creditors_accounts SET creditor_id = ?, bankname = ?, bankcode = ?, branchname = ?, branchcode = ?, kind = ?, account_holder = ? WHERE creditors_account_id = ?'
-  const val = [data.creditor_id, data.bankname,data,bankcode,data.branchname, data.branchcode, data.kind, data.account_holder, data.creditors_account_id]
+  const val = [data.creditor_id, data.bankname,data.bankcode,data.branchname, data.branchcode, data.kind, data.account_holder, data.creditors_account_id]
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
     if(err){ err.whichApi= 'POST creditors_accounts/' ;throw err}
     logger.log('post new Creditors_accounts ->',req.body)
