@@ -275,7 +275,8 @@
                         <v-divider></v-divider>
                         <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn @click="postNewAccount">登録</v-btn>
+                            <v-btn v-show="registerOrUpdate" @click="postNewAccount"   color="success">登録</v-btn>
+                            <v-btn v-show="!registerOrUpdate" @click="updateNewAccount" color="warning">更新</v-btn>
                         </v-card-actions>         
                     </v-card>
                 </v-dialog>
@@ -303,6 +304,7 @@
                                     </v-col>
                                     <v-col>
                                         <v-btn @click="createPaymentSchedules(index)">予定作成</v-btn>
+                                        <v-btn @click="openEditSettlementUpdateDialog(settle)">和解内容編集</v-btn>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -957,6 +959,10 @@ export default {
 
             // ここから和解内容
 
+            //和解内容編集ダイアログ用
+            registerOrUpdate:true,       //trueは新規登録 falseはupdate
+            updateTargetId:'',           //OPENする時にPA_IDを一時保管して置くためのID
+            /////////////////////
 
             //支払い予定の部分用
             schedules:[],
@@ -1385,6 +1391,7 @@ export default {
             this.editedTemporaryValues.temporary_receipt = this.customer.temporary_receipt
             this.editTemporaryDialog = true
             console.log('openeditTemporaryDialog')
+            this.registerOrUpdate = true
         },
         editTemporary2deposit(){
             if(this.editedTemporaryValues.advance_payment === 0 && this.editedTemporaryValues.deposit === 0){ return alert('両方ともゼロ円です。')}
@@ -1535,7 +1542,84 @@ export default {
                 this.snack      = true
                 this.snackColor = snackColor
                 this.snackText  = message
-        }
+        },
+        openEditSettlementUpdateDialog(e){
+            this.dialog = true
+            this.registerOrUpdate = false
+            this.selectedAccount.bankcode = e.bankcode
+            this.selectedAccount.branchcode = e.branchcode
+            this.selectedAccount.kind = e.kind
+            this.accountNumber = e.account_number
+            this.selectedAccount.account_holder = e.account_holder
+                this.customer.customer_id = e.customer_id
+                this.creditor = e.creditor_id
+                this.totalAmount = e.total_amount
+                this.monthlyAmount = e.monthly_amount
+                this.numberOfPayments = e.number_of_payments
+                this.monthlyPaymentDueDate = e.monthly_payment_due_date
+                this.firstAmount = e.first_amount
+                this.startDate = e.start_date
+                this.typeOfDelay = e.type_of_delay
+                this.delayedInterestRate = e.delayed_interest_rate
+                this.irregular = e.irregular
+                this.pension = e.pension
+                this.interest = e.interest
+                this.bonus = e.bonus
+                this.addition = e.addition
+                this.commission = e.commission
+                this.advisoryFee = e.advisory_fee
+                this.accountComment = e.account_cmment
+                this.summerBonusAmount = e.summer_bonus_amount
+                this.summerBonusDate   = e.summer_bonus_month
+                this.winterBonusAmount = e.winter_bonus_amount
+                this.winterBonusDate   = e.winter_bonus_month
+            //
+            this.updateTargetId = e.payment_account_id
+        },
+        updateNewAccount(){
+            //口座（和解）の新規登録処理
+            if(this.accountNumber == ''){return alert('入力が不完全です')}
+            const data = [
+                parseInt(this.customer.customer_id,10),
+                this.creditor,
+                this.totalAmount,
+                this.monthlyAmount,
+                this.numberOfPayments,
+                this.monthlyPaymentDueDate,
+                this.firstAmount,
+                this.startDate,
+                this.typeOfDelay,
+                this.delayedInterestRate,
+                this.irregular,
+                this.pension,
+                this.interest,
+                this.bonus,
+                this.addition,
+                this.commission,
+                this.advisoryFee,
+                this.accountComment,
+                this.selectedAccount.bankcode,
+                this.selectedAccount.branchcode,
+                this.selectedAccount.kind,
+                this.accountNumber,
+                this.selectedAccount.account_holder,
+                this.summerBonusAmount,
+                this.summerBonusDate,
+                this.winterBonusAmount,
+                this.winterBonusDate,
+                //登録時と違って、最後にPA＿idを入れる必要がある。
+                this.updateTargetId
+            ]
+            this.$axios.put('/api/payment_agency/payment_account',data).then(response =>{
+                console.log(response)
+                if(response.data.error){
+                    return alert(response.data.message)
+                }
+                this.dialog = false
+                alert('更新が終わりました!')
+                location.reload()
+            })
+        },
     },
     created(){
         (async()=>{

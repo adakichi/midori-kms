@@ -1023,6 +1023,22 @@ app.post('/payment_agency/new_account',(req,res)=>{
   })
 })
 
+//post NewAccount 支払いの口座の編集
+app.put('/payment_agency/payment_account',(req,res)=>{
+  console.log('\n--- put payment account ---')
+  console.log(req.body)
+  let sql = 'UPDATE payment_accounts set customer_id=?, creditor_id=?, total_amount=?, monthly_amount=?, number_of_payments=?, monthly_payment_due_date=?, first_amount=?, start_date=?, type_of_delay=?, delayed_interest_rate=?, '
+      sql = sql + 'irregular=?, pension=?, interest=?, bonus=?, addition=?, commission=?, advisory_fee=?, account_comment=?, '
+      sql = sql + 'bankcode=?, branchcode=?, kind=?, account_number=?, account_holder=?, summer_bonus_amount=?, summer_bonus_month=?, winter_bonus_amount=?, winter_bonus_month=? '
+      sql = sql + ' WHERE payment_account_id = ?'
+  db_payment_agency.query(sql,req.body,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'post /payment_agency/new_account' ; throw err}
+    console.log('--- PUT payment account sucess ---')
+    logger.log('支払い口座編集：',req.body)
+    res.send(rows)
+  })
+})
+
 //顧客ごとの和解内容
 app.get('/payment_agency/customer/settlements',(req,res)=>{
   console.log('\n--- get Customer settlements ---')
