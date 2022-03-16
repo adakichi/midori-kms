@@ -45,6 +45,11 @@ export default {
                     title:'仕訳帳',
                     description:'仕訳帳のページ',
                     to:'/payment_agency/journal_book/'
+                },
+                {
+                    title:'設定',
+                    description:'設定のページ',
+                    to:'/payment_agency/config/'
                 }
             ]
         }

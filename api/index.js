@@ -1989,6 +1989,35 @@ app.get('/creditors_accounts/',(req,res)=>{
   })
 })
 
+//債権者の口座情報登録
+app.post('/creditors_accounts/',(req,res)=>{
+  console.log('\n---- POST creditors_accounts ----')
+  const data = req.body
+  const sql = 'INSERT INTO creditors_accounts (creditor_id, bankname, bankcode, branchname, branchcode, kind, account_holder) VALUES (?,?,?,?,?,?,?);'
+  const val = [data.creditor_id, data.bankname,data,bankcode,data.branchname, data.branchcode, data.kind, data.account_holder]
+  db_payment_agency.query(sql,val,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'POST creditors_accounts/' ;throw err}
+    logger.log('post new Creditors_accounts ->',req.body)
+    console.log('---success POST new creditors_accounts ---')
+    res.send('登録されました。')
+  })
+})
+
+
+//債権者の口座情報更新
+app.put('/creditors_accounts/',(req,res)=>{
+  console.log('\n---- POST creditors_accounts ----')
+  const data = req.body
+  const sql = 'UPDATE creditors_accounts SET creditor_id = ?, bankname = ?, bankcode = ?, branchname = ?, branchcode = ?, kind = ?, account_holder = ? WHERE creditors_account_id = ?'
+  const val = [data.creditor_id, data.bankname,data,bankcode,data.branchname, data.branchcode, data.kind, data.account_holder, data.creditors_account_id]
+  db_payment_agency.query(sql,val,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'POST creditors_accounts/' ;throw err}
+    logger.log('post new Creditors_accounts ->',req.body)
+    console.log('---success POST new creditors_accounts ---')
+    res.send('登録されました。')
+  })
+})
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
