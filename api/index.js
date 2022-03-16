@@ -1120,10 +1120,7 @@ app.delete('/payment_agency/customer/cis',(req,res)=>{
 //顧客毎ページでの支払い予定登録
 app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
   console.log('\n--- register_payment_schedules ---')
-  console.log(req.body)
-  console.log('------------')
   const values = req.body.map((obj)=>[obj.paymentAccountId,obj.amount,obj.date])
-  console.log(values)
   const sql = 'INSERT INTO payment_schedules (payment_account_id, amount, date) VALUES ?;'
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
     if(err){ err.whichApi= 'post /payment_agency/customer/register_payment_schedules' ; throw err}
