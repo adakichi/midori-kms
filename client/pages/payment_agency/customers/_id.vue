@@ -1122,7 +1122,7 @@ export default {
                 this.selectedAccount.branchcode,
                 this.selectedAccount.kind,
                 this.accountNumber,
-                this.selectedAccount.accountHolder,
+                this.selectedAccount.account_holder,
                 this.summerBonusAmount,
                 this.summerBonusDate,
                 this.winterBonusAmount,
