@@ -69,7 +69,7 @@ export default {
             filter:'',
             editDialogMemo:false,
             //snackBar
-            snack:true,
+            snack:false,
             snackColor:'sucess',
             snackText:'',
             ////▲▲▲▲▲▲▲▲▲▲▲▲▲//////
