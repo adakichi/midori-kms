@@ -37,13 +37,20 @@
                                 :search="searchText"
                                 @click:row="selectCreditor"
                                 >
-                                 <template v-slot:item.accept="{item}">
-                                     <v-chip :color="getColor(item.accept)" dark>
-                                        {{item.accept===1 ? 'OK':'NG'}}
+                                 <template v-slot:item.accept_overpayment="{item}">
+                                     <v-chip :color="getColor(item.accept_overpayment)" dark>
+                                        {{okNgEtc(item.accept_overpayment)}}
+                                     </v-chip>
+                                 </template>
+                                 <template v-slot:item.accept_debt="{item}">
+                                     <v-chip :color="getColor(item.accept_debt)" dark>
+                                        {{okNgEtc(item.accept_debt)}}
                                      </v-chip>
                                  </template>
                                  <template v-slot:item.survey_only="{item}">
-                                    {{item.accept===1 ? 'OK':'NG'}}
+                                     <v-chip :color="getColor(item.survey_only)" dark>
+                                        {{okNgEtc(item.survey_only)}}
+                                     </v-chip>
                                  </template>
                                 </v-data-table>
                             </v-card-text>
@@ -80,13 +87,16 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-select label="受任可否" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.accept ? 'OK': 'NG'"></v-select>
+                                        <v-select label="受任可否(過払)" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.accept_overpayment"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select label="代理開示 可否" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.survey_only ? 'OK': 'NG'"></v-select>
+                                        <v-select label="受任可否(債務)" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.accept_debt"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select label="無料引き直し" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.self_culculation ? 'OK': 'NG'"></v-select>
+                                        <v-select label="代理開示 可否" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.survey_only"></v-select>
+                                    </v-col>
+                                    <v-col>
+                                        <v-select label="無料引き直し" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.self_culculation"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -107,9 +117,6 @@
                                 <v-row>
                                     <v-col>
                                         <v-text-field label="履歴の開示期間" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.disclosure_period"></v-text-field>
-                                    </v-col>
-                                    <v-col>
-                                        <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract"></v-text-field>
                                     </v-col>
                                 </v-row>
                             </v-card-text>
@@ -147,6 +154,12 @@
                                         <v-col>
                                             <v-select label="和解書作成者" :disabled="!isDisabled" outlined :items="contractCreater" v-model="selectedCreditor.contract_creater"></v-select>
                                         </v-col>
+                                        <v-col>
+                                            <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_debt"></v-text-field>
+                                        </v-col>
+                                        <v-col>
+                                            <v-text-field label="和解書メモ" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.contract_memo_debt"></v-text-field>
+                                        </v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col>
@@ -180,10 +193,10 @@
                                         <v-text-field label="提案まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.until_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="提案まで" :disabled="!isDisabled" suffix="％" type="number" outlined v-model="selectedCreditor.maximum_proposal"></v-text-field>
+                                        <v-text-field label="提案金額" :disabled="!isDisabled" suffix="％" type="number" outlined v-model="selectedCreditor.maximum_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="和解書の返送" :disabled="!isDisabled" suffix="ヶ月" type="number" outlined v-model="selectedCreditor.return_date"></v-text-field>
+                                        <v-text-field label="和解書の返送" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_date"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -198,12 +211,22 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="和解書の返還" :disabled="!isDisabled" outlined v-model="selectedCreditor.contract_return"></v-text-field>
+                                        <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_overpayment"></v-text-field>
+                                    </v-col>
+                                    <v-col>
+                                        <v-text-field label="和解書メモ" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.contract_memo_overpayment"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="訴訟提案" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
+                                        <v-text-field label="訴訟提案:金額" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
+                                    </v-col>
+                                    <v-col>
+                                        <v-text-field label="訴訟期間：最短" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earliest"></v-text-field>
+                                    </v-col>
+                                    ～
+                                    <v-col>
+                                        <v-text-field label="訴訟期間：最長" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_longest"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -236,18 +259,57 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-text-field label="TEL:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone_survey"></v-text-field>
-                                        </v-col>
-                                        <v-col>
-                                            <v-text-field label="FAX:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.fax"></v-text-field>
-                                        </v-col>
-                                    </v-row>
-                                    <v-row>
-                                        <v-col>
-                                            <v-text-field label="郵便番号" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number"></v-text-field>
-                                        </v-col>
-                                        <v-col>
-                                            <v-text-field label="住所" :disabled="!isDisabled" outlined v-model="selectedCreditor.address"></v-text-field>
+                                            住所：
+                                            <v-expansion-panels>
+                                                <v-expansion-panel>
+                                                    <v-expansion-panel-header>本店</v-expansion-panel-header>
+                                                    <v-expansion-panel-content>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="部署" :disabled="!isDisabled" outlined v-model="selectedCreditor.division"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="TEL" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="FAX" :disabled="!isDisabled" outlined v-model="selectedCreditor.fax"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="郵便番号" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="住所" :disabled="!isDisabled" outlined v-model="selectedCreditor.address"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                    </v-expansion-panel-content>
+                                                </v-expansion-panel>
+                                                <v-expansion-panel>
+                                                    <v-expansion-panel-header>受任通知</v-expansion-panel-header>
+                                                    <v-expansion-panel-content>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="部署:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.division_survey"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="TEL:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone_survey"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="FAX:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.fax_survey"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="郵便番号:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code_survey" type="number"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="住所:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.address_survey"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                    </v-expansion-panel-content>
+                                                </v-expansion-panel>
+                                            </v-expansion-panels>
                                         </v-col>
                                     </v-row>
                                 </v-container>
@@ -303,13 +365,19 @@ export default {
             updateMemo:'',
             creditorsHeaders:[
                 {text:'名前',   value:'name'},
-                {text:'受任可否',   value:'accept'},
+                {text:'過払い受任',   value:'accept_overpayment'},
+                {text:'債務整理受任',   value:'accept_debt'},
                 {text:'代理開示',   value:'survey_only'}
             ],
             selectedCreditor:{name:'未選択'},
             isDisabled:false,
             //items ///////////////////////////
-            okNg:['OK','NG'],
+            okNg:[
+                {text:'NG',         value:0},
+                {text:'OK',         value:1},
+                {text:'OK※注意',   value:2},
+                {text:'未確認',     value:3}
+            ],
             interestString:['必要','不要','減率'],
             contractCreater:['先方','みどり'],
             /////////////////////////////
@@ -365,11 +433,40 @@ export default {
         ////////////////////////////////////////////////////
         //util
         getColor(val){
-            if(val === 0){
-                return 'red'
-            }else{
-                return 'success'
+            let result = ''
+            switch(val){
+                case 0:
+                    result = 'error'
+                break
+                case 1:
+                    result = 'success'
+                break
+                case 2:
+                    result = 'warning'
+                break
+                case 3:
+                    result = 'grey'
+                break
             }
+            return result
+        },
+        okNgEtc(val){
+            let result =''
+            switch(val){
+                case 0:
+                    result = 'NG'
+                break
+                case 1:
+                    result = 'OK'
+                break
+                case 2:
+                    result = 'OK※注意'
+                break
+                case 3:
+                    result = '未確認'
+                break
+            }
+            return result
         }
     },
     computed:{
