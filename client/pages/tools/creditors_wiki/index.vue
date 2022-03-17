@@ -36,7 +36,16 @@
                                 :headers="creditorsHeaders"
                                 :search="searchText"
                                 @click:row="selectCreditor"
-                                ></v-data-table>
+                                >
+                                 <template v-slot:item.accept="{item}">
+                                     <v-chip :color="getColor(item.accept)" dark>
+                                        {{item.accept===1 ? 'OK':'NG'}}
+                                     </v-chip>
+                                 </template>
+                                 <template v-slot:item.survey_only="{item}">
+                                    {{item.accept===1 ? 'OK':'NG'}}
+                                 </template>
+                                </v-data-table>
                             </v-card-text>
                         </v-card>
                     </v-tab-item>
@@ -293,7 +302,9 @@ export default {
             updateMemoDialog:false,
             updateMemo:'',
             creditorsHeaders:[
-                {text:'名前',   value:'name'}
+                {text:'名前',   value:'name'},
+                {text:'受任可否',   value:'accept'},
+                {text:'代理開示',   value:'survey_only'}
             ],
             selectedCreditor:{name:'未選択'},
             isDisabled:false,
@@ -347,6 +358,18 @@ export default {
                 if(response.data.error){ return alert(response.data.message)}
                 this.changeLogs = response.data
             })
+        },
+
+        ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        //util
+        getColor(val){
+            if(val === 0){
+                return 'red'
+            }else{
+                return 'success'
+            }
         }
     },
     computed:{
