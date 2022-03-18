@@ -1143,6 +1143,19 @@ app.get('/payment_agency/customer/payment_schedules',(req,res)=>{
   })
 })
 
+//カスタマー毎の支払い予定を取得
+app.put('/payment_agency/customer/payment_schedules',(req,res)=>{
+  console.log('\n---PUT Customer payment_schedules ---')
+  const data = req.body
+  const val  = [data.amount, data.date, data.memo, data.payment_schedule_id]
+  const sql = 'UPDATE payment_schedules SET amount =?, date=?, memo=? WHERE payment_schedule_id = ?;'
+  db_payment_agency.query(sql,val,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'PUT payment_agency/customer/payment_schedules' ; throw err}
+    logger.log(' > '+ data.payment_schedule_id +'支払い予定変更\n--- sucess ---')
+    console.log(' > '+  data.payment_schedule_id +'支払い予定変更\n--- sucess ---')
+    res.send('変更しました。')
+  })
+})
 
 //顧客毎の支払予定の削除
 app.delete('/payment_agency/customer/payment_schedules',(req,res)=>{
@@ -1151,10 +1164,10 @@ app.delete('/payment_agency/customer/payment_schedules',(req,res)=>{
   console.log('ids:',ids)
   const sql = 'DELETE FROM payment_schedules WHERE payment_schedule_id in (?);'
   db_payment_agency.query(sql,[ids],(err,rows,fields)=>{
-    if(err){ err.whichApi= 'delete /payment_agency/customer/cis' ; throw err}
+    if(err){ err.whichApi= 'delete /payment_agency/customer/payment_schedules' ; throw err}
     console.log('--- sucess ---')
     logger.log('\n---Delete Customer Cis: \n >計画を削除しました 受任番号:' + req.body.customerId + '\ncis ids:' + ids + ' ---')
-    res.send(rows)    
+    res.send(rows)
   })
 })
 

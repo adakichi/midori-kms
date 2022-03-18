@@ -449,6 +449,64 @@
                         show-select
                         show-group-by
                         >
+                            <!-- メモ欄編集 -->
+                            <template v-slot:item.date="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialogPaymentScheduleDate"
+                                    large
+                                    @save="savePs(item)"
+                                    :return-value.sync="item.date"
+                                >   
+                                    {{item.date}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            v-model="item.date"
+                                            label="メモ"
+                                            single-line
+                                            type="date"
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
+
+                            <!-- 金額欄編集 -->
+                            <template v-slot:item.amount="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialogPaymentScheduleAmount"
+                                    large
+                                    @save="savePs(item)"
+                                    :return-value.sync="item.amount"
+                                >   
+                                    {{item.amount}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            v-model="item.amount"
+                                            label="金額"
+                                            single-line
+                                            type="number"
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
+
+                            <!-- メモ欄編集 -->
+                            <template v-slot:item.memo="{item}">
+                                <v-edit-dialog
+                                    v-model="editDialogPaymentScheduleMemo"
+                                    large
+                                    @save="savePs(item)"
+                                    :return-value.sync="item.memo"
+                                >   
+                                    {{item.memo}}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                            v-model="item.memo"
+                                            label="メモ"
+                                            single-line
+                                        ></v-text-field>
+                                    </template>
+                                </v-edit-dialog>
+                            </template>
                         </v-data-table>
                     </v-col>
                 </v-row>
@@ -878,6 +936,7 @@ export default {
             createScheduleDialog:false,
             registerComeInRecordsDialog:false,
             editTemporaryDialog:false,
+            editDialogPaymentScheduleMemo:false,
             editDialogPaymentDay:false,
             editDialogExpectedAmount:false,
             editDialogMemo:false,
@@ -978,7 +1037,7 @@ export default {
                 {text:'金額',     value:'amount'},
                 {text:'顧問料',   value:'advisory_fee'},
                 {text:'手数料',   value:'commission'},
-                {text:'メモ',   value:'memo'}
+                {text:'メモ',     value:'memo'}
             ],
 
             //入金予定の部分用
@@ -1512,6 +1571,19 @@ export default {
             const doNot = !confirm('編集しますか？')
             if(doNot){ return }
             this.$axios.put('api/payment_agency/customer/cis',e)
+            .then(response=>{
+                if(response.data.error){
+                     alert(response.data.message)
+                    this.popupSnackBar('失敗しました。','warning')
+                     }
+                this.popupSnackBar('成功しました。')
+            })
+        },
+        savePs(e){
+            console.log(e)
+            const doNot = !confirm('編集しますか？')
+            if(doNot){ return }
+            this.$axios.put('api/payment_agency/customer/payment_schedules',e)
             .then(response=>{
                 if(response.data.error){
                      alert(response.data.message)
