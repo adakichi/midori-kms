@@ -2118,6 +2118,23 @@ app.post('/issues/',(req,res)=>{
   })
 })
 
+//issues編集
+app.put('/issues/',(req,res)=>{
+  console.log('\n--- PUT /issues/ ---')
+  const data = [
+    req.body.data.title,
+    req.body.data.description,
+    req.body.data.id
+  ]
+  const sql = 'UPDATE issues set title=?, description=? WHERE issue_id;'
+  db_mkms.query(sql, data, (err,rows,fields)=>{
+    if(err){ err.whichApi= 'post /issues/'; throw err}
+    console.log(' Issues:id'+ req.body.data.id +'を編集しました。\n---x---x---x---x---')
+    return res.send('OK')
+  })
+})
+
+
 //issue取得
 app.get('/issue',(req,res)=>{
   const id = parseInt(req.query.id,10)
@@ -2162,6 +2179,22 @@ app.put('/issue',(req,res)=>{
     if(err){ err.whichApi= 'put / issue'; throw err }
     console.log(' 取得成功\n---x---x---x---x---')
     return res.send(rows)
+  })
+})
+
+
+//issueのメッセージ削除
+app.delete('/issue',(req,res)=>{
+  const issueId = parseInt(req.body.issueId,10)
+  const messageId = parseInt(req.body.messageId,10)
+  console.log('\n--- DELETE /issues/ issue:' + issueId + ', message id:' + messageId + '---')
+  const data = [issueId, messageId]
+  console.log(data)
+  let sql = 'DELETE FROM issues_messages WHERE issue_id = ? AND issues_messages_id = ?;'
+    db_mkms.query(sql,data,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'put / issue'; throw err }
+    console.log(' 削除成功\n---x---x---x---x---')
+    return res.send('issueID:'+issueId+'\nmessageID:'+messageId+'\nは削除されました。')
   })
 })
 
