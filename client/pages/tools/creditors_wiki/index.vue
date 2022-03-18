@@ -8,6 +8,7 @@
                         {{selectedCreditor.id}}:{{selectedCreditor.name}}
                     </v-toolbar-title>
                     <v-spacer></v-spacer>
+                    <v-btn to="./log_list" nuxt>更新履歴一覧</v-btn>
                     <v-switch
                     v-model="isDisabled"
                     label="編集"

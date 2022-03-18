@@ -2080,10 +2080,18 @@ app.put('/mkms/creditors/edit',(req,res)=>{
 
 app.get('/mkms/creditors/changeLog',(req,res)=>{
   console.log('GET mkms creditors change log')
-  console.log(req.query.id)
   const id = req.query.id
   const sql = 'SELECT *, date_format(created_at,"%Y/%m/%d") as date from creditors_change_log WHERE creditor_id = ? ORDER BY created_at DESC;'
   db_mkms.query(sql,id,(err,rows,fields)=>{
+    if(err){throw err}
+    res.send(rows)
+  })
+})
+
+app.get('/mkms/creditors/changeLog/all',(req,res)=>{
+  console.log('GET mkms creditors change log all')
+  const sql = 'SELECT name, log.memo, editer, date_format(created_at,"%Y/%m/%d") as date from creditors_change_log as log inner join creditors as cr ON log.creditor_id = cr.id ORDER BY created_at DESC;'
+  db_mkms.query(sql,(err,rows,fields)=>{
     if(err){throw err}
     res.send(rows)
   })
