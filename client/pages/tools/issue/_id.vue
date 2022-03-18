@@ -96,7 +96,10 @@ export default {
             if(this.editMessage.text.length > 1000){ return alert('文字数が多いです。\n1000文字まで。')}
             if(!this.$auth.user){ return alert('ログインしてから送って')}  
             const data = {id:this.issuesData.issue_id, author:this.$auth.user.userId, message:this.editMessage.text}
-            return this.$store.dispatch('issues/postMessage',data)
+            this.$store.dispatch('issues/postMessage',data)
+            .then(response=>{
+                this.dialog = false
+            })
         },
         openNewDialog(){
             this.dialog = true
