@@ -2120,8 +2120,7 @@ app.post('/issues/',(req,res)=>{
 
 //issues編集
 app.put('/issues/',(req,res)=>{
-  console.log('\n--- PUT /issues/ ---',req)
-  console.log('id:',req.body.id)
+  console.log('\n--- PUT /issues/ ---',)
   const data = [
     req.body.title,
     req.body.description,

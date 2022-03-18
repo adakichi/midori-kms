@@ -92,7 +92,6 @@ export default {
                 description:this.newDescription,
                 id:this.editIssueId
             }
-            alert(data.id)
             this.$axios.put('api/issues',data)
             .then(response=>{
                 if(response.data.error){return alert(response.data.message)}
