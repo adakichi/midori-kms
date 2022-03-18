@@ -2120,16 +2120,17 @@ app.post('/issues/',(req,res)=>{
 
 //issues編集
 app.put('/issues/',(req,res)=>{
-  console.log('\n--- PUT /issues/ ---')
+  console.log('\n--- PUT /issues/ ---',req)
+  console.log('id:',req.body.id)
   const data = [
-    req.body.data.title,
-    req.body.data.description,
-    req.body.data.id
+    req.body.title,
+    req.body.description,
+    req.body.id
   ]
-  const sql = 'UPDATE issues set title=?, description=? WHERE issue_id;'
+  const sql = 'UPDATE issues set title=?, description=? WHERE issue_id = ?;'
   db_mkms.query(sql, data, (err,rows,fields)=>{
     if(err){ err.whichApi= 'post /issues/'; throw err}
-    console.log(' Issues:id'+ req.body.data.id +'を編集しました。\n---x---x---x---x---')
+    console.log(' Issues:id'+ req.body.id +'を編集しました。\n---x---x---x---x---')
     return res.send('OK')
   })
 })

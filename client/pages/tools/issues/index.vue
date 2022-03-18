@@ -90,9 +90,10 @@ export default {
             const data = {
                 title: this.newTitle,
                 description:this.newDescription,
-                Id:this.editIssueId
+                id:this.editIssueId
             }
-            this.$axios.put('api/issues',{data:data})
+            alert(data.id)
+            this.$axios.put('api/issues',data)
             .then(response=>{
                 if(response.data.error){return alert(response.data.message)}
                 alert(response.data)
