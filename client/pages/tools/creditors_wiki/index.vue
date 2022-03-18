@@ -59,7 +59,7 @@
                     <v-tab-item>
                         <v-card>
                             <v-card-text>
-                                <v-textarea label="概要" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption"></v-textarea>
+                                <v-textarea label="概要" :rows="countRows(selectedCreditor.caption)" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption"></v-textarea>
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
@@ -101,17 +101,17 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="代理開示メモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_only_memo"></v-textarea>
+                                        <v-textarea label="代理開示メモ"  :rows="countRows(selectedCreditor.survey_only_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_only_memo"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="介入時注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.caution"></v-textarea>
+                                        <v-textarea label="介入時注意点" :rows="countRows(selectedCreditor.caution)" :disabled="!isDisabled" outlined v-model="selectedCreditor.caution"></v-textarea>
                                     </v-col>    
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="その他メモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_memo"></v-textarea>
+                                        <v-textarea label="その他メモ" :rows="countRows(selectedCreditor.survey_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_memo"></v-textarea>
                                     </v-col>    
                                 </v-row>
                                 <v-row>
@@ -163,17 +163,17 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-textarea label="時効援用のメモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.prescription_contract"></v-textarea>
+                                            <v-textarea label="時効援用のメモ" :rows="countRows(selectedCreditor.prescription_contract)" :disabled="!isDisabled" outlined v-model="selectedCreditor.prescription_contract"></v-textarea>
                                         </v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-textarea label="中決時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_debt"></v-textarea>
+                                            <v-textarea label="中決時の注意点" :rows="countRows(selectedCreditor.policy_memo_debt)" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_debt"></v-textarea>
                                         </v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-textarea label="交渉時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_debt"></v-textarea>
+                                            <v-textarea label="交渉時の注意点" :rows="countRows(selectedCreditor.negotiation_memo_debt)" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_debt"></v-textarea>
                                         </v-col>
                                     </v-row>
                                 </v-container>
@@ -201,12 +201,12 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="中決時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_overpayment"></v-textarea>
+                                        <v-textarea label="中決時の注意点" :rows="countRows(selectedCreditor.policy_memo_overpayment)" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_overpayment"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="交渉時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_overpayment"></v-textarea>
+                                        <v-textarea label="交渉時の注意点" :rows="countRows(selectedCreditor.negotiation_memo_overpayment)" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_overpayment"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -219,19 +219,19 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="訴訟提案:金額" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
+                                        <v-text-field label="訴訟提案:金額" suffix="％" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="訴訟期間：最短" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earliest"></v-text-field>
+                                        <v-text-field label="訴訟期間：最短" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earliest"></v-text-field>
                                     </v-col>
                                     ～
                                     <v-col>
-                                        <v-text-field label="訴訟期間：最長" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_longest"></v-text-field>
+                                        <v-text-field label="訴訟期間：最長" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_longest"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="訴訟メモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_memo"></v-textarea>
+                                        <v-textarea label="訴訟メモ" :rows="countRows(selectedCreditor.trial_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_memo"></v-textarea>
                                     </v-col>
                                 </v-row>
                             </v-card-text>
@@ -401,7 +401,6 @@ export default {
             })
         },
         selectCreditor(e){
-            console.log(e)
             this.tabs = 1
             this.selectedCreditor = e
         },
@@ -415,7 +414,6 @@ export default {
             .then(response=>{
                 if(response.data.error){ return alert(response.data.message)}
                 alert(response.data)
-                console.log(response.data)
                 this.updateMemo = ''
                 this.updateMemoDialog = false
             })
@@ -467,6 +465,17 @@ export default {
                 break
             }
             return result
+        },
+        countRows(str){
+            // textareaの文字列の改行の数をカウントする。※rowsに設定することで高さを変更する。
+            const type = typeof str
+            if(type === "string"){
+                if(!str){return 0}
+                const count = str.match(/\n/g)
+                if(count){
+                    return count.length + 5
+                }
+            }
         }
     },
     computed:{
