@@ -8,7 +8,7 @@
                         {{selectedCreditor.id}}:{{selectedCreditor.name}}
                     </v-toolbar-title>
                     <v-spacer></v-spacer>
-                    <v-btn to="./log_list" nuxt>更新履歴一覧</v-btn>
+                    <v-btn to="/tools/creditors_wiki/log_list" nuxt>更新履歴一覧</v-btn>
                     <v-switch
                     v-model="isDisabled"
                     label="編集"
@@ -102,7 +102,7 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="代理開示メモ"  :rows="countRows(selectedCreditor.survey_only_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_only_memo"></v-textarea>
+                                        <v-textarea label="代理開示メモ" :rows="countRows(selectedCreditor.survey_only_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_only_memo"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -142,7 +142,15 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-select label="経過利息" :disabled="!isDisabled" outlined :items="interestString" v-model="selectedCreditor.accurued_interest"></v-select>
+                                            <v-select label="短期取引ペナルティ" :disabled="!isDisabled" outlined :items="shortTerm" v-model="selectedCreditor.short_term"></v-select>
+                                        </v-col>
+                                        <v-col>
+                                            <v-textarea v-show="selectedCreditor.short_term" label="ペナルティの詳細" :rows="countRows(selectedCreditor.short_term_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.short_term_memo"></v-textarea>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col>
+                                            <v-select label="経過利息" :disabled="!isDisabled" outlined :items="accureedString" v-model="selectedCreditor.accurued_interest"></v-select>
                                         </v-col>
                                         <v-col>
                                             <v-select label="将来利息" :disabled="!isDisabled" outlined :items="interestString" v-model="selectedCreditor.future_interest"></v-select>
@@ -156,10 +164,12 @@
                                             <v-select label="和解書作成者" :disabled="!isDisabled" outlined :items="contractCreater" v-model="selectedCreditor.contract_creater"></v-select>
                                         </v-col>
                                         <v-col>
-                                            <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_debt"></v-text-field>
+                                            <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_debt" hint="支払い開始日から数える場合は -(ﾏｲﾅｽ) をつけて"></v-text-field>
                                         </v-col>
+                                    </v-row>
+                                    <v-row>
                                         <v-col>
-                                            <v-text-field label="和解書メモ" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.contract_memo_debt"></v-text-field>
+                                            <v-textarea label="和解書メモ" :rows="countRows(selectedCreditor.contract_memo_debt)" :disabled="!isDisabled" outlined v-model="selectedCreditor.contract_memo_debt"></v-textarea>
                                         </v-col>
                                     </v-row>
                                     <v-row>
@@ -194,10 +204,10 @@
                                         <v-text-field label="提案まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.until_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="提案金額" :disabled="!isDisabled" suffix="％" type="number" outlined v-model="selectedCreditor.maximum_proposal"></v-text-field>
+                                        <v-text-field label="任意の提案上限金額" :disabled="!isDisabled" suffix="％" type="number" outlined v-model="selectedCreditor.maximum_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="和解書の返送" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_date"></v-text-field>
+                                        <v-text-field label="返金まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_date"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -212,10 +222,10 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_overpayment"></v-text-field>
+                                        <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_overpayment" hint="支払い開始日から数える場合は -(ﾏｲﾅｽ) をつけて"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="和解書メモ" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.contract_memo_overpayment"></v-text-field>
+                                        <v-textarea label="和解書メモ" :rows="countRows(selectedCreditor.contract_memo_overpayment)" :disabled="!isDisabled" outlined v-model="selectedCreditor.contract_memo_overpayment"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -278,7 +288,7 @@
                                                         </v-row>
                                                         <v-row>
                                                             <v-col>
-                                                                <v-text-field label="郵便番号" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number"></v-text-field>
+                                                                <v-text-field label="郵便番号" prefix="〒" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number" hint="ハイフンは無し"></v-text-field>
                                                             </v-col>
                                                             <v-col>
                                                                 <v-text-field label="住所" :disabled="!isDisabled" outlined v-model="selectedCreditor.address"></v-text-field>
@@ -291,7 +301,7 @@
                                                     <v-expansion-panel-content>
                                                         <v-row>
                                                             <v-col>
-                                                                <v-text-field label="部署:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.division_survey"></v-text-field>
+                                                                <v-text-field label="部署:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.division_survey" hint="本店と同じ場合は「同上」"></v-text-field>
                                                             </v-col>
                                                             <v-col>
                                                                 <v-text-field label="TEL:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone_survey"></v-text-field>
@@ -302,7 +312,7 @@
                                                         </v-row>
                                                         <v-row>
                                                             <v-col>
-                                                                <v-text-field label="郵便番号:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code_survey" type="number"></v-text-field>
+                                                                <v-text-field label="郵便番号:受任関係" prefix="〒" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code_survey" type="number" hint="ハイフンは無し"></v-text-field>
                                                             </v-col>
                                                             <v-col>
                                                                 <v-text-field label="住所:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.address_survey"></v-text-field>
@@ -365,10 +375,10 @@ export default {
             updateMemoDialog:false,
             updateMemo:'',
             creditorsHeaders:[
-                {text:'名前',   value:'name'},
+                {text:'名前',         value:'name'},
                 {text:'過払い受任',   value:'accept_overpayment'},
                 {text:'債務整理受任',   value:'accept_debt'},
-                {text:'代理開示',   value:'survey_only'}
+                {text:'代理開示',     value:'survey_only'}
             ],
             selectedCreditor:{name:'未選択'},
             isDisabled:false,
@@ -379,17 +389,21 @@ export default {
                 {text:'OK※注意',   value:2},
                 {text:'未確認',     value:3}
             ],
+            accureedString:['必要','不要','必要(提案まで)','必要(和解日まで)','必要(支払開始まで)','必要(12回であれば不要)'],
             interestString:['必要','不要','減率'],
             contractCreater:['先方','みどり'],
             /////////////////////////////
-
+            shortTerm:[
+                {text:'罰有り',value:1},
+                {text:'罰無し',value:0}
+            ],
             changeLogs:[],
             changeLogSearchText:'',
             changeLogHeaders:[
-                {text:'変更日', value:'date'},
-                {text:'変更日', value:'created_at'},
+                {text:'変更日',  value:'date'},
+                {text:'変更日',  value:'created_at'},
                 {text:'コメント',value:'memo'},
-                {text:'編集者',value:'editer'}
+                {text:'編集者',  value:'editer'}
             ]
         }
     },
