@@ -8,6 +8,7 @@
                         {{selectedCreditor.id}}:{{selectedCreditor.name}}
                     </v-toolbar-title>
                     <v-spacer></v-spacer>
+                    <v-btn to="/tools/creditors_wiki/log_list" nuxt>更新履歴一覧</v-btn>
                     <v-switch
                     v-model="isDisabled"
                     label="編集"
@@ -36,14 +37,30 @@
                                 :headers="creditorsHeaders"
                                 :search="searchText"
                                 @click:row="selectCreditor"
-                                ></v-data-table>
+                                >
+                                 <template v-slot:item.accept_overpayment="{item}">
+                                     <v-chip :color="getColor(item.accept_overpayment)" dark>
+                                        {{okNgEtc(item.accept_overpayment)}}
+                                     </v-chip>
+                                 </template>
+                                 <template v-slot:item.accept_debt="{item}">
+                                     <v-chip :color="getColor(item.accept_debt)" dark>
+                                        {{okNgEtc(item.accept_debt)}}
+                                     </v-chip>
+                                 </template>
+                                 <template v-slot:item.survey_only="{item}">
+                                     <v-chip :color="getColor(item.survey_only)" dark>
+                                        {{okNgEtc(item.survey_only)}}
+                                     </v-chip>
+                                 </template>
+                                </v-data-table>
                             </v-card-text>
                         </v-card>
                     </v-tab-item>
                     <v-tab-item>
                         <v-card>
                             <v-card-text>
-                                <v-textarea label="概要" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption"></v-textarea>
+                                <v-textarea label="概要" :rows="countRows(selectedCreditor.caption)" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption"></v-textarea>
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
@@ -71,36 +88,36 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-select label="受任可否" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.accept ? 'OK': 'NG'"></v-select>
+                                        <v-select label="受任可否(過払)" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.accept_overpayment"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select label="代理開示 可否" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.survey_only ? 'OK': 'NG'"></v-select>
+                                        <v-select label="受任可否(債務)" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.accept_debt"></v-select>
                                     </v-col>
                                     <v-col>
-                                        <v-select label="無料引き直し" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.self_culculation ? 'OK': 'NG'"></v-select>
+                                        <v-select label="代理開示 可否" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.survey_only"></v-select>
                                     </v-col>
-                                </v-row>
-                                <v-row>
                                     <v-col>
-                                        <v-textarea label="代理開示メモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_only_memo"></v-textarea>
+                                        <v-select label="無料引き直し" :disabled="!isDisabled" outlined :items="okNg" v-model="selectedCreditor.self_culculation"></v-select>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="介入時注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.caution"></v-textarea>
+                                        <v-textarea label="代理開示メモ" :rows="countRows(selectedCreditor.survey_only_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_only_memo"></v-textarea>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        <v-textarea label="介入時注意点" :rows="countRows(selectedCreditor.caution)" :disabled="!isDisabled" outlined v-model="selectedCreditor.caution"></v-textarea>
                                     </v-col>    
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="その他メモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_memo"></v-textarea>
+                                        <v-textarea label="その他メモ" :rows="countRows(selectedCreditor.survey_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.survey_memo"></v-textarea>
                                     </v-col>    
                                 </v-row>
                                 <v-row>
                                     <v-col>
                                         <v-text-field label="履歴の開示期間" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.disclosure_period"></v-text-field>
-                                    </v-col>
-                                    <v-col>
-                                        <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract"></v-text-field>
                                     </v-col>
                                 </v-row>
                             </v-card-text>
@@ -125,7 +142,15 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-select label="経過利息" :disabled="!isDisabled" outlined :items="interestString" v-model="selectedCreditor.accurued_interest"></v-select>
+                                            <v-select label="短期取引ペナルティ" :disabled="!isDisabled" outlined :items="shortTerm" v-model="selectedCreditor.short_term"></v-select>
+                                        </v-col>
+                                        <v-col>
+                                            <v-textarea v-show="selectedCreditor.short_term" label="ペナルティの詳細" :rows="countRows(selectedCreditor.short_term_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.short_term_memo"></v-textarea>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col>
+                                            <v-select label="経過利息" :disabled="!isDisabled" outlined :items="accureedString" v-model="selectedCreditor.accurued_interest"></v-select>
                                         </v-col>
                                         <v-col>
                                             <v-select label="将来利息" :disabled="!isDisabled" outlined :items="interestString" v-model="selectedCreditor.future_interest"></v-select>
@@ -138,20 +163,28 @@
                                         <v-col>
                                             <v-select label="和解書作成者" :disabled="!isDisabled" outlined :items="contractCreater" v-model="selectedCreditor.contract_creater"></v-select>
                                         </v-col>
-                                    </v-row>
-                                    <v-row>
                                         <v-col>
-                                            <v-textarea label="時効援用のメモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.prescription_contract"></v-textarea>
+                                            <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_debt" hint="支払い開始日から数える場合は -(ﾏｲﾅｽ) をつけて"></v-text-field>
                                         </v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-textarea label="中決時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_debt"></v-textarea>
+                                            <v-textarea label="和解書メモ" :rows="countRows(selectedCreditor.contract_memo_debt)" :disabled="!isDisabled" outlined v-model="selectedCreditor.contract_memo_debt"></v-textarea>
                                         </v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-textarea label="交渉時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_debt"></v-textarea>
+                                            <v-textarea label="時効援用のメモ" :rows="countRows(selectedCreditor.prescription_contract)" :disabled="!isDisabled" outlined v-model="selectedCreditor.prescription_contract"></v-textarea>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col>
+                                            <v-textarea label="中決時の注意点" :rows="countRows(selectedCreditor.policy_memo_debt)" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_debt"></v-textarea>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col>
+                                            <v-textarea label="交渉時の注意点" :rows="countRows(selectedCreditor.negotiation_memo_debt)" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_debt"></v-textarea>
                                         </v-col>
                                     </v-row>
                                 </v-container>
@@ -171,35 +204,45 @@
                                         <v-text-field label="提案まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.until_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="提案まで" :disabled="!isDisabled" suffix="％" type="number" outlined v-model="selectedCreditor.maximum_proposal"></v-text-field>
+                                        <v-text-field label="任意の提案上限金額" :disabled="!isDisabled" suffix="％" type="number" outlined v-model="selectedCreditor.maximum_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="和解書の返送" :disabled="!isDisabled" suffix="ヶ月" type="number" outlined v-model="selectedCreditor.return_date"></v-text-field>
-                                    </v-col>
-                                </v-row>
-                                <v-row>
-                                    <v-col>
-                                        <v-textarea label="中決時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_overpayment"></v-textarea>
+                                        <v-text-field label="返金まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_date"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="交渉時の注意点" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_overpayment"></v-textarea>
+                                        <v-textarea label="中決時の注意点" :rows="countRows(selectedCreditor.policy_memo_overpayment)" :disabled="!isDisabled" outlined v-model="selectedCreditor.policy_memo_overpayment"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="和解書の返還" :disabled="!isDisabled" outlined v-model="selectedCreditor.contract_return"></v-text-field>
+                                        <v-textarea label="交渉時の注意点" :rows="countRows(selectedCreditor.negotiation_memo_overpayment)" :disabled="!isDisabled" outlined v-model="selectedCreditor.negotiation_memo_overpayment"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="訴訟提案" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
+                                        <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_overpayment" hint="支払い開始日から数える場合は -(ﾏｲﾅｽ) をつけて"></v-text-field>
+                                    </v-col>
+                                    <v-col>
+                                        <v-textarea label="和解書メモ" :rows="countRows(selectedCreditor.contract_memo_overpayment)" :disabled="!isDisabled" outlined v-model="selectedCreditor.contract_memo_overpayment"></v-textarea>
                                     </v-col>
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-textarea label="訴訟メモ" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_memo"></v-textarea>
+                                        <v-text-field label="訴訟提案:金額" suffix="％" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
+                                    </v-col>
+                                    <v-col>
+                                        <v-text-field label="訴訟期間：最短" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earliest"></v-text-field>
+                                    </v-col>
+                                    ～
+                                    <v-col>
+                                        <v-text-field label="訴訟期間：最長" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_longest"></v-text-field>
+                                    </v-col>
+                                </v-row>
+                                <v-row>
+                                    <v-col>
+                                        <v-textarea label="訴訟メモ" :rows="countRows(selectedCreditor.trial_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_memo"></v-textarea>
                                     </v-col>
                                 </v-row>
                             </v-card-text>
@@ -227,18 +270,57 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
-                                            <v-text-field label="TEL:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone_survey"></v-text-field>
-                                        </v-col>
-                                        <v-col>
-                                            <v-text-field label="FAX:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.fax"></v-text-field>
-                                        </v-col>
-                                    </v-row>
-                                    <v-row>
-                                        <v-col>
-                                            <v-text-field label="郵便番号" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number"></v-text-field>
-                                        </v-col>
-                                        <v-col>
-                                            <v-text-field label="住所" :disabled="!isDisabled" outlined v-model="selectedCreditor.address"></v-text-field>
+                                            住所：
+                                            <v-expansion-panels>
+                                                <v-expansion-panel>
+                                                    <v-expansion-panel-header>本店</v-expansion-panel-header>
+                                                    <v-expansion-panel-content>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="部署" :disabled="!isDisabled" outlined v-model="selectedCreditor.division"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="TEL" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="FAX" :disabled="!isDisabled" outlined v-model="selectedCreditor.fax"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="郵便番号" prefix="〒" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code" type="number" hint="ハイフンは無し"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="住所" :disabled="!isDisabled" outlined v-model="selectedCreditor.address"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                    </v-expansion-panel-content>
+                                                </v-expansion-panel>
+                                                <v-expansion-panel>
+                                                    <v-expansion-panel-header>受任通知</v-expansion-panel-header>
+                                                    <v-expansion-panel-content>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="部署:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.division_survey" hint="本店と同じ場合は「同上」"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="TEL:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.phone_survey"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="FAX:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.fax_survey"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <v-text-field label="郵便番号:受任関係" prefix="〒" :disabled="!isDisabled" outlined v-model="selectedCreditor.post_code_survey" type="number" hint="ハイフンは無し"></v-text-field>
+                                                            </v-col>
+                                                            <v-col>
+                                                                <v-text-field label="住所:受任関係" :disabled="!isDisabled" outlined v-model="selectedCreditor.address_survey"></v-text-field>
+                                                            </v-col>
+                                                        </v-row>
+                                                    </v-expansion-panel-content>
+                                                </v-expansion-panel>
+                                            </v-expansion-panels>
                                         </v-col>
                                     </v-row>
                                 </v-container>
@@ -293,23 +375,35 @@ export default {
             updateMemoDialog:false,
             updateMemo:'',
             creditorsHeaders:[
-                {text:'名前',   value:'name'}
+                {text:'名前',         value:'name'},
+                {text:'過払い受任',   value:'accept_overpayment'},
+                {text:'債務整理受任',   value:'accept_debt'},
+                {text:'代理開示',     value:'survey_only'}
             ],
             selectedCreditor:{name:'未選択'},
             isDisabled:false,
             //items ///////////////////////////
-            okNg:['OK','NG'],
+            okNg:[
+                {text:'NG',         value:0},
+                {text:'OK',         value:1},
+                {text:'OK※注意',   value:2},
+                {text:'未確認',     value:3}
+            ],
+            accureedString:['必要','不要','必要(提案まで)','必要(和解日まで)','必要(支払開始まで)','必要(12回であれば不要)'],
             interestString:['必要','不要','減率'],
             contractCreater:['先方','みどり'],
             /////////////////////////////
-
+            shortTerm:[
+                {text:'罰有り',value:1},
+                {text:'罰無し',value:0}
+            ],
             changeLogs:[],
             changeLogSearchText:'',
             changeLogHeaders:[
-                {text:'変更日', value:'date'},
-                {text:'変更日', value:'created_at'},
+                {text:'変更日',  value:'date'},
+                {text:'変更日',  value:'created_at'},
                 {text:'コメント',value:'memo'},
-                {text:'編集者',value:'editer'}
+                {text:'編集者',  value:'editer'}
             ]
         }
     },
@@ -322,7 +416,6 @@ export default {
             })
         },
         selectCreditor(e){
-            console.log(e)
             this.tabs = 1
             this.selectedCreditor = e
         },
@@ -336,7 +429,6 @@ export default {
             .then(response=>{
                 if(response.data.error){ return alert(response.data.message)}
                 alert(response.data)
-                console.log(response.data)
                 this.updateMemo = ''
                 this.updateMemoDialog = false
             })
@@ -347,6 +439,58 @@ export default {
                 if(response.data.error){ return alert(response.data.message)}
                 this.changeLogs = response.data
             })
+        },
+
+        ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        //util
+        getColor(val){
+            let result = ''
+            switch(val){
+                case 0:
+                    result = 'error'
+                break
+                case 1:
+                    result = 'success'
+                break
+                case 2:
+                    result = 'warning'
+                break
+                case 3:
+                    result = 'grey'
+                break
+            }
+            return result
+        },
+        okNgEtc(val){
+            let result =''
+            switch(val){
+                case 0:
+                    result = 'NG'
+                break
+                case 1:
+                    result = 'OK'
+                break
+                case 2:
+                    result = 'OK※注意'
+                break
+                case 3:
+                    result = '未確認'
+                break
+            }
+            return result
+        },
+        countRows(str){
+            // textareaの文字列の改行の数をカウントする。※rowsに設定することで高さを変更する。
+            const type = typeof str
+            if(type === "string"){
+                if(!str){return 0}
+                const count = str.match(/\n/g)
+                if(count){
+                    return count.length + 5
+                }
+            }
         }
     },
     computed:{
