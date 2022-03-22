@@ -257,6 +257,7 @@ function todayString(){
 import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 import {getNextWeek,judgePay} from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
+const iconv = require('iconv-lite')
 export default {
     layout : 'pa',
     data(){
@@ -409,7 +410,8 @@ export default {
             const json2csvParser = new Parser({fields:fields,header:false,})
             let exportText = json2csvParser.parse(this.okArray)
             exportText = exportText + '\n2,,,,,' + this.okArray.length + ',' + total 
-            const link = createDownloadATag(exportText)
+            const conv2Sjis = iconv.encode(exportText,'windows-31j')
+            const link = createDownloadATag(conv2Sjis)
             link.click()
             //ダウンロードしたら仮で出金としてDB update。
             const okArray = this.okArray
