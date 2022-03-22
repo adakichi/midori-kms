@@ -62,6 +62,9 @@
                             <v-card-text>
                                 <v-textarea label="概要" :rows="countRows(selectedCreditor.caption)" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption" :rules="[limit_length300]" counter="300"></v-textarea>
                             </v-card-text>
+                            <v-card-text>
+                                <v-textarea label="新規向けメモ" :rows="countRows(selectedCreditor.caption)" :disabled="!isDisabled" outlined v-model="selectedCreditor.inquiry_memo" :rules="[limit_length300]" counter="300"></v-textarea>
+                            </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
                                 <v-btn @click="openUpdateDialog">編集ボタン</v-btn>
@@ -233,7 +236,7 @@
                                         <v-text-field label="訴訟提案:金額" suffix="％" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="訴訟期間：最短" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earliest"></v-text-field>
+                                        <v-text-field label="訴訟期間：最短" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earlier"></v-text-field>
                                     </v-col>
                                     ～
                                     <v-col>
@@ -401,7 +404,6 @@ export default {
             changeLogSearchText:'',
             changeLogHeaders:[
                 {text:'変更日',  value:'date'},
-                {text:'変更日',  value:'created_at'},
                 {text:'コメント',value:'memo'},
                 {text:'編集者',  value:'editer'}
             ],
