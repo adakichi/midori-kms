@@ -358,7 +358,7 @@ export default {
             this.isMatched = false
             this.tabs = 0
             /////////////////////
-
+            if(this.dateRange[1] === ''){ return alert('終了日が空の場合は、\nデータが多すぎて止まってしまいます。')}
             const option = {
                 from:this.dateRange[0],
                 until:this.dateRange[1],
@@ -449,10 +449,11 @@ export default {
         }
     },
     created(){
+        this.dateRange[1]=getNextWeek()
         // this.$store.commit('pa/updatePaymentSchedules',[])
         const option = {
             from:this.dateRange[0],
-            until:getNextWeek(),
+            until:this.dateRange[1],
             isPaidDate:false,
             isExpectedDate:false
         }
