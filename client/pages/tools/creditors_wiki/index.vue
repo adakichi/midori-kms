@@ -125,6 +125,7 @@
                                 </v-row>
                             </v-card-text>
                             <v-card-actions>
+                                <v-spacer></v-spacer>
                                 <v-btn @click="openUpdateDialog">編集ボタン</v-btn>
                             </v-card-actions>
                         </v-card>
@@ -193,6 +194,7 @@
                                 </v-container>
                             </v-card-text>
                             <v-card-actions>
+                                <v-spacer></v-spacer>
                                 <v-btn @click="openUpdateDialog">編集ボタン</v-btn>
                             </v-card-actions>
                         </v-card>
@@ -250,6 +252,7 @@
                                 </v-row>
                             </v-card-text>
                             <v-card-actions>
+                                <v-spacer></v-spacer>
                                 <v-btn @click="openUpdateDialog">編集ボタン</v-btn>
                             </v-card-actions>
                         </v-card>
@@ -339,6 +342,7 @@
                                 </v-container>
                             </v-card-text>
                             <v-card-actions>
+                                <v-spacer></v-spacer>
                                 <v-btn @click="openUpdateDialog">編集ボタン</v-btn>
                             </v-card-actions>
                         </v-card>
