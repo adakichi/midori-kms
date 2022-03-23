@@ -273,6 +273,16 @@
                                     </v-row>
                                     <v-row>
                                         <v-col>
+                                            <v-select label="受任通知：郵送？" :disabled="!isDisabled" outlined v-model="selectedCreditor.mail_start" hint="ハイフン無しで数字のみ"></v-select>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col>
+                                            <v-textarea :rows="countRows(selectedCreditor.survey_memo)" label="受任通知：メモ" :disabled="!isDisabled" outlined :items="mailStart" v-model="selectedCreditor.survey_memo" counter="300" :rules="limit_length300"></v-textarea>
+                                        </v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col>
                                             住所：
                                             <v-expansion-panels>
                                                 <v-expansion-panel>
@@ -395,6 +405,7 @@ export default {
             accureedString:['必要','不要','必要(提案まで)','必要(和解日まで)','必要(支払開始まで)','必要(12回であれば不要)'],
             interestString:['必要','不要','減率'],
             contractCreater:['先方','みどり'],
+            mailStart:[{text:'FAXOK',value:0},{text:'郵送',value:1},{text:'メモ参照',value:2}],
             /////////////////////////////
             shortTerm:[
                 {text:'罰有り',value:1},
