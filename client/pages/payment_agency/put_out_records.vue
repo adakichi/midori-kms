@@ -11,7 +11,7 @@
                     <v-spacer></v-spacer>
                     <div>
                     <v-menu
-                     ref="menu"
+                     ref="menu1"
                      v-model="menuFrom"
                      :close-on-content-click="false"
                      :return-value.sync="dateRange[0]"
@@ -37,7 +37,7 @@
                     <v-btn
                      text
                      color="primary"
-                     @click="$refs.menu.save(dateRange[0])"
+                     @click="$refs.menu1.save(dateRange[0])"
                      >OK
                     </v-btn>
                     </v-date-picker>
@@ -46,7 +46,7 @@
 
                     <div>
                     <v-menu
-                     ref="menu"
+                     ref="menu2"
                      v-model="menuUntil"
                      :close-on-content-click="false"
                      :return-value.sync="dateRange[1]"
@@ -72,7 +72,7 @@
                     <v-btn
                      text
                      color="primary"
-                     @click="$refs.menu.save(dateRange[1])"
+                     @click="$refs.menu2.save(dateRange[1])"
                      >OK
                     </v-btn>
                     </v-date-picker>
