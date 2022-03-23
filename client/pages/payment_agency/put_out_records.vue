@@ -328,7 +328,8 @@ export default {
                 {text:'必要金額',   value:'requiredAmount'},
                 {text:'立替',       value:'sumAmount', groupable:false},
                 {text:'手数料',     value:'sumCommission', groupable:false},
-                {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
+                {text:'顧問料',     value:'sumAdvisoryFee', groupable:false},
+                {text:'メモ',     value:'memo', groupable:false}
             ],
             //snack bar
             snack:'',

@@ -667,6 +667,9 @@
                             <v-text-field label="口座摘要" v-model="customer.bank_account_name"></v-text-field>
                         </v-col>
                     </v-row>
+                    <v-row><v-col>
+                        <v-textarea label="顧客メモ" outlined v-model="customer.memo" counter="100"></v-textarea>
+                    </v-col></v-row>
                 </v-container>
                 </v-card-text>
                 <v-card-actions>
@@ -1601,6 +1604,7 @@ export default {
             })
         },
         updateCustomerDetail(){
+            console.log(this.customer)
             this.$axios.put('api/payment_agency/customer/detail',{customer:this.customer})
             .then((response)=>{
                 if(response.data.error){ return alert(response.data.message)}

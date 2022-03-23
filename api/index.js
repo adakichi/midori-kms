@@ -956,8 +956,8 @@ app.put('/payment_agency/customer/detail',(req,res)=>{
   console.log('\n--- put/customer detail---')
   const customer = req.body.customer
   console.log(customer)
-  const sql = 'UPDATE customers SET name = ?, kana = ?, bank_account_name = ? WHERE customer_id = ?'
-  const values = [customer.name, customer.kana, customer.bank_account_name,customer.customer_id]
+  const sql = 'UPDATE customers SET name = ?, kana = ?, bank_account_name = ?, memo = ? WHERE customer_id = ?;'
+  const values = [customer.name, customer.kana, customer.bank_account_name, customer.memo,customer.customer_id]
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/detail'; throw err}
     console.log('> '+ customer.customer_id +'の顧客情報更新 ->',customer.name,customer.kana,customer.bank_account_name,'\n--- sucess ---')
