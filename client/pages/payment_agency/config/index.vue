@@ -23,8 +23,13 @@ export default {
             menus:[
                 {
                     title:'返済口座マスタ',
-                    description:'返済口座の選択肢登録',
+                    description:'債権者毎の返済口座の選択肢登録',
                     to:'/payment_agency/config/creditors_accounts'
+                },
+                {
+                    title:'銀行/支店 登録',
+                    description:'銀行/支店 コード等登録',
+                    to:'/payment_agency/config/bank'
                 },
             ]
         }

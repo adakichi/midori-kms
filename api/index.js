@@ -2044,6 +2044,48 @@ app.put('/payment_agency/creditors/accounts/',(req,res)=>{
   })
 })
 
+
+//銀行/支店リスト 
+app.get('/payment_agency/banklist',(req,res)=>{
+  console.log('\n---- get BankList ----')
+  const sql = 'select * from banklist'
+  db_payment_agency.query(sql,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'get banklist' ;throw err}
+    console.log('---success get banklist ---')
+    res.send(rows)
+  })
+})
+
+//銀行/支店リスト情報登録
+app.post('/payment_agency/banklist',(req,res)=>{
+  console.log('\n---- POST /banklist ----')
+  const data = req.body
+  const sql = 'INSERT INTO banklist (bankname, bankcode, branchname, branchcode) VALUES (?,?,?,?);'
+  const val = [data.bankname,data.bankcode,data.branchname, data.branchcode]
+  db_payment_agency.query(sql,val,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'POST /banklist' ;throw err}
+    logger.log('post new banklist ->',req.body)
+    console.log('---success POST new /banklist ---')
+    res.send('登録されました。')
+  })
+})
+
+
+//銀行/支店リスト更新
+app.put('/payment_agency/banklist',(req,res)=>{
+  console.log('\n---- put /banklist ----')
+  const data = req.body
+  const sql = 'UPDATE banklist SET bankname = ?, branchname = ? WHERE bankcode = ? AND branchcode = ?'
+  const val = [data.bankname, data.branchname, data.bankcode,data.branchcode]
+  db_payment_agency.query(sql,val,(err,rows,fields)=>{
+    if(err){ err.whichApi= 'PUT /banklist' ;throw err}
+    logger.log('put new /banklist ->',req.body)
+    console.log('---success Put new /banklist ---')
+    res.send('登録されました。')
+  })
+})
+
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
