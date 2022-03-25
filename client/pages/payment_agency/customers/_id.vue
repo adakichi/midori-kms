@@ -1786,6 +1786,23 @@ export default {
                 this.journalBook = response.data
             })
         },
+        //journal_bookのメモ編集用
+        saveMemo(e){
+        console.log(e)
+        e.options = Object.keys(e)[0]
+        const doNot = !confirm('編集しますか？')
+        if(doNot){ return }
+        this.$axios.put('api/payment_agency/journal_book',e)
+        .then(response=>{
+            if(response.data.error){
+                console.log(response.data)
+                alert(response.data.message)
+                this.popupSnackBar('失敗しました。','warning')
+            }
+            console.log(response.data)
+            this.popupSnackBar(response.data)
+            })
+        },
     },
     created(){
         (async()=>{
