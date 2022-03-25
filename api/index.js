@@ -1979,12 +1979,20 @@ app.get('/payment_agency/journal_book/',(req,res)=>{
     values.push(options.from)
   }
   if(options.until){
-    if(sql.indexOf('WHERE')){
-      sql + 'AND date >= "' + options.until + '" '
+    if(sql.indexOf('WHERE') !== -1 ){
+      sql += 'AND date >= "' + options.until + '" '
     } else {
-      sql + 'WHERE date >= "' + options.until + '" '
+      sql += 'WHERE date >= "' + options.until + '" '
     }
     values.push(options.from)
+  }
+  if(!!options.customerId){
+    if(sql.indexOf('WHERE') !== -1 ){
+      sql += 'AND jb.customer_id = ? '
+    } else {
+      sql += 'WHERE jb.customer_id = ? '
+    }
+    values.push(options.customerId)
   }
   console.log(sql,values)
   db_payment_agency.query(sql,values,(err,rows,fields)=>{

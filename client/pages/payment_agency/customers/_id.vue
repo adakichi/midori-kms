@@ -36,6 +36,7 @@
             <v-tab>入金予定</v-tab>
             <v-tab>顧客情報</v-tab>
             <v-tab>会計情報</v-tab>
+            <v-tab>仕訳情報</v-tab>
         </v-tabs>
         <v-tabs-items v-model="tabs">
 
@@ -722,6 +723,62 @@
                 </v-container>
             </v-card>
         </v-tab-item>
+
+        <!-- 仕訳情報 -->
+        <v-tab-item>
+            <v-card>
+                <v-container>
+                    <v-row>
+                        <v-col>
+                            <v-app-bar>
+                                <v-spacer></v-spacer>
+                                <v-btn @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
+                                <v-btn @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
+                            </v-app-bar>
+                            <v-data-table
+                            :items="journalBook"
+                            :headers="journalBookHeaders"
+                            items-per-page="-1"
+                            >
+                                        <template v-slot:item.memo="{item}">
+                                            <v-edit-dialog
+                                                v-model="editDialogMemo"
+                                                large
+                                                @save="saveMemo(item)"
+                                                :return-value.sync="item.memo"
+                                            >   
+                                                {{item.memo}}
+                                                <template v-slot:input>
+                                                    <v-text-field
+                                                        v-model="item.memo"
+                                                        label="メモ"
+                                                        single-line
+                                                    ></v-text-field>
+                                                </template>
+                                            </v-edit-dialog>
+                                        </template>
+                            </v-data-table>
+                                    <v-snackbar
+                                    v-model="snack"
+                                    :timeout="3000"
+                                    :color="snackColor"
+                                    >
+                                    {{ snackText }}
+                                    <template v-slot:action="{ attrs }">
+                                        <v-btn
+                                        v-bind="attrs"
+                                        text
+                                        @click="snack = false"
+                                        >
+                                        Close
+                                        </v-btn>
+                                    </template>
+                                    </v-snackbar>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-card>
+        </v-tab-item>
         </v-tabs-items>
         <!-- 売掛金の編集ダイアログ -->
         <v-dialog v-model="editReceivableDialog">
@@ -1062,7 +1119,24 @@ export default {
             selectedCustomerCis:[],
             updateValue:{},
             editedTemporaryValues:{deposit:0,advance_payment:0,temporary_receipt:0, accounts_receivable:0,memo:''},
+            
+            ////////////////////////
+            //journal_book用
+            journalBook:[],
+            journalBookHeaders:[
+                { text:'元帳',  value:'motocho'},
+                { text:'日付',  value:'date'},
+                { text:'借方勘定科目',  value:'debit_account'},
+                { text:'貸方勘定科目',  value:'credit_account'},
+                { text:'借方',  value:'debit'},
+                { text:'貸方',  value:'credit'},
+                { text:'番号',  value:'customer_id'},
+                { text:'名前',  value:'name'},
+                { text:'メモ',  value:'memo'},
+            ],
+            editDialgMemo:false,
 
+            ////▲▲▲▲▲▲▲▲▲////////////
             //validate rules
             required: value => !!value || "必ず入力してください",
             limit_length: value => value.length <= 10 || "10文字以内です。",
@@ -1694,6 +1768,22 @@ export default {
                 this.dialog = false
                 alert('更新が終わりました!')
                 location.reload()
+            })
+        },
+        ///////////////////////////////////////
+        //journal_book
+        getJournalBook(table){
+            const options = {
+                until:null,
+                from:null,
+                table:table,
+                customerId:this.customerId
+            }
+            this.$axios.get('api/payment_agency/journal_book/',{params:{options:options}})
+            .then((response)=>{
+                console.log(response)
+                if(response.data.error){ return response.data.message }
+                this.journalBook = response.data
             })
         },
     },
