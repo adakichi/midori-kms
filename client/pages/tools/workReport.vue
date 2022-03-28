@@ -258,6 +258,7 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn @click="submit">送信</v-btn>
+                <v-btn @click="fileSend">ファイル送信</v-btn>
             </v-card-actions>
         </v-card>
         </v-col>
@@ -344,6 +345,10 @@ export default {
                         alert(error)
                     }).then(console.log('submit:Done!'))
                     }
+                },
+                fileSend(){
+                    this.$axios.post('api/cw/send/file')
+                    .then(r=>{console.log(r)})
                 }
         },
         computed:{

@@ -9,6 +9,8 @@ const moment = require('moment')
 const fs = require('fs')
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
+const fetch = require('node-fetch')
+
 
 import {sqls} from '../client/plugins/sqls.js'
 import {matchCis,objIsEmpty} from '../client/plugins/util.js'
@@ -267,9 +269,30 @@ app.post("/cw/send",function(req,res,next){
             }
         })
 })
+const FormData = require('form-data')
+app.post("/cw/send/file",function(req,res,next){
+  console.log('cw send file')
+  let form = new FormData()
+  const file = fs.createReadStream('./client/assets/img/test.txt')
+  form.append('message','Hello')
+  form.append('file',file)
+  const url = 'https://api.chatwork.com/v2/rooms/81402638/files'
+  const cwToken = '8ff0ee570bbcc44f8d576bce19932b63'
+  const config = {
+    headers:{
+      Accept: 'application/json', 
+      'X-ChatWorkToken' : cwToken,
+      'Content-Type': 'multipart/form-data',
+      ...form.getHeaders()
+    }
+  }
 
-
-
+  axios.post(url,form,config)
+  .then(response=>{
+    console.log(response.data)
+    res.send(response.data)
+  })
+})
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
