@@ -133,7 +133,7 @@ export const sqls = {
     console.log('get payment~ options:',options)
     let from = ''
     let until = ''
-    let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, '
+    let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, cis.memo, '
         sql = sql + 'expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis '
         sql = sql + 'INNER JOIN customers on cis.customer_id = customers.customer_id '
 
@@ -141,9 +141,9 @@ export const sqls = {
     if(options.from && options.until){
       sql = sql + 'WHERE cis.payment_day BETWEEN "' + options.from + '" AND "' + options.until + '"'
     } else if(options.until){
-      sql = sql + 'WHERE cis.payment_day < "' + options.until + '"'
+      sql = sql + 'WHERE cis.payment_day <= "' + options.until + '"'
     } else if(options.from){
-      sql = sql + 'WHERE cis.payment_day > "' + options.from + '"'
+      sql = sql + 'WHERE cis.payment_day >= "' + options.from + '"'
     } else {
       from = moment().format('YYYY-MM-DD')
       until = moment().add(30,'days').format('YYYY-MM-DD')
@@ -178,6 +178,7 @@ export const sqls = {
           break
         }
     }
+
     sql = sql + ' ORDER BY payment_day;'
     return sql
   },
@@ -192,8 +193,8 @@ export const sqls = {
 
     let sql = ''
       sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id,ps.amount, date_format(ps.date, "%Y/%m/%d")as date, '
-      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
-      sql = sql + 'pa.creditor_id , creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
+      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date, ps.memo, date_format(ps.expected_date,"%Y%m%d")as expected_date, '
+      sql = sql + 'pa.creditor_id , pa.commission, pa.advisory_fee, creditors.creditor_name FROM payment_schedules as ps INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
       sql = sql + 'INNER JOIN creditors on pa.creditor_id = creditors.creditor_id '
       sql = sql + 'WHERE customer_id = ? ORDER BY date;'
     return sql
@@ -209,8 +210,8 @@ export const sqls = {
     let sql = ''
     let values = []
     console.log(options)
-      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id, ps.amount, pa.advisory_fee, pa.commision, date_format(ps.date, "%Y/%m/%d")as date, '
-      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name, cu.customer_id, '
+      sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id, ps.amount, pa.advisory_fee, pa.commission, date_format(ps.date, "%Y/%m/%d")as date, '
+      sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name, cu.kana, cu.customer_id, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
       sql = sql + 'INNER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id '
       sql = sql + 'INNER JOIN customers as cu ON pa.customer_id = cu.customer_id '
@@ -221,11 +222,14 @@ export const sqls = {
         sql = sql + 'WHERE ps.date BETWEEN ? AND ? '
         values.push(options.from,options.until)
       } else if(options.from){
-        sql = sql + 'WHERE ps.date > ? '  
+        sql = sql + 'WHERE ps.date >= ? '  
         values.push(options.from)
       } else if(options.until){
-        sql = sql + 'WHERE ps.date < ? '
+        sql = sql + 'WHERE ps.date <= ? '
         values.push(options.until)
+      } else if(options.until === undefined) {
+        sql = sql + 'WHERE ps.date <= ? '
+        values.push(moment().add(1,'M').format('YYYY-MM-DD'))
       }
   
       //支払い済みを含めるかどうか
@@ -263,7 +267,6 @@ export const sqls = {
     },
 
     get_payment_agency_payment_schedules_customers_deposit:function(ids){
-      console.log(ids)
       const array = ids
       const count = array.length
       let sql = 'SELECT * FROM customers WHERE customer_id in (?'
@@ -284,9 +287,9 @@ export const sqls = {
       if(from && until){
         sql = sql + 'WHERE downloadDate "' + from + '" BETWEEN "' + until + '" '
       } else if(from){
-        sql = sql + 'WHERE downloadDate < "' + from + '" '
+        sql = sql + 'WHERE downloadDate <= "' + from + '" '
       } else if(until){
-        sql = sql + 'WHERE downloadDate > "' + until + '" '
+        sql = sql + 'WHERE downloadDate >= "' + until + '" '
       }
     }
 

@@ -134,11 +134,21 @@ export default {
           title: '顧客毎',
           to: '/payment_agency/customers/'
         },
+        {
+          icon: 'mdi-account',
+          title: '仕訳帳',
+          to: '/payment_agency/journal_book/'
+        },
+        {
+          icon: 'mdi-cog-outline',
+          title: '設定',
+          to: '/payment_agency/config/'
+        },
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'MIDORI-KMS'
+      title: 'Green-Radish'
     }
   }
 }

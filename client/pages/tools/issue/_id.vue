@@ -4,7 +4,8 @@
             <v-col>
                 <h1>title: {{issuesData?issuesData.title:'一旦もどってね。'}}</h1>
                 <p>{{issuesData?issuesData.description:'直リンクは無効にしてます。'}}</p>
-                <v-btn to="/tools/issues">戻る</v-btn>
+                <v-btn class="mr-1" to="/tools/issues">戻る</v-btn>
+                <v-btn class="mr-1" @click="openNewDialog">新規投稿</v-btn>
                 <v-row v-for="(item, index) in messages" :key="index"><v-col>
                 <v-card>
                     <v-toolbar dense elevation=0 >
@@ -15,20 +16,20 @@
                     <v-card-text v-html="convMarked(item.message)"></v-card-text>
                 </v-card>
                 </v-col></v-row>
-                <v-textarea counter v-model="newMessage"></v-textarea>
-                <v-btn @click="sendMessage">投稿</v-btn>
             </v-col>
         </v-row>
         <v-dialog
         v-model="dialog"
         >
             <v-card>
-                <v-card-text>
-                    <v-textarea v-model="editMessage.text"></v-textarea>
+                <v-card-text class="pa-2">
+                    <v-textarea outlined label="text" v-model="editMessage.text"></v-textarea>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn @click="updateIssue">更新</v-btn>
+                    <v-btn v-show="isNew" @click="postIssue">投稿</v-btn>
+                    <v-btn v-show="!isNew" @click="updateIssue">更新</v-btn>
+                    <v-btn v-show="!isNew" @click="deleteIssue">削除</v-btn>
                 </v-card-actions>
             </v-card>
             <v-card>
@@ -45,7 +46,7 @@ const marked = require('marked')
 export default {
     data(){
         return {
-            newMessage:'',
+            isNew:true,
             dialog:false,
             editMessage:{text:'',idx:''}
         }
@@ -55,6 +56,7 @@ export default {
             this.dialog = true
             this.editMessage.idx = idx
             this.editMessage.text = this.messages[idx].message
+            this.isNew = false
         },
         updateIssue(){
             const targetMessage = this.messages[this.editMessage.idx]
@@ -69,16 +71,39 @@ export default {
             this.dialog = false
             return this.$store.dispatch('issues/updateMessage',data)
         },
+        deleteIssue(){
+            const doNot = !confirm('本当に削除しますか？')
+            if(doNot){ return }
+            const doNot2 = !confirm('削除は推奨していません！\n本当に削除しますか？')
+            if(doNot2){ return }
+            const targetMessage = this.messages[this.editMessage.idx]
+            const data = {
+                messageId:targetMessage.issues_messages_id,
+                issueId:targetMessage.issue_id,
+                }
+            this.$axios.delete('api/issue',{data:data})
+            .then(response=>{
+                if(response.data.error){ return alert(response.data.message)}
+                alert(response.data)
+                alert('一度戻って画面を更新してください。\n万が一間違って削除した場合は、\n今のうちに内容をコピーしておきましょう。')
+                this.dialog = false
+            })
+        },
         convMarked(str){
             return marked.marked(str)
         },
-        sendMessage(){
-            if(this.newMessage.length > 1000){ return alert('文字数が多いです。\n1000文字まで。')}
-            if(!this.$auth.user){ return alert('ログインしてから送って')}            
-            const data = {id:this.issuesData.issue_id, author:this.$auth.user.userId, message:this.newMessage}
-            console.log('おくるよ')
-            console.log(data)
-            return this.$store.dispatch('issues/postMessage',data)
+        postIssue(){
+            if(this.editMessage.text.length > 1000){ return alert('文字数が多いです。\n1000文字まで。')}
+            if(!this.$auth.user){ return alert('ログインしてから送って')}  
+            const data = {id:this.issuesData.issue_id, author:this.$auth.user.userId, message:this.editMessage.text}
+            this.$store.dispatch('issues/postMessage',data)
+            .then(response=>{
+                this.dialog = false
+            })
+        },
+        openNewDialog(){
+            this.dialog = true
+            this.isNew = true
         }
     },
     computed:{

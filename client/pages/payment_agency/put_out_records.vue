@@ -11,10 +11,10 @@
                     <v-spacer></v-spacer>
                     <div>
                     <v-menu
-                     ref="menu"
-                     v-model="menu"
+                     ref="menu1"
+                     v-model="menuFrom"
                      :close-on-content-click="false"
-                     :return-value.sync="dateRange"
+                     :return-value.sync="dateRange[0]"
                      transition="scale-transition"
                      offset-y
                      left
@@ -22,8 +22,8 @@
                     >
                         <template v-slot:activator="{on, attrs}">
                             <v-text-field
-                             v-model="dateRange"
-                             label="範囲を選択してください"
+                             v-model="dateRange[0]"
+                             label="検索 開始位置"
                              prepend-icon="mdi-calendar"
                              readonly
                              v-bind="attrs"
@@ -31,14 +31,48 @@
                              ></v-text-field>
                         </template>
                     <v-date-picker
-                     v-model="dateRange"
-                     range
+                     v-model="dateRange[0]"
                     >
                     <v-spacer></v-spacer>
                     <v-btn
                      text
                      color="primary"
-                     @click="$refs.menu.save(dateRange)"
+                     @click="$refs.menu1.save(dateRange[0])"
+                     >OK
+                    </v-btn>
+                    </v-date-picker>
+                    </v-menu>
+                    </div>
+
+                    <div>
+                    <v-menu
+                     ref="menu2"
+                     v-model="menuUntil"
+                     :close-on-content-click="false"
+                     :return-value.sync="dateRange[1]"
+                     transition="scale-transition"
+                     offset-y
+                     left
+                     min-width="auto"
+                    >
+                        <template v-slot:activator="{on, attrs}">
+                            <v-text-field
+                             v-model="dateRange[1]"
+                             label="検索 終了日"
+                             prepend-icon="mdi-calendar"
+                             readonly
+                             v-bind="attrs"
+                             v-on="on"
+                             ></v-text-field>
+                        </template>
+                    <v-date-picker
+                     v-model="dateRange[1]"
+                    >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                     text
+                     color="primary"
+                     @click="$refs.menu2.save(dateRange[1])"
                      >OK
                     </v-btn>
                     </v-date-picker>
@@ -69,7 +103,7 @@
                     <v-data-table
                     :headers="headers"
                     :items="paymentSchedules"
-                    :items-per-page="50"
+                    :items-per-page="-1"
                     item-key="payment_schedule_id"
                     show-select
                     show-group-by
@@ -137,6 +171,22 @@
                 </v-tabs-items>
             </v-col>
         </v-row>
+                        <v-snackbar
+                          v-model="snack"
+                          :timeout="3000"
+                          :color="snackColor"
+                        >
+                          {{ snackText }}
+                          <template v-slot:action="{ attrs }">
+                            <v-btn
+                              v-bind="attrs"
+                              text
+                              @click="snack = false"
+                            >
+                              Close
+                            </v-btn>
+                          </template>
+                        </v-snackbar>
     </v-container>
 </template>
 
@@ -179,8 +229,6 @@ function convToOne(item){
     }
 }
 
-//Download用のaタグ作成用関数
-import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 
   //selectedからIDを取り出して配列にする
 function getIds(selected){
@@ -193,7 +241,7 @@ function getIds(selected){
 function turnPositiveIntoNegative(selecteds){
     return selecteds.map((itemObject)=>{
         itemObject.amount = -(itemObject.amount)
-        itemObject.commision = -(itemObject.commision)
+        itemObject.commission = -(itemObject.commission)
         itemObject.advisory_fee = -(itemObject.advisory_fee)
         return itemObject
     })
@@ -205,15 +253,19 @@ function todayString(){
     return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
 }
 
+//Download用のaタグ作成用関数
+import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 import {getNextWeek,judgePay} from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
+const iconv = require('iconv-lite')
 export default {
     layout : 'pa',
     data(){
         return{
             isPaidDate:false,
             isExpectedDate:false,
-            menu:false,
+            menuFrom:false,
+            menuUntil:false,
             isMatched:false,    //マッチ済みかどうかのスイッチ。これで仮出金解除等のボタンの表示のON/OFFを切り替える。
 
             //メインのDataTable用 配列
@@ -222,7 +274,7 @@ export default {
             editedCustomersArray:[],
             okArray:[],
             ngArray:[],
-            dateRange:[],
+            dateRange:['',''],
             selected:[],
             tabs:null,
             headers:[
@@ -271,10 +323,18 @@ export default {
                 {text:'前 仮受金',  value:'temporaryReceiptBeforeJudge'},
                 {text:'後 仮受金',  value:'temporary_receipt'},
                 {text:'後 支払い済み金額',   value:'confirm_payment'},
+                {text:'必要預り金',   value:'requiredDeposit'},
+                {text:'必要前受金',   value:'requiredAdvancePayment'},
+                {text:'必要金額',   value:'requiredAmount'},
                 {text:'立替',       value:'sumAmount', groupable:false},
-                {text:'手数料',     value:'sumCommision', groupable:false},
-                {text:'顧問料',     value:'sumAdvisoryFee', groupable:false}
-            ]
+                {text:'手数料',     value:'sumCommission', groupable:false},
+                {text:'顧問料',     value:'sumAdvisoryFee', groupable:false},
+                {text:'メモ',     value:'memo', groupable:false}
+            ],
+            //snack bar
+            snack:'',
+            snackColor:'',
+            snackText:'',
         }
     },
     computed:{
@@ -299,7 +359,7 @@ export default {
             this.isMatched = false
             this.tabs = 0
             /////////////////////
-
+            if(this.dateRange[1] === ''){ return alert('終了日が空の場合は、\nデータが多すぎて止まってしまいます。')}
             const option = {
                 from:this.dateRange[0],
                 until:this.dateRange[1],
@@ -309,6 +369,11 @@ export default {
             this.$axios.get('api/payment_agency/payment_schedules',{params:option})
             .then((response)=>{
                 this.paymentSchedules = response.data
+                if(option.until === undefined){
+                    this.snack = true
+                    this.snackColor = 'warning'
+                    this.snackText = '「～まで」の範囲指定が無かったので、一ヶ月後までの予定のみ取得しました。'
+                }
             })
         },
         judgementPaid(){
@@ -317,7 +382,9 @@ export default {
             const selected = this.selected
             this.selected = [] //初期化
             if(selected.length <= 0){ return alert('Error : 選択されてません！！')}
+            //selectedからカスタマーのIDを抽出
             const ids = getIdsFromPaymentSchedules(selected)
+            console.log('ids:',ids)
             //預り金があるか等の確認の為顧客情報を取得
             this.$axios.get('api/payment_agency/payment_schedules/customers_deposit',{params:{ids:ids}})
             .then((response)=>{
@@ -340,11 +407,12 @@ export default {
 
             //②CSVダウンロード
             const total = totalAmount(this.okArray)
-            const fields = ['payment_schedule_id', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','name']
-            const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
+            const fields = ['recordKubun', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','kana']
+            const json2csvParser = new Parser({fields:fields,header:false,})
             let exportText = json2csvParser.parse(this.okArray)
-            exportText = exportText + '\n"2",,,,,' + this.okArray.length + ',' + total + ',' 
-            const link = createDownloadATag(exportText)
+            exportText = exportText + '\n2,,,,,' + this.okArray.length + ',' + total 
+            const conv2Sjis = iconv.encode(exportText,'windows-31j')
+            const link = createDownloadATag(conv2Sjis)
             link.click()
             //ダウンロードしたら仮で出金としてDB update。
             const okArray = this.okArray
@@ -382,10 +450,11 @@ export default {
         }
     },
     created(){
+        this.dateRange[1]=getNextWeek()
         // this.$store.commit('pa/updatePaymentSchedules',[])
         const option = {
             from:this.dateRange[0],
-            until:getNextWeek(),
+            until:this.dateRange[1],
             isPaidDate:false,
             isExpectedDate:false
         }

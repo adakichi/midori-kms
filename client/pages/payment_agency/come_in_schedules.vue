@@ -43,6 +43,7 @@
                     </v-menu>
                     </div>
                     <v-btn @click="searchSchedules">検索</v-btn>
+                    <v-btn @click="searchDiff">相違検索</v-btn>
                 </v-app-bar>
                 <v-app-bar>
                     <v-radio-group v-model="isMatched" row>
@@ -93,6 +94,7 @@
 </template>
 
 <script>
+const moment = require('moment')
 import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
 const {Parser} = require('json2csv')
 export default {
@@ -103,6 +105,7 @@ export default {
             dateRange:[],
             isMatched:'false',
             search:'',
+            comeInSchedulesList:[],
             headers:[
                 { text:'cis-id', value:'come_in_schedules_id'},
                 { text:'customer_id', value:'customer_id'},
@@ -118,9 +121,6 @@ export default {
         }
     },
     computed:{
-        comeInSchedulesList(){
-            return this.$store.getters['pa/getCIS']
-        }
     },
     methods:{
         searchSchedules(){
@@ -130,7 +130,16 @@ export default {
                 until:this.dateRange[1],
                 isMatched:this.isMatched
             }
-            this.$store.dispatch('pa/actComeInSchedules',option)
+            this.$axios.get('api/payment_agency/cis/',{params:option})
+            .then(response=>{
+                this.comeInSchedulesList = response.data
+            })
+        },
+        searchDiff(){
+            this.$axios.get('api/payment_agency/cis/diff')
+            .then(response=>{
+                this.comeInSchedulesList = response.data
+            })
         },
         goCustomerPage(e){
             console.log(e)
@@ -145,11 +154,8 @@ export default {
         }
     },
     created(){
-            const options = {
-                until:new Date(),
-                isMatched:false
-            }
-            this.$store.dispatch('pa/actComeInSchedules',options)
+            this.dateRange[1] = moment().format("YYYY-MM-DD")
+            this.searchSchedules()
     }
 }
 </script>

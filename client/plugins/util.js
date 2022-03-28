@@ -154,7 +154,7 @@ const getIdsFromPaymentSchedules = function(schedulesArray){
 //カスタマーの配列と選択された配列を比較してdeposit（預り金）より多ければOKとする。
 //※重要※ リファクタリング案件　計算量を無視してます。（めんどい、というか今は完成スケジュール重視）重たくなったら、createSumPaidObjectとcreateAfterPaymentArray の結合というか　一回の計算量でおわるようにしてください。
 function judgePay(selectedArray,customersArray){
-    console.log('cusotmersArray',customersArray)
+    console.log('cusotmersArray:',customersArray)
     //実際の出金　OK/NG の判断処理
     let afterPaymentArray = createAfterPaymentArray(selectedArray,customersArray)
     return afterPaymentArray
@@ -163,23 +163,23 @@ function judgePay(selectedArray,customersArray){
 //※judgePay　用の関数 if(預かり金 > 支払い金額小計 && 仮出金していない) を判断する。すでに仮出金済みの案件
 //  その上で支払い金額をcustomersのdepositから引く＆ selectedArrayを支払いOKとする
 function createAfterPaymentArray(selectedArray,customersArray){
-
+    console.log('selectedArray:',selectedArray)
     let customersObject = customersArrayToObject(customersArray)
     const judgedSelectedArray = selectedArray.map(schedule =>{
         const customerId = schedule.customer_id
         const amount     = parseInt(schedule.amount,10)
         const advisoryFee= parseInt(schedule.advisory_fee,10)    * 1.1
-        const commision  = parseInt(schedule.commision,10)       * 1.1
+        const commission  = parseInt(schedule.commission,10)       * 1.1
         
-        //depositとamount && (adovisoryFee + commision) とadvance_payment を比較する。かつ まだ仮出金になってないことの確認
-        if(customersObject[customerId].deposit >= amount && customersObject[customerId].advance_payment >= (advisoryFee + commision) && schedule.expected_date === null ){
+        //depositとamount && (adovisoryFee + commission) とadvance_payment を比較する。かつ まだ仮出金になってないことの確認
+        if(customersObject[customerId].deposit >= amount && customersObject[customerId].advance_payment >= (advisoryFee + commission) && schedule.expected_date === null ){
             //depositからamountを減算
             customersObject[customerId].deposit -= amount
-            //advance_paymentから　advisoryFeeとcommisionを減算
-            customersObject[customerId].advance_payment -= advisoryFee + commision
+            //advance_paymentから　advisoryFeeとcommissionを減算
+            customersObject[customerId].advance_payment -= advisoryFee + commission
             //小計に加算
             customersObject[customerId].sumAmount += amount
-            customersObject[customerId].sumCommision += commision
+            customersObject[customerId].sumCommission += commission
             customersObject[customerId].sumAdvisoryFee += advisoryFee
             //confirm_payment(支払い済み金額)にamountを加算
             customersObject[customerId].confirm_payment += amount
@@ -188,6 +188,24 @@ function createAfterPaymentArray(selectedArray,customersArray){
         } else {
             schedule.isCanPay = false
         }
+        //支払いに必要な金額を追加
+        customersObject[customerId].requiredAmount += (amount + advisoryFee + commission)
+        customersObject[customerId].requiredDeposit         += amount
+        customersObject[customerId].requiredAdvancePayment  += (advisoryFee + commission)
+
+        schedule.recordKubun = 1
+        switch(schedule.kind){
+            case '普通':
+                schedule.kind = 1
+                break
+            case '当座':
+                schedule.kind = 2
+                break
+            case '貯蓄':
+                schedule.kind = 4   
+                break
+        }
+
         return schedule
     })
     return {customersObject:customersObject,judgedSelectedArray:judgedSelectedArray}
@@ -198,12 +216,15 @@ function createAfterPaymentArray(selectedArray,customersArray){
         let customerObject = {}
         customersArray.forEach((customer)=>{
             customer.sumAmount = 0
-            customer.sumCommision = 0
+            customer.sumCommission = 0
             customer.sumAdvisoryFee = 0
             customer.depositBeforeJudge = customer.deposit
             customer.accountsReceivableBeforeJudge = customer.accounts_receivable
             customer.advancePaymentBeforeJudge     = customer.advance_payment
             customer.temporaryReceiptBeforeJudge   = customer.temporary_receipt
+            customer.requiredAmount                = 0
+            customer.requiredDeposit               = 0
+            customer.requiredAdvancePayment        = 0
             customerObject[customer.customer_id]   = customer
         })
         return customerObject
@@ -216,13 +237,13 @@ function createSumPaidObject(selectedArray){
         const customerId = parseInt(schedule.customer_id,10)
         const amount     = parseInt(schedule.amount,10)
         const advisoryFee= parseInt(schedule.advisory_fee,10)
-        const commision  = parseInt(schedule.commision,10)
+        const commission  = parseInt(schedule.commission,10)
         if(sumPaidObject[customerId]){
             sumPaidObject[customerId].amount        += amount 
             sumPaidObject[customerId].advisoryFee   += advisoryFee 
-            sumPaidObject[customerId].commision     += commision 
+            sumPaidObject[customerId].commission     += commission 
         } else {
-            sumPaidObject[customerId] = {customerId:customerId,amount:amount,advisoryFee:advisoryFee,commision:commision}
+            sumPaidObject[customerId] = {customerId:customerId,amount:amount,advisoryFee:advisoryFee,commission:commission}
         }
     })
     return sumPaidObject    
@@ -265,6 +286,23 @@ function forwardingAddress (division){
             break;
         }
     return {from: from, to: toRoomId}
+}
+
+//id_vueで、積立設定の際に必要な残り金額の計算
+const sumPs = function(ps){
+    let sumAmount     = 0
+    let sumAdvisoryFee = 0
+    let sumCommission  = 0
+    ps.forEach(ele=>{
+        //isSelecetable がTrueってことはまだ出金していないってこと。
+        console.log('ele',ele)
+        if(ele.isSelectable){
+            sumAmount     += ele.amount
+            sumAdvisoryFee += ele.advisory_fee
+            sumCommission  += ele.commission
+        }
+    })
+    return {sumAmount:sumAmount, sumAdvisoryFee:sumAdvisoryFee, sumCommission:sumCommission,sumTotal:Number(sumPaymentSchedules.sumAmount) + Number(sumPaymentSchedules.sumAdvisoryFee) + Number(sumPaymentSchedules.sumCommission)}
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -403,6 +441,7 @@ export {
     getIdsFromPaymentSchedules,
     judgePay,
     forwardingAddress,
+    sumPs,
     ////////////////////
     zenkana2BigHankana,
     zenkana2Hankana,   

@@ -17,6 +17,7 @@
                             <v-card-title>{{item.title}}</v-card-title>
                             <v-card-text>{{item.description}}</v-card-text>
                             <v-card-actions>
+                                <v-btn color="primary" @click="editTitle(item)">編集</v-btn>
                                 <v-btn :to="'/tools/issue/' + item.issue_id">Go issues</v-btn>
                             </v-card-actions>
                         </v-col>
@@ -41,7 +42,8 @@
                 ></v-textarea>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="primary" @click="createNew">作成</v-btn>
+                    <v-btn v-show="isNew" color="primary" @click="createNew">作成</v-btn>
+                    <v-btn v-show="!isNew" color="primary" @click="updateNew">更新</v-btn>
                 </v-card-actions>
             </v-card-text>
         </v-card>
@@ -53,14 +55,17 @@
 export default {
     data(){
         return {
+            isNew:true,
             dialog:false,
             newTitle:'',
-            newDescription:''
+            newDescription:'',
+            editIssueId:0
         }
     },
     methods:{
         switchDialog(){
             this.dialog = !this.dialog
+            this.isNew = true
         },
         createNew(){
             const title = this.newTitle
@@ -73,6 +78,26 @@ export default {
                 author: author                
             }
             this.$store.dispatch('issues/dbCreateNewIssue',{data})
+        },
+        editTitle(item){
+            this.dialog = !this.dialog
+            this.newTitle = item.title
+            this.newDescription = item.description
+            this.editIssueId = item.issue_id
+            this.isNew = false
+        },
+        updateNew(){
+            const data = {
+                title: this.newTitle,
+                description:this.newDescription,
+                id:this.editIssueId
+            }
+            this.$axios.put('api/issues',data)
+            .then(response=>{
+                if(response.data.error){return alert(response.data.message)}
+                alert(response.data)
+                this.dialog = false
+            })
         }
     },
     computed:{

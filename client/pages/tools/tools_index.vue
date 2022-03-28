@@ -35,8 +35,13 @@ export default {
                     to:"/tools/issues",
                     description:"問題提起等の掲示板",
                     icon:"mdi-forum"
+                },
+                {
+                    title:"債権者wiki",
+                    to:"/tools/creditors_wiki",
+                    description:"債権者情報",
+                    icon:"mdi-wikipedia"
                 }
-
             ],
             item:{title:"tesuto", to:"to",description:"せつめい", icon:"mdi-phone"}
         }

@@ -90,7 +90,7 @@ export default {
                 {
                     icon:'mdi-lead-pencil',
                     title:'TEST',
-                    to:'/study/slide_view'
+                    to:'/study/test'
                 }
             ],
         }

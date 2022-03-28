@@ -104,7 +104,7 @@ export const actions = {
     },
     //債権者の口座候補リスト
     async getDbCreditorsAccounts(context){
-        const creditorsAccounts = await this.$axios.get('api/creditors_accounts/')
+        const creditorsAccounts = await this.$axios.get('api/payment_agency/creditors/accounts/')
         context.commit('updateCreditorsAccounts',creditorsAccounts.data)
     },
 
