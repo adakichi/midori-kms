@@ -13,15 +13,10 @@
                 filled
                 :items="division"
                 label="所属"
-<<<<<<< HEAD
                 v-model="selectedDivision"
                 :options="$auth.user ? $auth.user.division : null"
                 ></v-select>
                 </v-card-title>
-=======
-                v-model="selectedDivision"></v-select>
-            </v-card-title>
->>>>>>> main
             <v-card-text>
                 <v-form ref="form" @submit.prevent>
                     <!-- 新規用 -->
