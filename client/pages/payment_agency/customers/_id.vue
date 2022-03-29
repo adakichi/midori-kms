@@ -738,7 +738,7 @@
                             <v-data-table
                             :items="journalBook"
                             :headers="journalBookHeaders"
-                            items-per-page="-1"
+                            :items-per-page="-1"
                             >
                                         <template v-slot:item.memo="{item}">
                                             <v-edit-dialog
@@ -1781,7 +1781,7 @@ export default {
             }
             this.$axios.get('api/payment_agency/journal_book/',{params:{options:options}})
             .then((response)=>{
-                console.log(response)
+                console.log('response:',response)
                 if(response.data.error){ return response.data.message }
                 this.journalBook = response.data
             })
