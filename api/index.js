@@ -9,8 +9,8 @@ const moment = require('moment')
 const fs = require('fs')
 import {dbConfig,chatworkConf} from '../midori-kms_config'
 const domain = require('express-domain-middleware')
-const fetch = require('node-fetch')
-
+const multer= require('multer')
+const FormData = require('form-data')
 
 import {sqls} from '../client/plugins/sqls.js'
 import {matchCis,objIsEmpty} from '../client/plugins/util.js'
@@ -269,15 +269,50 @@ app.post("/cw/send",function(req,res,next){
             }
         })
 })
-const FormData = require('form-data')
-app.post("/cw/send/file",function(req,res,next){
-  console.log('cw send file')
+
+//メモ multer について。
+// multer({ dest: 'tmp/' }).single('file')
+// destは保存場所、指定しない場合はディスクには保存されないディスクのメモリに保存されるとのこと。
+// single()で指定するのはformでのname属性。
+const storage = multer.diskStorage({
+  destination:function(req,file,cb){
+    cb(null,'tmp/')
+  },
+  filename: function(req,file,cb){
+    cb(null,file.originalname)
+  }
+})
+const upload = multer({storage:storage})
+app.post('/upload', upload.single('file'), (req, res) => {
+  console.log('/upload =>\n')
+  console.log('file:',req.file)
+  const filename = req.body.filename
+  const content = fs.readFileSync(req.file.path, 'utf-8');
+  console.log(filename + ': ' + content)
+  res.send(filename + ': ' + content)
+  fs.unlink(req.file.path,(err)=>{
+    if(err){return console.log(err)}
+    console.log(req.file.path + 'を削除しました')
+  })
+});
+
+
+//添付ファイルがある場合の処理
+app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
+  console.log('\nPOST:/cw/send\n---start cw sendfile process---')
+  console.log('  division: ' + req.body.division)
+  const division = forwardingAddress(req.body.division)
+  const body = req.body.content
+  const roomIds = division.to
+  const cwToken = division.from
+  const urls =  roomIds.map((roomId)=>{
+      return chatworkConf.baseUrl + '/rooms/' + roomId + '/files'
+  })
+  //////file添付の処理/////////////////
   let form = new FormData()
-  const file = fs.createReadStream('./client/assets/img/test.txt')
-  form.append('message','Hello')
+  const file = fs.createReadStream(req.file.path);
+  form.append('message',body)
   form.append('file',file)
-  const url = 'https://api.chatwork.com/v2/rooms/81402638/files'
-  const cwToken = '8ff0ee570bbcc44f8d576bce19932b63'
   const config = {
     headers:{
       Accept: 'application/json', 
@@ -286,12 +321,53 @@ app.post("/cw/send/file",function(req,res,next){
       ...form.getHeaders()
     }
   }
-
-  axios.post(url,form,config)
-  .then(response=>{
-    console.log(response.data)
-    res.send(response.data)
+  ////////////////////////////////////
+  console.log('  axios.all:start!!')
+  const axiosResults = urls.map(function(url){
+      return axios.post(url,form,config)
   })
+  let responseData = []
+  Promise.all(
+      axiosResults
+      ).then((responses)=> {
+          console.log('  done:promise')
+          if(responses){
+              responseData = responses.map((re)=>{
+                  return re.data.file_id
+              })
+              console.log('--- Done!! cw send process ---\nfile ids:',responseData)
+              res.send(responseData)
+          }
+      }).catch((errors)=> {
+          if(errors){
+            console.log(errors)
+            res.send(errors)
+          }
+      }).finally(()=>{
+        fs.unlink(req.file.path,(err)=>{
+          if(err){return console.log(err)}
+          console.log(req.file.path + 'を削除しました')
+        })      
+      })
+})
+
+//特につかわないが、残します。chatworkのファイル取得用
+app.get("/cw/send/file",upload.single('file'),function(req,res,next){
+  const options = {
+    method: 'GET',
+    url: 'https://api.chatwork.com/v2/rooms/81402638/files/924674231',
+    headers: {
+      Accept: 'application/json',
+      'X-ChatWorkToken': '8ff0ee570bbcc44f8d576bce19932b63'
+    }
+  };
+  
+  axios.request(options).then(function (response) {
+    console.log(response.data);
+    res.send(response.data)
+  }).catch(function (error) {
+    console.error(error);
+  });
 })
 
 /////////////////////////////////////////////////////////////////////////////////////

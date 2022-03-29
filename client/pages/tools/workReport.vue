@@ -253,12 +253,19 @@
                             </v-textarea>
                         </v-col>
                     </v-row>
+                    <v-row>
+                        <v-file-input
+                         label="ファイル添付"
+                         @change="setFile"
+                        ></v-file-input>
+                    </v-row>
                 </v-form>
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn @click="submit">送信</v-btn>
-                <v-btn @click="fileSend">ファイル送信</v-btn>
+                <v-btn v-show="!isTempFile" @click="submit">送信</v-btn>
+                <v-btn v-show="isTempFile" @click="fileSend">送信(ファイル有り)</v-btn>
+                <!-- <v-btn @click="fileGet">ファイルget</v-btn> -->
             </v-card-actions>
         </v-card>
         </v-col>
@@ -274,6 +281,7 @@ export default {
         return {
             name:'',
             counter:{},
+            file:null,
             selectedDivision:{},
             division:[
                 { text:"新規", value:"新規"},
@@ -302,54 +310,51 @@ export default {
                 this.$router.push(path)
             },
             submit(){
-                const result = window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
-                if(result){
-                let body = "[info][title]" + this.name + "[/title]\n[info]"
-                let counterStrings = ''
-                switch(this.selectedDivision){
-                    case '新規':
-                        counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件'
-                        break;
-                    case '調査':
-                        counterStrings  = '計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\nfax：'+ this.counter.chousa.fax +'分\nPDF：'+ this.counter.chousa.pdf +'分\n履歴振分：'+ this.counter.chousa.furiwake +'分'
-                        break;
-                    case '交面':
-                        counterStrings = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件'
-                        break;
-                    case '中決'://上記交面と一緒です。
-                        counterStrings = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件'
-                        break;
-                    case '交渉':
-                        counterStrings = '交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n'
-                        break;
-                    case 'カスタマー':
-                        counterStrings = '架電：'+ this.counter.customer.kaden +'件\n受電：'+ this.counter.customer.jyuden +'件\n交面実績：' + this.counter.customer.koumen + '件\n:チャット：' + this.counter.customer.chat
-                        break;
-                }
-
-                    body = body + counterStrings + '\n[/info]\n[hr]業務報告\n' + this.report + "[/info]"
-                    axios.post('/api/cw/send',{
-                        content: body,
-                        division:this.selectedDivision
-                    }).then((response) =>{
-                        let strings = ''
-                        response.data.forEach(element => {
-                            console.log(element)
-                            strings = strings + element.message_id + '\n'
-                        });
-                        if(strings){strings = '送信成功\n'+ 'message_ids\n' + strings}
-                        alert(strings)
-                    }).catch((error)=>{
-                        console.log('error:')
-                        console.log(error)
-                        alert(error)
-                    }).then(console.log('submit:Done!'))
-                    }
-                },
-                fileSend(){
-                    this.$axios.post('api/cw/send/file')
-                    .then(r=>{console.log(r)})
-                }
+                const doNot = !window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
+                if(doNot){ return }     //キャンセルの処理
+                const body = this.messageBody
+                axios.post('/api/cw/send',{
+                    content: body,
+                    division:this.selectedDivision
+                }).then((response) =>{
+                    let strings = ''
+                    response.data.forEach(element => {
+                        console.log(element)
+                        strings = strings + element.message_id + '\n'
+                    });
+                    if(strings){strings = '送信成功\n'+ 'message_ids\n' + strings}
+                    alert(strings)
+                }).catch((error)=>{
+                    console.log('error:')
+                    console.log(error)
+                    alert(error)
+                }).then(console.log('submit:Done!'))
+            },
+            setFile(e){
+                console.log(e)
+                this.file = e
+            },
+            fileSend(){
+                const doNot = !window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
+                if(doNot){ return }     //キャンセルの処理
+                let params = new FormData
+                params.append('file',this.file)
+                params.append('filename','テレワーク用の日報')
+                params.append('content',this.messageBody)
+                params.append('division',this.selectedDivision)
+                console.log(this.file)
+                console.log(params)
+                this.$axios.post('api/cw/sendfile',params,{ headers: {'Content-Type': 'multipart/form-data'}})
+                .then(response=>{
+                    if(response.data.error){ return response.data.message}
+                        console.log(response)
+                        alert('ファイルIDs\n'+response.data)
+                    })
+            },
+            fileGet(){
+                this.$axios.get('api/cw/send/file')
+                .then(r=>{console.log(r);alert(r.data.file_id)})                    
+            }
         },
         computed:{
             divisionFormat(){
@@ -373,11 +378,43 @@ export default {
                 }
                 return {hint:hint}
             },
+            messageBody(){
+                let body = "[info][title]" + this.name + "[/title]\n[info]"
+                let counterStrings = ''
+                switch(this.selectedDivision){
+                    case '新規':
+                        counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件'
+                        break;
+                    case '調査':
+                        counterStrings  = '計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\nfax：'+ this.counter.chousa.fax +'分\nPDF：'+ this.counter.chousa.pdf +'分\n履歴振分：'+ this.counter.chousa.furiwake +'分'
+                        break;
+                    case '交面':
+                        counterStrings = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件'
+                        break;
+                    case '中決'://上記交面と一緒です。
+                        counterStrings = '中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件'
+                        break;
+                    case '交渉':
+                        counterStrings = '交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n'
+                        break;
+                    case 'カスタマー':
+                        counterStrings = '架電：'+ this.counter.customer.kaden +'件\n受電：'+ this.counter.customer.jyuden +'件\n交面実績：' + this.counter.customer.koumen + '件\n:チャット：' + this.counter.customer.chat
+                        break;
+                }
+                return body = body + counterStrings + '\n[/info]\n[hr]業務報告\n' + this.report + "[/info]"
+            },
             isChuketuKomen(){
                 if(this.selectedDivision === '中決' ||this.selectedDivision === '交面' ){
                     return true
                 } else {
                     return false
+                }
+            },
+            isTempFile(){
+                if(this.file === null){
+                    return false
+                } else {
+                    return true
                 }
             }
         },
