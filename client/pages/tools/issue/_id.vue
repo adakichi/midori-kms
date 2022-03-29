@@ -6,6 +6,7 @@
                 <p>{{issuesData?issuesData.description:'直リンクは無効にしてます。'}}</p>
                 <v-btn class="mr-1" to="/tools/issues">戻る</v-btn>
                 <v-btn class="mr-1" @click="openNewDialog">新規投稿</v-btn>
+                <v-switch style="display:inline-block" label="降順" v-model="desc"></v-switch>
                 <v-row v-for="(item, index) in messages" :key="index"><v-col>
                 <v-card>
                     <v-toolbar dense elevation=0 >
@@ -48,6 +49,8 @@ export default {
         return {
             isNew:true,
             dialog:false,
+            desc:false,
+            rowMessages:[],
             editMessage:{text:'',idx:''}
         }
     },
@@ -104,12 +107,20 @@ export default {
         openNewDialog(){
             this.dialog = true
             this.isNew = true
+        },
+        getMessages(){
+            this.rowMessages =  this.$store.getters['issues/getIssueMessages']
         }
     },
     computed:{
         messages(){
             const id = this.$route.params.id
-            return this.$store.getters['issues/getIssueMessages']
+            this.rowMessages = this.$store.getters['issues/getIssueMessages']
+            const items = this.rowMessages.slice(0,this.rowMessages.length)
+            if(this.desc){
+                items.reverse()
+            }
+            return items
         },
         issuesData(){
             const issues = this.$store.getters['issues/getIssues']
@@ -126,6 +137,7 @@ export default {
         if(this.$store.getters['issues/getIssues']){
             this.$store.dispatch('issues/dbGetIssues')
         }
+        this.getMessages()
     },
     validate({params}){
         return /^\d+$/.test(params.id)
