@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="mt-5" >
     <v-switch
       color="deep-purple darken-2"
       v-model="theme"
