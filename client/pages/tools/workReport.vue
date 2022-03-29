@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-row justify="center" aligh-content="center">
-            <v-col cols=12 sm=8 md=8 lg=5 xl=12 >
+            <v-col cols=12 sm=9 md=9 lg=6 xl=6 >
         <v-card>
             <v-toolbar color="accent">
             <v-toolbar-title>業務報告書</v-toolbar-title>
