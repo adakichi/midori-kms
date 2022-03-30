@@ -6,12 +6,13 @@
                         <v-text-field
                         v-model="filter"
                         label="フィルター"
-                        class="mx-4"
+                        class="mx-4 mt-4"
                         >
                         </v-text-field>
                     <v-spacer></v-spacer>
-                    <v-btn @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
-                    <v-btn @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
+                    <v-btn class="mr-1" @click="openDialog">仕訳作成<v-icon>mdi-magnify</v-icon></v-btn>
+                    <v-btn class="mr-1" @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
+                    <v-btn class="mr-1" @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
                     <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>
                 </v-app-bar>
                 <v-data-table
@@ -19,40 +20,59 @@
                 :headers="journalBookHeaders"
                 :search="filter"
                 >
-                            <template v-slot:item.memo="{item}">
-                                <v-edit-dialog
-                                    v-model="editDialogMemo"
-                                    large
-                                    @save="saveMemo(item)"
-                                    :return-value.sync="item.memo"
-                                >   
-                                    {{item.memo}}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                            v-model="item.memo"
-                                            label="メモ"
-                                            single-line
-                                        ></v-text-field>
-                                    </template>
-                                </v-edit-dialog>
+                    <template v-slot:item.memo="{item}">
+                        <v-edit-dialog
+                            v-model="editDialogMemo"
+                            large
+                            @save="saveMemo(item)"
+                            :return-value.sync="item.memo"
+                        >   
+                            {{item.memo}}
+                            <template v-slot:input>
+                                <v-text-field
+                                    v-model="item.memo"
+                                    label="メモ"
+                                    single-line
+                                ></v-text-field>
                             </template>
+                        </v-edit-dialog>
+                    </template>
                 </v-data-table>
-                        <v-snackbar
-                          v-model="snack"
-                          :timeout="3000"
-                          :color="snackColor"
-                        >
-                          {{ snackText }}
-                          <template v-slot:action="{ attrs }">
-                            <v-btn
-                              v-bind="attrs"
-                              text
-                              @click="snack = false"
-                            >
-                              Close
-                            </v-btn>
-                          </template>
-                        </v-snackbar>
+                <!-- dialog -->
+                <v-dialog v-model="dialog" max-width="500">
+                    <v-card class="pa-5">
+                        <v-card-title>手入力仕訳</v-card-title>
+                        <v-card-text>
+                            <v-select :items="itemsMotocho" v-model="motocho" label="元帳" ></v-select>
+                            <v-select label="出金元銀行" v-model="bankFrom" :items="banks"></v-select>
+                            <v-select label="出金先銀行" v-model="bankTo" :items="banks"></v-select>
+                            <v-text-field v-model="amount" label="金額"></v-text-field>
+                            <v-text-field v-model="customerId" type="number" label="受任番号" hint="特に無い場合はゼロのままでOK"></v-text-field>
+                            <v-text-field v-model="memo" label="メモ"></v-text-field>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn @click="createNewJournal">作成</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+                <!-- snackbar -->
+                <v-snackbar
+                    v-model="snack"
+                    :timeout="3000"
+                    :color="snackColor"
+                >
+                    {{ snackText }}
+                    <template v-slot:action="{ attrs }">
+                    <v-btn
+                        v-bind="attrs"
+                        text
+                        @click="snack = false"
+                    >
+                        Close
+                    </v-btn>
+                    </template>
+                </v-snackbar>
             </v-col>
         </v-row>
     </v-container>
@@ -68,6 +88,17 @@ export default {
             journalBook:[],
             filter:'',
             editDialogMemo:false,
+
+            /////dialog//////
+            dialog:false,
+            motocho:[],
+            itemsMotocho:['振替'],
+            banks:['ﾐﾂｲｽﾐﾄﾓ','ｼｺｸ','ﾍﾟｲﾍﾟｲ'],
+            bankFrom:null,
+            bankTo:null,
+            amount:0,
+            customerId:0,
+            memo:'',
             //snackBar
             snack:false,
             snackColor:'sucess',
@@ -91,6 +122,7 @@ export default {
             const options = {
                 until:null,
                 from:null,
+                dialog:false,
                 table:table
             }
             this.$axios.get('api/payment_agency/journal_book/',{params:{options:options}})
@@ -131,8 +163,19 @@ export default {
                 this.snackColor = snackColor
                 this.snackText  = message
         },
-        search(){
-
+        openDialog(){
+            this.dialog = true
+        },
+        createNewJournal(){
+            const doNot = !confirm('本当に登録してOKですか？')
+            if(doNot){ return }
+            const valArray = [this.motocho,'預金[' + this.bankTo + ']',this.amount,'預金[' + this.bankFrom + ']', this.amount, this.customerId,this.memo]
+            this.$axios.post('api/payment_agency/journal_book/',{values:valArray})
+            .then(response=>{
+                if(response.data.error){return alert(response.data.message)}
+                this.popupSnackBar(response.data)
+                this.dialog = false
+            })
         }
     },
     created(){

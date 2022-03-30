@@ -24,8 +24,27 @@ app.use(express.urlencoded({limit: '50mb', extended: true}));// urlencodeされ�
 //fs を使ってログファイル作成
 const out = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'info.log')
 const err = fs.createWriteStream('log/' + moment().format('YYYYMMDD HHmmss') + 'error.log')
-const logger = new console.Console(out,err)
-logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + ' サーバー起動')
+const log2file = new console.Console(out,err)
+const logger = {
+  log : function(str,label = 'no label'){
+    const time = moment().format('YYYY/MM/DD HH:mm:ss')
+    log2file.group(label)
+    log2file.log(time)
+    log2file.log(str)
+    log2file.groupEnd(label)
+    return
+    },
+
+  error : function(str,label = 'no label') {
+    const time = moment().format('YYYY/MM/DD HH:mm:ss')
+    log2file.group(label)
+    log2file.error(time)
+    log2file.error(str)
+    log2file.groupEnd(label)
+    return
+    }
+  }
+logger.log('サーバー起動','サーバー起動')
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +145,7 @@ app.post('/auth/login',(req,res)=>{
           division:user[0].division
         }
         console.log('---compare sucess---\n')
-        logger.log(moment().format('YYYY/MM/DD HH:mm:ss') + '>' + user[0].name + ' がログインしました。')
+        logger.log(user[0].name,'ログイン履歴')
         console.log(moment().format('YYYY/MM/DD HH:mm:ss') + '>' + user[0].name + ' がログインしました。')
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret',{expiresIn:'12h'})
@@ -172,7 +191,7 @@ app.put('/auth/user/editUser',(req,res)=>{
   db_midori_users.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi = 'put /auth/user/editUser' ; throw err }
     console.log(req.body.name +'を'+ req.body.admin +'に変更しました。')
-    logger.log(req.body.name +'を'+ req.body.admin +'に変更しました。')
+    logger.log(req.body.name +'を'+ req.body.admin +'に変更しました。','Put -- /auth/user/editUser -- ')
     res.send('OK')
   })
 })
@@ -497,7 +516,7 @@ app.post('/payment_agency/matching',(req,res)=>{
         return matchingTransaction(arr,bank)
       })).then((response)=>{
         console.log(response)
-        logger.log('pa matching:',response)
+        logger.log(response,'pa matching:')
         res.send(resObject(response))
       })  
     })
@@ -520,7 +539,7 @@ app.put('/payment_agency/matching',(req,res)=>{
       return matchingTransaction(arr,bank)
     })).then((response)=>{
       console.log('promise all result response:',response)
-      logger.log('pa matching:',response)
+      logger.log(response,'pa matching:')
       res.send('紐づけしました。')
     })  
   })
@@ -933,7 +952,7 @@ app.post('/payment_agency/cis/',(req,res)=>{
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ err.whichApi= 'post payment_agency/cis/' ;throw err}
     console.log('--- sucess pg/cis ---')
-    logger.log('pa cis登録：',values)
+    logger.log(values,'pa cis登録')
     res.send(rows)
   })
 })
@@ -961,7 +980,7 @@ app.put('/payment_agency/customer/detail',(req,res)=>{
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/detail'; throw err}
     console.log('> '+ customer.customer_id +'の顧客情報更新 ->',customer.name,customer.kana,customer.bank_account_name,'\n--- sucess ---')
-    logger.log('> '+ customer.customer_id +'の顧客情報更新 ->',customer.name,customer.kana,customer.bank_account_name)
+    logger.log('ID:'+ customer.customer_id + '\n' + customer.name + '\n' + customer.kana + '\n' + customer.bank_account_name,'顧客情報更新　--- put/customer detail---')
     res.send(rows)
   })
 })
@@ -974,7 +993,7 @@ app.put('/payment_agency/customer/progress',(req,res)=>{
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get payment_agency/customer/progress'; throw err}
     console.log('> '+req.query.id+'の顧客 進捗変更\ -> ' + req.body.progress + 'n--- sucess ---')
-    logger.log('> '+req.query.id+'の顧客 進捗変更 -> ' + req.body.progress )
+    logger.log('ID:'+req.query.id + '\n'+ req.body.progress,'カスタマー進捗変更 --- get/customer progress---' )
     res.send(rows)
   })
 })
@@ -1002,7 +1021,7 @@ app.post('/payment_agency/customers/',(req,res)=>{
   db_payment_agency.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi= 'post /payment_agency/customers/'; throw err}
     console.log('---post customer sucess---')
-    logger.log('新規顧客登録：',values)
+    logger.log(values,'新規顧客登録 --- post customers ---')
     res.send('登録しました。')
   })
 })
@@ -1018,7 +1037,7 @@ app.post('/payment_agency/new_account',(req,res)=>{
   db_payment_agency.query(sql,req.body,(err,rows,fields)=>{
     if(err){ err.whichApi= 'post /payment_agency/new_account' ; throw err}
     console.log('--- post new account sucess ---')
-    logger.log('新件の支払い登録：',req.body)
+    logger.log(req.body,'新件の支払い登録 --- post new account ---')
     res.send(rows)
   })
 })
@@ -1034,7 +1053,7 @@ app.put('/payment_agency/payment_account',(req,res)=>{
   db_payment_agency.query(sql,req.body,(err,rows,fields)=>{
     if(err){ err.whichApi= 'post /payment_agency/new_account' ; throw err}
     console.log('--- PUT payment account sucess ---')
-    logger.log('支払い口座編集：',req.body)
+    logger.log(req.body,'支払い口座編集 --- put payment account ---')
     res.send(rows)
   })
 })
@@ -1079,7 +1098,7 @@ app.post('/payment_agency/customer/cis',(req,res)=>{
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
     if(err){ err.whichApi= 'post payment_agency/customer/cis' ;throw err}
     console.log('---post customer cis sucess ---')
-    logger.log('入金予定登録：',values)
+    logger.log(values,'入金予定登録--- POST customer cis ---')
     res.send(rows)
   })
 })
@@ -1094,7 +1113,7 @@ app.put('/payment_agency/customer/cis',(req,res)=>{
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ err.whichApi= 'post payment_agency/customer/cis' ;throw err}
     console.log('入金予定ID：' + obj.come_in_schedules_id + 'を更新しました。\n--- sucess ---')
-    logger.log('入金予定ID：' + obj.come_in_schedules_id + 'を\n' + values + 'に更新しました。')
+    logger.log('ID:'+obj.come_in_schedules_id + '\n' + values + 'に更新しました。','入金予定変更--- Put customer cis ---')
     res.send(rows)
   })
 })
@@ -1112,7 +1131,7 @@ app.delete('/payment_agency/customer/cis',(req,res)=>{
   db_payment_agency.query(sql,[ids],(err,rows,fields)=>{
     if(err){ err.whichApi= 'delete /payment_agency/customer/cis' ; throw err}
     console.log('--- sucess ---')
-    logger.log('\n---Delete Customer Cis: \n >計画を削除しました 受任番号:' + req.body.customerId + '\ncis ids:' + ids + ' ---')
+    logger.log('受任番号:' + req.body.customerId + '\ncis ids:' + ids,'顧客の支払い計画削除 ---Delete Customer Cis')
     res.send(rows)    
   })
 })
@@ -1125,7 +1144,7 @@ app.post('/payment_agency/customer/register_payment_schedules',(req,res)=>{
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
     if(err){ err.whichApi= 'post /payment_agency/customer/register_payment_schedules' ; throw err}
     console.log('--- register_payment_schedules sucess ---')
-    logger.log('支払い予定を登録しました>',values)
+    logger.log(values,'支払い予定を登録 --- register_payment_schedules ---')
     res.send(rows)
   })
 })
@@ -1151,7 +1170,7 @@ app.put('/payment_agency/customer/payment_schedules',(req,res)=>{
   const sql = 'UPDATE payment_schedules SET amount =?, date=?, memo=? WHERE payment_schedule_id = ?;'
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
     if(err){ err.whichApi= 'PUT payment_agency/customer/payment_schedules' ; throw err}
-    logger.log(' > '+ data.payment_schedule_id +'支払い予定変更\n--- sucess ---')
+    logger.log('ps_id'+ data.payment_schedule_id ,'支払い予定変更 ---PUT Customer payment_schedules ---')
     console.log(' > '+  data.payment_schedule_id +'支払い予定変更\n--- sucess ---')
     res.send('変更しました。')
   })
@@ -1166,7 +1185,7 @@ app.delete('/payment_agency/customer/payment_schedules',(req,res)=>{
   db_payment_agency.query(sql,[ids],(err,rows,fields)=>{
     if(err){ err.whichApi= 'delete /payment_agency/customer/payment_schedules' ; throw err}
     console.log('--- sucess ---')
-    logger.log('\n---Delete Customer Cis: \n >計画を削除しました 受任番号:' + req.body.customerId + '\ncis ids:' + ids + ' ---')
+    logger.log('受任番号:' + req.body.customerId + '\ncis ids:' + ids,'支払い計画を削除します ---Delete Customer payment_schedules')
     res.send(rows)
   })
 })
@@ -1200,7 +1219,7 @@ app.post('/payment_agency/customer/temp2deposit',(req,res)=>{
           if(err2){ err2.whichApi= 'temp2deposit: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
           db_payment_agency.commit((err0)=>{
             if(err0){err0.whichApi= 'temp2deposit: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-            logger.log('振替処理 temp2deposit>',req.body)
+            logger.log(req.body,'振替処理 pa/customer/temp2deposit')
             console.log('--- pa/customer/temp2deposit sucsess ---')
             res.send('振替処理おわりました。')
           })
@@ -1235,7 +1254,7 @@ app.post('/payment_agency/customer/receivable2Temporary',(req,res)=>{
           if(err2){ err2.whichApi= 'receivable2Temporary: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
           db_payment_agency.commit((err0)=>{
             if(err0){err0.whichApi= 'receivable2Temporary: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-            logger.log('振替処理 receivable2Temporary>',req.body)
+            logger.log(req.body,'振替処理 pa/customer/receivable2Temporary')
             res.send('振替処理おわりました。')
           })
       })
@@ -1271,7 +1290,7 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
           if(err2){ err2.whichApi= 'temp2receiveable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
           db_payment_agency.commit((err0)=>{
             if(err0){err0.whichApi= 'temp2receiveable: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-            logger.log('振替処理 temp2receiveable>',req.body)
+            logger.log(req.body,'振替処理 pa/customer/temp2receivable')
             res.send('振替処理おわりました。')
           })
       })
@@ -1361,7 +1380,7 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
                   console.log(' >DB処理42 OK')
                   db_payment_agency.commit((err00)=>{
                     if(err00){err0.whichApi= 'importReceivable: @00'; db_payment_agency.rollback(()=>{ throw err00 })}
-                    logger.log('振替処理 importReceivable>',req.body,'振替処理 importReceivable(売掛金|仮受金)>',sql42)
+                    logger.log([req.body,sql42],'振替処理(売掛金|仮受金) pa/customer/importReceivable')
                     console.log('売掛importおわりました。\n振替処理 importReceivable>',req.body,'振替処理 importReceivable(売掛金|仮受金)>',val42)
                     res.send('売掛importおわりました。\nWorning!!:\n売掛金が' + diffValue + '円 マイナスになったので、仮受金にもどしてあります。\n入金が一円も無い場合は修正を管理者に依頼してください。')
                   })          
@@ -1370,7 +1389,7 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
             } else {
               db_payment_agency.commit((err0)=>{
                 if(err0){err0.whichApi= 'importReceivable: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-                logger.log('振替処理 importReceivable>',req.body)
+                logger.log(req.body,'振替処理 pa/customer/importReceivable')
                 console.log('売掛importおわりました。\n振替処理 importReceivable>',req.body)
                 res.send('売掛importおわりました。')
               })    
@@ -1385,7 +1404,6 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
 //optionがtrueの場合は反対仕訳。
 app.post('/payment_agency/customer/editedDeposit',(req,res)=>{
   console.log('pa/customer/editDeposit')
-  logger.log('pa/customer/editDeposit')
   const deposit = Number(req.body.value)
   const memo       = req.body.memo
   const customerId = req.body.customerId
@@ -1447,7 +1465,7 @@ app.post('/payment_agency/customer/editedDeposit',(req,res)=>{
             } else {
               db_payment_agency.commit((err0)=>{
                 if(err0){err0.whichApi= 'editedDeposit: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-                logger.log('振替処理 editedDeposit>',req.body)
+                logger.log(req.body,'振替処理 pa/customer/editDeposit')
                 console.log('預り金の処理おわりました。',req.body)
                 res.send('預り金の処理おわりました。')
               })    
@@ -1462,7 +1480,6 @@ app.post('/payment_agency/customer/editedDeposit',(req,res)=>{
 //optionがtrueの場合は反対仕訳。
 app.post('/payment_agency/customer/editedAdvancePayment',(req,res)=>{
   console.log('pa/customer/editAdvancePayment')
-  logger.log('pa/customer/editAdvancePayment')
   const AdvancePayment = Number(req.body.value)
   const memo       = req.body.memo
   const customerId = req.body.customerId
@@ -1524,7 +1541,7 @@ app.post('/payment_agency/customer/editedAdvancePayment',(req,res)=>{
             } else {
               db_payment_agency.commit((err0)=>{
                 if(err0){err0.whichApi= 'editedAdvancePayment: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-                logger.log('振替処理 editedAdvancePayment>',req.body)
+                logger.log(req.body,'振替処理 pa/customer/editAdvancePayment')
                 console.log('前受金の処理おわりました。',req.body)
                 res.send('前受金の処理おわりました。')
               })    
@@ -1561,7 +1578,7 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
 
         db_payment_agency.commit((err0)=>{
           if(err0){err0.whichApi= 'customer/refund: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-          logger.log('返金処理 refund>',req.body)
+          logger.log(req.body,'返金処理 POST /payment_agency/customer/refund')
           console.log('返金処理 refund>',req.body)
           res.send('返金の処理おわりました。')
         })
@@ -1575,13 +1592,29 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+  journal_bookの登録用
+  主に手入力（イレギュラー）＆振替。
+*/
+app.post('/payment_agency/journal_book',(req,res)=>{
+  console.log('POST /payment_agency/journal_book')
+  let sql = 'INSERT INTO journal_book (motocho,debit_account,debit,credit_account,credit,customer_id, memo) VALUES (?)'
+  console.log(req.body.values)
+  db_payment_agency.query(sql,[req.body.values],(err,rows,fields)=>{
+    if(err){ throw err}
+    console.log('journalを新規登録しました->'+ req.body.values)
+    logger.log(req.body.values,'journalを新規登録 POST /payment_agency/journal_book')
+    res.send('journalメモを新規登録しました。')
+  })
+})
+
 /*
   journal_bookの編集用
   主にmemo編集
 */
 app.put('/payment_agency/journal_book',(req,res)=>{
   console.log('\nPUT /payment_agency/journal_book')
-  logger.log('\nPUT /payment_agency/journal_book')
   const options = req.body.options
   const values = [req.body.memo, req.body[options]]
   let sql = 'UPDATE journal_book set memo = ? where journal_book_id = ?'
@@ -1591,7 +1624,7 @@ app.put('/payment_agency/journal_book',(req,res)=>{
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
     console.log('journalメモを編集しました-> ID',req.body[options],'memo:',req.body.memo)
-    logger.log('journalメモを編集しました-> ID',req.body[options],'memo:',req.body.memo)
+    logger.log([req.body[options],'memo:\n' + req.body.memo],'journalメモを編集 PUT /payment_agency/journal_book')
     res.send('journalメモを編集しました')
   })
 })
@@ -1645,7 +1678,7 @@ app.put('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
     return temporaryPayTransaction(editedScheduleObject,date)
   }),date).then((response)=>{
     console.log(' >仮出金処理 終了',response)
-    logger.log('仮出金処理 >',req.body)
+    logger.log(req.body,'仮出金処理 ---Put payment_schedules/temporary_pay')
     res.send(response)
   })  
 })
@@ -1759,7 +1792,7 @@ app.delete('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
   Promise.all(selected.map(editedScheduleObject=>{
     return cancelTemporaryPayTransaction(editedScheduleObject)
   })).then((response)=>{
-    logger.log('仮出金取り消し>',req.body.selected)
+    logger.log(req.body.selected,'仮出金取り消し ---Delete payment_schedules/temporary_pay ')
     res.send(response)
   })  
 })
@@ -1855,7 +1888,7 @@ app.put('/payment_agency/payment_schedules/confirm',(req,res)=>{
     return confirmPaymentScheduleTransaction(id,date)
   }),date).then((response)=>{
     console.log('--- Put Confirm payment_schedules sucess ---')
-    logger.log('出金予定確定 >',req.body)
+    logger.log(req.body,'出金予定確定 ---Put Confirm payment_schedules ---')
     res.send(response)
   })  
 })
@@ -1914,7 +1947,7 @@ app.delete('/payment_agency/payment_schedules/confirm',(req,res)=>{
     return cancelConfirmPaymentScheduleTransaction(id)
   })).then((response)=>{
     console.log('--- sucess ---')
-    logger.log('出金確定取り消し ps ids:',ids)
+    logger.log(ids,'出金確定取り消し ---Delete Confirm /payment_schedules ---')
     res.send(response)
   })  
 })
@@ -2032,7 +2065,7 @@ app.post('/payment_agency/creditors/accounts/',(req,res)=>{
   const val = [data.creditor_id, data.bankname,data.bankcode,data.branchname, data.branchcode, data.kind, data.account_holder]
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
     if(err){ err.whichApi= 'POST creditors_accounts/' ;throw err}
-    logger.log('post new Creditors_accounts ->',req.body)
+    logger.log(req.body,'新債権者口座登録 ---- POST creditors_accounts ----')
     console.log('---success POST new creditors_accounts ---')
     res.send('登録されました。')
   })
@@ -2041,14 +2074,14 @@ app.post('/payment_agency/creditors/accounts/',(req,res)=>{
 
 //債権者の口座情報更新
 app.put('/payment_agency/creditors/accounts/',(req,res)=>{
-  console.log('\n---- POST creditors_accounts ----')
+  console.log('\n---- PUT creditors_accounts ----')
   const data = req.body
   const sql = 'UPDATE creditors_accounts SET creditor_id = ?, bankname = ?, bankcode = ?, branchname = ?, branchcode = ?, kind = ?, account_holder = ? WHERE creditors_account_id = ?'
   const val = [data.creditor_id, data.bankname,data.bankcode,data.branchname, data.branchcode, data.kind, data.account_holder, data.creditors_account_id]
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
-    if(err){ err.whichApi= 'POST creditors_accounts/' ;throw err}
-    logger.log('post new Creditors_accounts ->',req.body)
-    console.log('---success POST new creditors_accounts ---')
+    if(err){ err.whichApi= 'PUt creditors_accounts/' ;throw err}
+    logger.log(req.body,'債権者口座更新 PUT new Creditors_accounts')
+    console.log('---success PUT new creditors_accounts ---')
     res.send('登録されました。')
   })
 })
@@ -2073,7 +2106,7 @@ app.post('/payment_agency/banklist',(req,res)=>{
   const val = [data.bankname,data.bankcode,data.branchname, data.branchcode]
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
     if(err){ err.whichApi= 'POST /banklist' ;throw err}
-    logger.log('post new banklist ->',req.body)
+    logger.log(req.body,'銀行/支店リスト登録 post new banklist')
     console.log('---success POST new /banklist ---')
     res.send('登録されました。')
   })
@@ -2088,7 +2121,7 @@ app.put('/payment_agency/banklist',(req,res)=>{
   const val = [data.bankname, data.branchname, data.bankcode,data.branchcode]
   db_payment_agency.query(sql,val,(err,rows,fields)=>{
     if(err){ err.whichApi= 'PUT /banklist' ;throw err}
-    logger.log('put new /banklist ->',req.body)
+    logger.log(req.body,'銀行/支店リスト更新 put new /banklist')
     console.log('---success Put new /banklist ---')
     res.send('登録されました。')
   })
@@ -2133,7 +2166,7 @@ app.put('/mkms/creditors/edit',(req,res)=>{
         if(err2){ throw err2 }
         db_mkms.commit(err0=>{
           if(err0){throw err0}
-          logger.log('mkms/creditor ID:'+ creditor.id + '\n更新:' + memo)
+          logger.log('mkms/creditor ID:'+ creditor.id + '\n更新:' + memo,'mkms債権者情報更新 put mkms/creditors/edit')
           console.log('mkms/creditor ID:'+ creditor.id + '\n更新:' + memo)
           res.send('更新しました。')
         })
@@ -2276,7 +2309,7 @@ app.delete('/issue',(req,res)=>{
 db_mkms.on('error',function(err){
   if(err){
     console.log('DB:mkms',err)
-    logger.error(err)
+    logger.error(err,'DB:mkms')
     throw err
   }
 })
@@ -2284,7 +2317,7 @@ db_mkms.on('error',function(err){
 db_midori_users.on('error',function(err){
   if(err){
     console.log('DB:midori users',err)
-    logger.error(err)
+    logger.error(err,'DB:midori_users')
     throw err
   }
 })
@@ -2292,7 +2325,7 @@ db_midori_users.on('error',function(err){
 db_payment_agency.on('error',function(err){
   if(err){
     console.log('DB:payment_agency',err)
-    logger.error(err)
+    logger.error(err,'DB:payment_agency')
     throw err
   }
 })
@@ -2300,7 +2333,7 @@ db_payment_agency.on('error',function(err){
 //Error handoler
 app.use(function(err,req,res,next){
   if(err.whichApi){ console.log('error at:'+ err.whichApi)}
-  logger.error(new Error(err))
+  logger.error(new Error(err),'domain Error')
   console.log('domain Error : ' + err)
   const data = {
     error:true,
