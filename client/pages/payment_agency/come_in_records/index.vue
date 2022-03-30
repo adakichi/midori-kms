@@ -72,7 +72,7 @@
                 </v-data-table>
             </v-col>
         </v-row>
-        <v-dialog v-model="dialog">
+        <v-dialog v-model="dialog"  max-width="800">
             <v-card>
                 <v-app-bar>
                     <v-radio-group v-model="searchType" row>
@@ -87,6 +87,7 @@
                     名前：{{selectItem.come_in_name}} 番号：{{selectItem.actual_deposit_amount}}  受任番号：{{selectItem.customer_id}} 日付：{{selectItem.actual_deposit_date}}
                     <v-spacer></v-spacer>
                     <v-btn @click="match">紐づけ</v-btn>
+                    <v-btn v-show="isAdmin" @click="openJournalDialog" color="warning">特殊個別仕訳処理</v-btn>
                 </v-app-bar>
                 <v-card-text>
                     <v-data-table
@@ -103,22 +104,39 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
-                        <v-snackbar
-                          v-model="snack"
-                          :timeout="3000"
-                          :color="snackColor"
-                        >
-                          {{ snackText }}
-                          <template v-slot:action="{ attrs }">
-                            <v-btn
-                              v-bind="attrs"
-                              text
-                              @click="snack = false"
-                            >
-                              Close
-                            </v-btn>
-                          </template>
-                        </v-snackbar>
+        <v-dialog v-model="journalDialog" max-width="500">
+            <v-card class="pa-5">
+                <v-card-title>手入力仕訳</v-card-title>
+                <v-card-text>
+                    <v-select :items="itemsMotocho" v-model="journal.motocho" label="元帳" ></v-select>
+                    <v-select label="借方勘定科目" v-model="journal.debitAccount" :items="journalAccount"></v-select>
+                    <v-select label="貸方勘定科目" v-model="journal.creditAccount" :items="journalAccount"></v-select>
+                    <v-text-field v-model="journal.amount" disabled label="金額"></v-text-field>
+                    <v-text-field v-model="journal.customerId" type="number" label="受任番号" hint="特に無い場合はゼロのままでOK"></v-text-field>
+                    <v-text-field v-model="journal.memo" label="メモ"></v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="createNewJournal">作成</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-snackbar
+            v-model="snack"
+            :timeout="2000"
+            :color="snackColor"
+        >
+            {{ snackText }}
+            <template v-slot:action="{ attrs }">
+            <v-btn
+                v-bind="attrs"
+                text
+                @click="snack = false"
+            >
+                Close
+            </v-btn>
+            </template>
+        </v-snackbar>
     </v-container>
 </template>
 
@@ -144,8 +162,16 @@ export default {
             //入金or未入金or両方
             radioPaid:'false',
             //
+
+            //jounal dialog
+            journalDialog:false,
+            journal:{motocho:'',debitAccount:'',creditAccount:'',customerId:0,memo:''},
+            itemsMotocho:['利息','振込手数料'],
+            journalAccount:['預金[ﾐﾂｲｽﾐﾄﾓ]','預金[ｼｺｸ]','預金[ﾍﾟｲﾍﾟｲ]','受取利息','振込手数料'],
+            /////////////
+
             //snackBar
-            snack:true,
+            snack:false,
             snackColor:'sucess',
             snackText:'',
             ////▲▲▲▲▲▲▲▲▲▲▲▲▲//////
@@ -215,7 +241,7 @@ export default {
         },
         openDialog(item){
             this.selectItem = item
-            console.log('item:'+item)
+            console.log(item)
             this.dialog = true
         },
         searchCis(){
@@ -268,6 +294,25 @@ export default {
                 this.snackColor = snackColor
                 this.snackText  = message
         },
+        openJournalDialog(){
+            this.journalDialog = true
+            console.log(this.selectItem)
+            this.journal.amount = this.selectItem.actual_deposit_amount
+        },
+        createNewJournal(){
+            const doNot = !confirm('本当に登録しますか？')
+            if(doNot){ return }
+            console.log(this.selectItem)
+            const motocho = this.journal.motocho + ':cir[' + this.selectItem.come_in_records_id+']'
+            const journalArray = [motocho,this.journal.debitAccount,this.journal.amount,this.journal.creditAccount, this.journal.amount, this.journal.customerId,this.journal.memo]
+            this.$axios.post('api/payment_agency/cir/irregular',{journalValues:journalArray,cirId:this.selectItem.come_in_records_id,customerId:this.journal.customerId ,memo:this.journal.memo,motocho:this.journal.motocho})
+            .then(response=>{
+                if(response.data.error){return alert(response.data.message)}
+                this.popupSnackBar(response.data)
+                this.dialog = false
+                location.reload()
+            })
+        }
     },  
     created(){
         this.upda()

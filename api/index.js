@@ -470,6 +470,39 @@ app.post('/payment_agency/cir/', (req,res)=>{
   })
 })
 
+
+//イレギュラー入金についての処理。
+//CIRを紐づけ済みにする＆メモ欄等の入力 & 仕訳情報の入力
+app.post('/payment_agency/cir/irregular', (req,res)=>{
+  console.log('--- POST payment_agency/cir/irregular ---')
+  db_payment_agency.beginTransaction(err0=>{
+    if(err0){return db_payment_agency.rollback(()=>{throw err0})}
+
+
+    //まずjournal登録
+    let sql = 'INSERT INTO journal_book (motocho,debit_account,debit,credit_account,credit,customer_id, memo) VALUES (?)'
+    db_payment_agency.query(sql,[req.body.journalValues],(err1,rows1,fields1)=>{
+      if(err1){ return db_payment_agency.rollback(()=>{throw err1})}
+
+      const cirName = '仕訳['+rows1.insertId+']:'+req.body.motocho
+      const cirValues = [cirName, req.body.customerId, 999999999,req.body.memo, req.body.cirId]
+      const sql2 = 'UPDATE come_in_records SET come_in_name = ?, customer_id = ?,come_in_schedules_id = ?, memo = ? WHERE come_in_records_id = ?'
+      db_payment_agency.query(sql2,cirValues,(err2,rows2,field2)=>{
+        if(err2){ return db_payment_agency.rollback(()=>{throw err2})}
+
+        db_payment_agency.commit(err=>{
+          if(err){return db_payment_agency.rollback(()=>{throw err})}
+          console.log('Success')
+          logger.log(req.body,'CIRのイレギュラー処理 payment_agency/cir/irregular')
+          res.send('CIRのイレギュラー処理終わりました。')
+        })
+      })
+    })
+
+  })
+})
+
+
 //importfilesのdataを取得する
 app.get('/payment_agency/cir/importfile',(req,res)=>{
   console.log('--- get importfile ---')
