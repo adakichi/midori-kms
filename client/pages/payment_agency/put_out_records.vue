@@ -83,7 +83,8 @@
                 <v-app-bar>
                     <v-spacer></v-spacer>
                     <v-btn v-show="isMatched ? false : true " @click="judgementPaid">判定<v-icon></v-icon></v-btn>
-                    <v-btn @click="downloadCsv">仮出金(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
+                    <v-btn @click="downloadCsv(okArray,'okArray')">仮出金(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
+                    <v-btn @click="downloadCsv(editedCustomersArray,'ecArray')">人毎(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
                     <v-btn v-show="isMatched ? false : true " @click="deleteExpected">仮出金解除</v-btn>
                     <v-btn v-show="isMatched ? false : true " @click="confirmPayments">出金確定</v-btn>
                     <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
@@ -160,11 +161,13 @@
                     :items="editedCustomersArray"
                     :items-per-page="50"
                     item-key="customer_id"
-                    @click:row="goCustomerPage"
                     show-select
                     show-group-by
                     v-model="selected"
                     >
+                        <template v-slot:item.customer_id="prop" @click="goCustomerPage">
+                            <v-chip @click="goCustomerPage(prop.item)">{{prop.item.customer_id}}</v-chip>
+                        </template>
                     </v-data-table>
                 </v-tab-item>
 
@@ -310,25 +313,27 @@ export default {
                 {text:'日付',   value:'date'},
                 {text:'金額',   value:'amount',  groupable:false},
                 {text:'確定',   value:'paid_date'},
-                {text:'予定',   value:'expected_date'}
+                {text:'予定',   value:'expected_date'},
+                {text:'メモ',   value:'memo'},
             ],
             headersEditedCustomersArray:[
                 {text:'番号',       value:'customer_id'},
                 {text:'名前',       value:'name'},
                 {text:'売掛金',     value:'accounts_receivable'},
-                {text:'前 預り金',  value:'depositBeforeJudge'},
-                {text:'後 預り金',  value:'deposit',  groupable:false},
-                {text:'前 前受金',  value:'advancePaymentBeforeJudge'},
-                {text:'後 前受金',  value:'advance_payment'},
-                {text:'前 仮受金',  value:'temporaryReceiptBeforeJudge'},
-                {text:'後 仮受金',  value:'temporary_receipt'},
-                {text:'後 支払い済み金額',   value:'confirm_payment'},
-                {text:'必要預り金',   value:'requiredDeposit'},
-                {text:'必要前受金',   value:'requiredAdvancePayment'},
+                {text:'預り金',  value:'depositBeforeJudge'},
+                // {text:'後 預り金',  value:'deposit',  groupable:false},
+                {text:'前受金',  value:'advancePaymentBeforeJudge'},
+                // {text:'後 前受金',  value:'advance_payment'},
+                {text:'仮受金',  value:'temporaryReceiptBeforeJudge'},
+                // {text:'後 仮受金',  value:'temporary_receipt'},
+                // {text:'後 支払い済み金額',   value:'confirm_payment'},
+                // {text:'必要預り金',   value:'requiredDeposit'},
+                // {text:'必要前受金',   value:'requiredAdvancePayment'},
                 {text:'必要金額',   value:'requiredAmount'},
-                {text:'立替',       value:'sumAmount', groupable:false},
-                {text:'手数料',     value:'sumCommission', groupable:false},
-                {text:'顧問料',     value:'sumAdvisoryFee', groupable:false},
+                // {text:'立替',       value:'sumAmount', groupable:false},
+                // {text:'手数料',     value:'sumCommission', groupable:false},
+                // {text:'顧問料',     value:'sumAdvisoryFee', groupable:false},
+                {text:'差額',     value:'diff', groupable:false},
                 {text:'メモ',     value:'memo', groupable:false}
             ],
             //snack bar
@@ -401,21 +406,34 @@ export default {
                 this.isMatched = true
             })
         },
-        downloadCsv(){
-            console.log('okarray len:',this.okArray.length,this.okArray.length > 0)
-            if(this.okArray.length < 1){ return alert('OKなものがありません！') }
+        downloadCsv(target,type){
+            console.log('okarray len:',target.length,target.length > 0)
+            if(target.length < 1){ return alert('OKなものがありません！') }
 
             //②CSVダウンロード
-            const total = totalAmount(this.okArray)
+            const total = totalAmount(target)
             const fields = ['recordKubun', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','kana']
-            const json2csvParser = new Parser({fields:fields,header:false,})
-            let exportText = json2csvParser.parse(this.okArray)
-            exportText = exportText + '\n2,,,,,' + this.okArray.length + ',' + total 
+            let json2csvParser = {}
+            if(type === 'okArray'){
+                json2csvParser = new Parser({fields:fields,header:false,})
+            } else if(type === 'ecArray') {
+                json2csvParser = new Parser()
+            }
+            
+            let exportText = json2csvParser.parse(target)
+            exportText = exportText + '\n2,,,,,' + target.length + ',' + total 
             const conv2Sjis = iconv.encode(exportText,'windows-31j')
-            const link = createDownloadATag(conv2Sjis)
+            let title = ''
+            if(type === 'okArray'){
+                title = 'ペイペイ出金データ'
+            } else if(type === 'ecArray') {
+                title = '人毎データ'
+            }
+            const link = createDownloadATag(conv2Sjis,title)
             link.click()
             //ダウンロードしたら仮で出金としてDB update。
-            const okArray = this.okArray
+            if(type === 'ecArray') { return }
+            const okArray = target
             const today = todayString()
             this.$axios.put('/api/payment_agency/payment_schedules/temporary_pay',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
             .then(() =>{

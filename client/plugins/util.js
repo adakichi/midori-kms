@@ -3,6 +3,7 @@ const moment = require('moment')
 function createDownloadATag(exportText,...csvTitle){
     const today = new Date()
     const todayStrings =today.getFullYear() + '_' + (today.getMonth()+1) + '_' + today.getDate() + ' ' + today.getHours() + today.getMinutes() + today.getSeconds()
+    console.log('title',csvTitle)
     const textName = 'ExpCsv ' + csvTitle + todayStrings + '.csv'
     const blob = new Blob([exportText],{type:'text/plain'})
     const link = document.createElement('a')
@@ -169,7 +170,8 @@ function createAfterPaymentArray(selectedArray,customersArray){
         const customerId = schedule.customer_id
         const amount     = parseInt(schedule.amount,10)
         const advisoryFee= parseInt(schedule.advisory_fee,10)    * 1.1
-        const commission  = parseInt(schedule.commission,10)       * 1.1
+        const commission = parseInt(schedule.commission,10)       * 1.1
+        const memo       = schedule.memo
         
         //depositとamount && (adovisoryFee + commission) とadvance_payment を比較する。かつ まだ仮出金になってないことの確認
         if(customersObject[customerId].deposit >= amount && customersObject[customerId].advance_payment >= (advisoryFee + commission) && schedule.expected_date === null ){
@@ -192,6 +194,12 @@ function createAfterPaymentArray(selectedArray,customersArray){
         customersObject[customerId].requiredAmount += (amount + advisoryFee + commission)
         customersObject[customerId].requiredDeposit         += amount
         customersObject[customerId].requiredAdvancePayment  += (advisoryFee + commission)
+        customersObject[customerId].diff                    = (customersObject[customerId].temporaryReceiptBeforeJudge + customersObject[customerId].depositBeforeJudge + customersObject[customerId].advancePaymentBeforeJudge) - customersObject[customerId].requiredAmount  //仮受金から支払いに必要な金額を引いたもの（差額）
+
+        //メモがあれば スケジュールのメモをまとめて人毎のメモに入れる。
+        if(memo !== ''){
+            customersObject[customerId].memo += '/' + schedule.creditor_name + ':' +  memo
+        }
 
         schedule.recordKubun = 1
         switch(schedule.kind){
