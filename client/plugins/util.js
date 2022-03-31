@@ -273,20 +273,36 @@ function forwardingAddress (division){
             toRoomId[1] = chatworkConf.rooms.tanakaMai
             toRoomId[2] = chatworkConf.rooms.nomuraMinori
             toRoomId[3] = chatworkConf.rooms.gotouEri
+            toRoomId[4] = chatworkConf.rooms.shigyouKengo
             break;
         case '交面':
             from = chatworkConf.token.adachi
-            toRoomId[0] = chatworkConf.rooms.tozawa
-            toRoomId[1] = chatworkConf.rooms.watanabesyouhei
-            toRoomId[2] = chatworkConf.rooms.hasegawa
+            toRoomId[0] = chatworkConf.rooms.shigyouKengo
+            toRoomId[1] = chatworkConf.rooms.hasegawa
+            toRoomId[2] = chatworkConf.rooms.yuasaKaori
+            toRoomId[3] = chatworkConf.rooms.tozawa
+            toRoomId[4] = chatworkConf.rooms.moriYuu
+            break;
+        case '中決':
+            from = chatworkConf.token.adachi
+            toRoomId[0] = chatworkConf.rooms.shigyouKengo
+            toRoomId[1] = chatworkConf.rooms.hasegawa
+            toRoomId[2] = chatworkConf.rooms.yuasaKaori
+            toRoomId[3] = chatworkConf.rooms.tozawa
+            toRoomId[4] = chatworkConf.rooms.moriYuu
             break;
         case '交渉':
             from = chatworkConf.token.adachi
             toRoomId[0] = chatworkConf.rooms.nakataniEmiri
             toRoomId[1] = chatworkConf.rooms.hyoudouEmi
             toRoomId[2] = chatworkConf.rooms.aokiKanade
+            toRoomId[3] = chatworkConf.rooms.shigyouKengo
             break;
         case '完了':
+            break;
+        case 'カスタマー':
+            from = chatworkConf.token.adachi
+            toRoomId[0] = chatworkConf.rooms.CutomerRoom
             break;
         case '債務整理':
             break;
