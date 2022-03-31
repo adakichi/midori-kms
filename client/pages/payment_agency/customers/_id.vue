@@ -1562,7 +1562,7 @@ export default {
             ev.temporary_receipt = ev.accounts_receivable
             ev.customerId = customer.customer_id
             console.log('ev:',ev,'diffResult >= 0',diffResult >= 0,'customer.temporary_receipt !== ev.temporary_receipt',customer.temporary_receipt !== ev.temporary_receipt)
-            if(diffResult >= 0 && customer.temporary_receipt !== ev.temporary_receipt){
+            if(diffResult >= 0){
                 this.$axios.post('api/payment_agency/customer/temp2receivable',ev)
                 .then(response=>{
                     this.popupSnackBar(response.data)
