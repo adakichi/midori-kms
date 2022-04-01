@@ -41,6 +41,12 @@ export default {
                     to:"/tools/creditors_wiki",
                     description:"債権者情報",
                     icon:"mdi-wikipedia"
+                },
+                {
+                    title:"組織図",
+                    to:"/tools/organization_chart",
+                    description:"組織図",
+                    icon:"mdi-family-tree"
                 }
             ],
             item:{title:"tesuto", to:"to",description:"せつめい", icon:"mdi-phone"}
