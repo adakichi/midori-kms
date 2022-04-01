@@ -83,8 +83,8 @@
                 <v-app-bar>
                     <v-spacer></v-spacer>
                     <v-btn v-show="isMatched ? false : true " @click="judgementPaid">判定<v-icon></v-icon></v-btn>
-                    <v-btn @click="downloadCsv(okArray,'okArray')">仮出金(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
-                    <v-btn @click="downloadCsv(editedCustomersArray,'ecArray')">人毎(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
+                    <v-btn v-show="!isMatched ? false : true " @click="downloadCsv(okArray,'okArray')">仮出金(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
+                    <v-btn v-show="!isMatched ? false : true " @click="downloadCsv(editedCustomersArray,'ecArray')">人毎(CSV出力)<v-icon>mdi-download</v-icon></v-btn>
                     <v-btn v-show="isMatched ? false : true " @click="deleteExpected">仮出金解除</v-btn>
                     <v-btn v-show="isMatched ? false : true " @click="confirmPayments">出金確定</v-btn>
                     <v-btn v-show="isAdmin" color="warning" @click="cancelConfirmPayments">出金確定取り消し</v-btn>
@@ -100,7 +100,7 @@
 
                 <!-- 通常タブ -->
                 <v-tab-item>
-
+                    <v-toolbar>通常案件：{{paymentSchedules.length}}件</v-toolbar>
                     <v-data-table
                     :headers="headers"
                     :items="paymentSchedules"
@@ -115,6 +115,7 @@
 
                 <!-- 判定後タブ -->
                 <v-tab-item>
+                    <v-toolbar>判定後案件：{{judgedSelectedArray.length}}件</v-toolbar>
                     <v-data-table
                     :headers="headersJudgedSelectedArray"
                     :items="judgedSelectedArray"
@@ -128,6 +129,7 @@
                 </v-tab-item>
                 <!-- OKタブ -->
                 <v-tab-item>
+                    <v-toolbar>OK案件：{{okArray.length}}件</v-toolbar>
                     <v-data-table
                     :headers="headersOkArray"
                     :items="okArray"
@@ -142,6 +144,7 @@
 
                 <!-- NGタブ -->
                 <v-tab-item>
+                    <v-toolbar>NG案件：{{ngArray.length}}件</v-toolbar>
                     <v-data-table
                     :headers="headersNgArray"
                     :items="ngArray"
@@ -156,6 +159,7 @@
 
                 <!-- 人毎タブ -->
                 <v-tab-item>
+                    <v-toolbar>人毎案件：{{editedCustomersArray.length}}人</v-toolbar>
                     <v-data-table
                     :headers="headersEditedCustomersArray"
                     :items="editedCustomersArray"
@@ -408,7 +412,7 @@ export default {
         },
         downloadCsv(target,type){
             console.log('okarray len:',target.length,target.length > 0)
-            if(target.length < 1){ return alert('OKなものがありません！') }
+            if(target.length < 1){ return alert('データがありません！') }
 
             //②CSVダウンロード
             const total = totalAmount(target)
