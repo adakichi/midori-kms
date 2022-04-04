@@ -145,7 +145,7 @@ export default {
                             tokyo:[
                                 { group:this.chousaGroup,groupName:'調査',          leader:['中嶋']},
                                 { group:this.chuketuGroup,groupName:'中決',         leader:['湯浅']},
-                                { group:this.koumenGroup,groupName:'交面',         leader:['湯浅']},
+                                { group:this.koumenGroup,groupName:'交面',         leader:['斗澤']},
                                 { group:this.hasanGroup,groupName:'破産',         leader:['田尾']},
                                 { group:this.kousyouGroup,groupName:'交渉',         leader:['中谷']},
                                 { group:this.kanryouGroup,groupName:'完了',         leader:['水落']},
