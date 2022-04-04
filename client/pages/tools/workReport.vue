@@ -302,8 +302,8 @@ export default {
             file:null,
             selectedDivision:{},
             division:[
-                { text:"新規 (過払い)", value:"新規 (過払い)"},
-                { text:"新規 (WEB・相続)", value:"新規 (WEB・相続)"},
+                { text:"新規(過払い)", value:"新規(過払い)"},
+                { text:"新規(WEB相続)", value:"新規(WEB相続)"},
                 { text:"調査", value:"調査"},
                 { text:"中決", value:"中決"},
                 { text:"交面", value:"交面"},
@@ -383,10 +383,10 @@ export default {
             divisionFormat(){
                 let hint =''
                 switch(this.selectedDivision){
-                    case '新規 (過払い)':
+                    case '新規(過払い)':
                         hint = '吉澤さんに送信されます'
                         break;
-                    case '新規 (WEB・相続)':
+                    case '新規(WEB・相続)':
                         hint = '吉澤さんに送信されます'
                         break;
                     case '調査':
@@ -415,10 +415,10 @@ export default {
                 let counterStrings = ''
                 let To = ''
                 switch(this.selectedDivision){
-                    case '新規 (過払い)':
+                    case '新規(過払い)':
                         counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件'+'件\nメール：'+ this.counter.shinki.mail +'件'+'件\nチャット：'+ this.counter.shinki.shat +'件'
                         break;
-                    case '新規 (WEB・相続)':
+                    case '新規(WEB相続)':
                         counterStrings = '架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件'+'件\nメール：'+ this.counter.shinki.mail +'件'+'件\nチャット：'+ this.counter.shinki.shat +'件'
                         break;
                     case '調査':
@@ -472,7 +472,7 @@ export default {
                 }
             },
             isShinki(){
-                if(this.selectedDivision === '新規 (過払い)' ||this.selectedDivision === '新規 (WEB・相続)' ){
+                if(this.selectedDivision === '新規(過払い)' ||this.selectedDivision === '新規(WEB相続)' ){
                     return true
                 } else {
                     return false
