@@ -263,11 +263,11 @@ function forwardingAddress (division){
     let toRoomId = []
     let from = ''
     switch (division){
-        case '新規 (過払い)':
+        case '新規(過払い)':
             from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.yoshizawa_robot
             break;
-        case '新規 (WEB・相続)':
+        case '新規(WEB相続)':
             from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.yoshizawa_robot
             break;
