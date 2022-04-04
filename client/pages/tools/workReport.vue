@@ -307,10 +307,14 @@ export default {
                 { text:"調査", value:"調査"},
                 { text:"中決", value:"中決"},
                 { text:"交面", value:"交面"},
+                { text:"破産", value:"破産"},
                 { text:"交渉", value:"交渉"},
                 { text:"完了", value:"完了"},
                 { text:"カスタマー", value:"カスタマー"},
-                { text:"債務整理", value:"債務整理"},
+                { text:"相続", value:"相続"},
+                { text:"札幌", value:"札幌"},
+                { text:"松山", value:"松山"},
+                { text:"高知", value:"高知"},
                 ],
             //各課の件数カウント用　わかりづらいので、OBJECTにして一つにまとめます。
             counter:{

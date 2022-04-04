@@ -275,13 +275,21 @@ function forwardingAddress (division){
             from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.chousaRoom
             break;
+        case '中決':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.koumenChuketuRoom
+            break;
         case '交面':
             from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.koumenChuketuRoom
             break;
-        case '中決':
+        case '破産':
             from = chatworkConf.token.robot
-            toRoomId[0] = chatworkConf.rooms.koumenChuketuRoom
+            toRoomId[0] = chatworkConf.rooms.b2terashima
+            toRoomId[1] = chatworkConf.rooms.b2ikemura
+            toRoomId[2] = chatworkConf.rooms.b2tamatushima
+            toRoomId[2] = chatworkConf.rooms.b2shigyou
+            toRoomId[3] = chatworkConf.rooms.b2adachi
             break;
         case '交渉':
             from = chatworkConf.token.robot
