@@ -322,7 +322,9 @@ app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
   console.log('  division: ' + req.body.division)
   const division = forwardingAddress(req.body.division)
   const body = req.body.content
-  const roomIds = division.to
+  let roomIds = division.to
+  const fileDivision = forwardingAddress('無所属').to
+  roomIds.push(...fileDivision)
   const cwToken = division.from
   const urls =  roomIds.map((roomId)=>{
       return chatworkConf.baseUrl + '/rooms/' + roomId + '/files'

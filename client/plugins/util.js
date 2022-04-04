@@ -263,42 +263,64 @@ function forwardingAddress (division){
     let toRoomId = []
     let from = ''
     switch (division){
-        case '新規':
+        case '新規 (過払い)':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.yoshizawa_robot
+            break;
+        case '新規 (WEB・相続)':
             from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.yoshizawa_robot
             break;
         case '調査':
-            from = chatworkConf.token.adachi
+            from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.chousaRoom
             break;
         case '交面':
-            from = chatworkConf.token.adachi
+            from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.koumenChuketuRoom
             break;
         case '中決':
-            from = chatworkConf.token.adachi
+            from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.koumenChuketuRoom
             break;
         case '交渉':
-            from = chatworkConf.token.adachi
+            from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.KoushouRoom
             break;
         case '完了':
-            from = chatworkConf.token.adachi
-            toRoomId[0] = chatworkConf.rooms.mizuochiKanae
-            toRoomId[1] = chatworkConf.rooms.watanabeHaruka
-            toRoomId[2] = chatworkConf.rooms.takedaSaya
-            toRoomId[3] = chatworkConf.rooms.shigyouKengo
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.KanryouRoom
             break;
         case 'カスタマー':
-            from = chatworkConf.token.adachi
+            from = chatworkConf.token.robot
             toRoomId[0] = chatworkConf.rooms.CutomerRoom
             break;
-        case '債務整理':
+        case '相続':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.SouzokuRoom
             break;
-        case '':
+        case '札幌':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.SapporoRoom
+            break;
+        case '松山':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.MatuyamaRoom
+            break;
+        case '高知':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.KouchiRoom
+            break;
+        case '無所属':
+            from = chatworkConf.token.robot
+            toRoomId[0] = chatworkConf.rooms.b2terashima
+            toRoomId[1] = chatworkConf.rooms.b2ikemura
+            toRoomId[2] = chatworkConf.rooms.b2tamatushima
+            toRoomId[2] = chatworkConf.rooms.b2shigyou
+            toRoomId[3] = chatworkConf.rooms.b2adachi
             break;
         }
+            
     return {from: from, to: toRoomId}
 }
 
