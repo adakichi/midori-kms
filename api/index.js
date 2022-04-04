@@ -267,6 +267,8 @@ app.post("/cw/send",function(req,res,next){
             headers: {'X-ChatWorkToken' : cwToken}
         })
     })
+    console.log('roomIds',roomIds)
+    console.log('cwToken',cwToken)
     let responseData = []
     Promise.all(
         axiosResults
@@ -281,10 +283,7 @@ app.post("/cw/send",function(req,res,next){
             }
         }).catch((errors)=> {
             if(errors){
-                responseData = errors.map((error)=>{
-                    return error.data
-                })                
-                res.send(errors)
+              throw errors
             }
         })
 })
@@ -324,7 +323,9 @@ app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
   const body = req.body.content
   let roomIds = division.to
   const fileDivision = forwardingAddress('無所属').to
+  console.log('before',roomIds)
   roomIds.push(...fileDivision)
+  console.log('after',roomIds)
   const cwToken = division.from
   const urls =  roomIds.map((roomId)=>{
       return chatworkConf.baseUrl + '/rooms/' + roomId + '/files'

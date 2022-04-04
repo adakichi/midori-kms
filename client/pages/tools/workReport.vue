@@ -46,7 +46,7 @@
                             ></v-text-field>
                         </v-col>
                     </v-row>
-                    <v-row>
+                    <v-row v-show="isShinki">
                         <v-col>
                             <v-text-field
                             v-model="counter.shinki.mail"
