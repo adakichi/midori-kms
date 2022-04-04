@@ -139,8 +139,8 @@ export default {
                     groups(){
                         return {
                             shinki:[
-                                { group:this.shinkikabaraiGroup,groupName:'新規 (過払い)',      leader:['下里']},
-                                { group:this.shinkiWebGroup,    groupName:'新規 (WEB・相続)',   leader:[]}
+                                { group:this.shinkikabaraiGroup,groupName:'新規(過払い)',      leader:['下里']},
+                                { group:this.shinkiWebGroup,    groupName:'新規(WEB相続)',   leader:[]}
                             ],
                             tokyo:[
                                 { group:this.chousaGroup,groupName:'調査',          leader:['中嶋']},
@@ -165,10 +165,10 @@ export default {
                         }
                     },
                     shinkiKabaraiGroup(){
-                        return this.users.filter(user => user.division == '新規 (過払い)')
+                        return this.users.filter(user => user.division == '新規(過払い)')
                     },
                     shinkiWebGroup(){
-                        return this.users.filter(user => user.division == '新規 (WEB・相続)')
+                        return this.users.filter(user => user.division == '新規(WEB相続)')
                     },
                     kanryouGroup(){
                         return this.users.filter(user => user.division == '完了')
