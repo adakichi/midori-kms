@@ -139,8 +139,8 @@ export default {
                     groups(){
                         return {
                             shinki:[
-                                { group:this.shinkikabaraiGroup,groupName:'新規(過払い)',      leader:['下里']},
-                                { group:this.shinkiWebGroup,    groupName:'新規(WEB相続)',   leader:[]}
+                                { group:this.shinkiKabaraiGroup,    groupName:'新規(過払い)',      leader:['下里']},
+                                { group:this.shinkiWebGroup,        groupName:'新規(WEB相続)',   leader:[]}
                             ],
                             tokyo:[
                                 { group:this.chousaGroup,groupName:'調査',          leader:['中嶋']},

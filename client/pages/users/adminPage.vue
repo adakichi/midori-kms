@@ -3,11 +3,16 @@
         <v-row>
             <v-col>
                 <v-card>
+                    <v-card-subtitle>
+                        <v-text-field label="Search" v-model="searchText"></v-text-field>
+                    </v-card-subtitle>
                     <v-card-text>
                         <v-data-table
                         :items="users"
                         item-key="id"
                         :headers="usersHeaders"
+                        :search="searchText"
+                        show-group-by
                         >
                             <template v-slot:item.division="props">
                                 <v-edit-dialog
@@ -52,6 +57,7 @@ export default {
         return {
             users:[],
             isDialog:false,
+            searchText:'',
             divisions:['新規(過払い)','新規(WEB相続)','調査','中決','交面','破産','交渉','完了','カスタマー','債務整理','相続','札幌','名古屋','岡山','広島','松山','高知','熊本','無所属'],
             usersHeaders:[
                 {text:'ID', value:'user_id'},
