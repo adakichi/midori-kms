@@ -3,11 +3,12 @@
         <v-row>
             <h1>組織図</h1>
         </v-row>
+        <v-sheet color="green lighten-2" width="100%" class="pa-4 ma-2" rounded>
         <v-row>
-            <v-col v-for="(group,index) in groups" :key="index">
-                <v-card max-width="200" color="light-blue lighten-4">
+            <v-col v-for="(group,index) in groups.shinki" :key="index">
+                <v-card color="light-blue lighten-4">
                     <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}</v-toolbar>
-                    <v-card-subtitle>サブタイトル</v-card-subtitle>
+                    <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                     <v-card-text>
                         <v-row>
                             <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
@@ -19,6 +20,43 @@
                 </v-card>
             </v-col>
         </v-row>
+        </v-sheet>
+        <v-sheet color="green lighten-1" width="100%" class="pa-4 ma-2" rounded>
+            <v-row>
+                <v-col v-for="(group,index) in groups.tokyo" :key="index">
+                    <v-card max-width="200" color="light-blue lighten-4">
+                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}</v-toolbar>
+                        <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
+                        <v-card-text>
+                            <v-row>
+                                <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
+                                    <v-chip>{{item.name}}</v-chip>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                        <v-card-actions></v-card-actions>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </v-sheet>
+        <v-sheet color="blue darken-3" width="100%" class="pa-4 ma-2" rounded>
+            <v-row>
+                <v-col v-for="(group,index) in groups.shiten" :key="index">
+                    <v-card max-width="200" color="light-blue lighten-4">
+                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}</v-toolbar>
+                        <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
+                        <v-card-text>
+                            <v-row>
+                                <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
+                                    <v-chip>{{item.name}}</v-chip>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                        <v-card-actions></v-card-actions>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </v-sheet>
     </v-container>
 </template>
 
@@ -99,25 +137,38 @@ export default {
                 },
                 computed:{
                     groups(){
-                        return [
-                            { group:this.shinkiGroup,groupName:'新規'},
-                            { group:this.kanryouGroup,groupName:'完了'},
-                            { group:this.chousaGroup,groupName:'調査'},
-                            { group:this.chuketuGroup,groupName:'中決'},
-                            { group:this.customerGroup,groupName:'カスタマー'},
-                            { group:this.kousyouGroup,groupName:'交渉'},
-                            { group:this.mushozokuGroup,groupName:'無所属'},
-                            { group:this.sapporoGroup,groupName:'札幌'},
-                            { group:this.nagoyaGroup,groupName:'名古屋'},
-                            { group:this.okayamaGroup,groupName:'岡山'},
-                            { group:this.hiroshimaGroup,groupName:'広島'},
-                            { group:this.matuyamaGroup,groupName:'松山'},
-                            { group:this.kouchiGroup,groupName:'高知'},
-                            { group:this.kumamotoGroup,groupName:'熊本'}
+                        return {
+                            shinki:[
+                                { group:this.shinkikabaraiGroup,groupName:'新規 (過払い)',      leader:['下里']},
+                                { group:this.shinkiWebGroup,    groupName:'新規 (WEB・相続)',   leader:[]}
+                            ],
+                            tokyo:[
+                                { group:this.chousaGroup,groupName:'調査',          leader:['中嶋']},
+                                { group:this.chuketuGroup,groupName:'中決',         leader:['湯浅']},
+                                { group:this.koumenGroup,groupName:'交面',         leader:['湯浅']},
+                                { group:this.hasanGroup,groupName:'破産',         leader:['田尾']},
+                                { group:this.kousyouGroup,groupName:'交渉',         leader:['中谷']},
+                                { group:this.kanryouGroup,groupName:'完了',         leader:['水落']},
+                                { group:this.customerGroup,groupName:'カスタマー',  leader:['菊地']},
+                                { group:this.souzokuGroup,groupName:'相続',         leader:['原田']},
+                                { group:this.mushozokuGroup,groupName:'無所属',     leader:['']},
+                            ],
+                            shiten:[
+                                { group:this.sapporoGroup,groupName:'札幌'},
+                                { group:this.nagoyaGroup,groupName:'名古屋'},
+                                { group:this.okayamaGroup,groupName:'岡山'},
+                                { group:this.hiroshimaGroup,groupName:'広島'},
+                                { group:this.matuyamaGroup,groupName:'松山'},
+                                { group:this.kouchiGroup,groupName:'高知'},
+                                { group:this.kumamotoGroup,groupName:'熊本'}
                             ]
+                        }
                     },
-                    shinkiGroup(){
-                        return this.users.filter(user => user.division == '新規')
+                    shinkiKabaraiGroup(){
+                        return this.users.filter(user => user.division == '新規 (過払い)')
+                    },
+                    shinkiWebGroup(){
+                        return this.users.filter(user => user.division == '新規 (WEB・相続)')
                     },
                     kanryouGroup(){
                         return this.users.filter(user => user.division == '完了')
@@ -127,6 +178,9 @@ export default {
                     },
                     kousyouGroup(){
                         return this.users.filter(user => user.division == '交渉')
+                    },
+                    hasanGroup(){
+                        return this.users.filter(user => user.division == '破産')
                     },
                     chuketuGroup(){
                         return this.users.filter(user => user.division == '中決')
