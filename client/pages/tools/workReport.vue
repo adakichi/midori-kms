@@ -443,7 +443,7 @@ export default {
                         break;
                     case 'カスタマー':
                         counterStrings = '架電：'+ this.counter.customer.kaden +'件\n受電：'+ this.counter.customer.jyuden +'件\n交面実績：' + this.counter.customer.koumen + '件\n:チャット：' + this.counter.customer.chat
-                        To = '[To:4682397]渡邉[To:4682436]水落[To:6009275]武田'
+                        To = '[To:4682722]並木[To:5263669]青木[To:5264264]菊地[To:5306690]高橋[To:5537119]深澤'
                         break;
                     case '相続':
                         counterStrings = ''
