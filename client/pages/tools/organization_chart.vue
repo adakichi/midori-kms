@@ -3,6 +3,17 @@
         <v-row>
             <h1>組織図</h1>
         </v-row>
+        <p><v-icon color="yellow">mdi-star</v-icon>サブリーダー　<v-icon color="yellow">mdi-star</v-icon><v-icon color="yellow">mdi-star</v-icon>星：リーダー</p>
+        <p>
+            <v-chip color="blue-grey lighten-2">
+            ログアウト済み
+            <v-avatar class="ml-2" :color="orange"><v-icon small>mdi-phone</v-icon></v-avatar>
+            </v-chip>
+            <v-chip color="grey darken-4">
+            本日ログイン無し
+            <v-avatar class="ml-2" :color="orange"><v-icon small>mdi-phone</v-icon></v-avatar>
+            </v-chip>
+        </p>
         <v-sheet color="green lighten-2" width="100%" class="pa-4 ma-2" rounded>
         <v-row>
             <v-col v-for="(group,index) in groups.shinki" :key="index">
@@ -202,7 +213,7 @@ export default {
                                 return 'green accent-3'
                             } else {
                                 console.log(3)
-                                return 'grey darken-2'
+                                return 'blue-grey lighten-2'
                             }
                         } else {
                             return 'grey darken-2'
