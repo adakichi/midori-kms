@@ -19,7 +19,7 @@
                                     :color="chipColor(item.last_login)"
                                     :text-color="textColor(item.last_login)"
                                 >
-                                    <v-icon v-if="item.position === 'SL' ? true: item.position === 'L' ? true :false" v-for="n of (item.position ==='SL' ? 1 : 2)" color="yellow">mdi-star</v-icon>
+                                    <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
                                 {{item.name}} 
                                 <v-avatar class="ml-2" :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
                                 </v-chip>
@@ -46,7 +46,7 @@
                                      :color="chipColor(item.last_login)"
                                     :text-color="textColor(item.last_login)"
                                     >
-                                    <v-icon v-if="item.position === 'SL' ? true: item.position === 'L' ? true :false" v-for="n of (item.position ==='SL' ? 1 : 2)" color="yellow">mdi-star</v-icon>
+                                    <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
                                     {{item.name}}
                                      <v-avatar class="ml-2"  :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
                                     </v-chip>
@@ -73,7 +73,7 @@
                                      :color="chipColor(item.last_login)"
                                     :text-color="textColor(item.last_login)"
                                     >
-                                    <v-icon v-if="item.position === 'SL' ? true: item.position === 'L' ? true :false" v-for="n of (item.position ==='SL' ? 1 : 2)" color="yellow">mdi-star</v-icon>
+                                    <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
                                     {{item.name}}
                                      <v-avatar class="ml-2" :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>                                
                                     </v-chip>
@@ -206,6 +206,38 @@ export default {
                             return 'grey'
                         } else {
                             return 'orange'
+                        }
+                    },
+                    isLeader(p){
+                        switch(p){
+                            case 'SL':
+                                return true //SMは特に表示させない
+                            break
+                            case 'L':
+                                return true //SMは特に表示させない
+                            break
+                            case 'SM':
+                                return false //SMは特に表示させない
+                            break
+                            default:
+                                return false
+                            break
+                        }
+                    },
+                    countStar(p){
+                        switch(p){
+                            case 'SL':
+                                return 1 
+                            break
+                            case 'L':
+                                return 2 
+                            break
+                            case 'SM':
+                                return 3 //SMは特に表示させない
+                            break
+                            default:
+                                return false
+                            break
                         }
                     }
                 },
