@@ -266,16 +266,21 @@ app.post("/cw/send",function(req,res,next){
         return axios.post(url,params,{
             headers: {'X-ChatWorkToken' : cwToken}
         })
+        .then(response=>{
+          if(response.data.error){
+            throw response.data
+          }
+          return response.data.message_id
+        })
     })
-    console.log('roomIds',roomIds)
-    console.log('cwToken',cwToken)
     let responseData = []
     Promise.all(
         axiosResults
         ).then((responses)=> {
             console.log('  done:promise')
             if(responses){
-                responseData = responses.map((re)=>{
+              console.log('\n\n-----------------------------------------------------------\nresponses:',responses)
+              responseData = responses.map((re)=>{
                     return re.data
                 })
                 console.log('--- Done!! cw send process ---')
@@ -315,24 +320,10 @@ app.post('/upload', upload.single('file'), (req, res) => {
 });
 
 
-//添付ファイルがある場合の処理
-app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
-  console.log('\nPOST:/cw/send\n---start cw sendfile process---')
-  console.log('  division: ' + req.body.division)
-  const division = forwardingAddress(req.body.division)
-  const body = req.body.content
-  let roomIds = division.to
-  const fileDivision = forwardingAddress('無所属').to
-  console.log('before',roomIds)
-  roomIds.push(...fileDivision)
-  console.log('after',roomIds)
-  const cwToken = division.from
-  const urls =  roomIds.map((roomId)=>{
-      return chatworkConf.baseUrl + '/rooms/' + roomId + '/files'
-  })
-  //////file添付の処理/////////////////
+//cw/sendfile用にform作成を関数にまとめる
+const createForm = function(body,path,cwToken){
   let form = new FormData()
-  const file = fs.createReadStream(req.file.path);
+  const file = fs.createReadStream(path);
   form.append('message',body)
   form.append('file',file)
   const config = {
@@ -343,22 +334,42 @@ app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
       ...form.getHeaders()
     }
   }
-  ////////////////////////////////////
-  console.log('  axios.all:start!!')
+  return {form:form,config:config}
+}
+
+//添付ファイルがある場合の処理
+app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
+  console.log('\nPOST:/cw/send\n---start cw sendfile process---')
+  console.log('  division: ' + req.body.division)
+  const division = forwardingAddress(req.body.division)
+  const body = req.body.content
+  let roomIds = division.to
+  const fileDivision = forwardingAddress('無所属').to
+  roomIds.push(...fileDivision)
+  const cwToken = division.from
+  const urls =  roomIds.map((roomId)=>{
+      return chatworkConf.baseUrl + '/rooms/' + roomId + '/files'
+  })
+  //////file添付の処理/////////////////
+  console.log('  axios.all:start!!',roomIds)
+  //よくわからんが、一回だけFormデータを作って、それをpromise.allだとメモリリークが起こるので、送信するごとにFormデータを作成する。
+
+  ////////////////////////////////////////
   const axiosResults = urls.map(function(url){
-      return axios.post(url,form,config)
+    const data = createForm(body,req.file.path,cwToken)
+    return axios.post(url,data.form,data.config)
   })
   let responseData = []
   Promise.all(
       axiosResults
       ).then((responses)=> {
           console.log('  done:promise')
-          if(responses){
+          if(responses){  
               responseData = responses.map((re)=>{
                   return re.data.file_id
               })
               console.log('--- Done!! cw send process ---\nfile ids:',responseData)
-              res.send(responseData)
+              res.send('送信おわりました。')
           }
       }).catch((errors)=> {
           if(errors){
@@ -371,6 +382,7 @@ app.post("/cw/sendfile",upload.single('file'),function(req,res,next){
           console.log(req.file.path + 'を削除しました')
         })      
       })
+
 })
 
 //特につかわないが、残します。chatworkのファイル取得用

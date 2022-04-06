@@ -340,13 +340,8 @@ export default {
                     content: body,
                     division:this.selectedDivision
                 }).then((response) =>{
-                    let strings = ''
-                    response.data.forEach(element => {
-                        console.log(element)
-                        strings = strings + element.message_id + '\n'
-                    });
-                    if(strings){strings = '送信成功\n'+ 'message_ids\n' + strings}
-                    alert(strings)
+                    console.log(response)
+                    alert('送信おわりました！')
                 }).catch((error)=>{
                     console.log('error:')
                     console.log(error)
@@ -371,7 +366,7 @@ export default {
                 .then(response=>{
                     if(response.data.error){ return response.data.message}
                         console.log(response)
-                        alert('ファイルIDs\n'+response.data)
+                        alert('送信おわりました。')
                     })
             },
             fileGet(){

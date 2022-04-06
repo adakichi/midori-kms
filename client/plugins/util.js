@@ -321,11 +321,11 @@ function forwardingAddress (division){
             break;
         case '無所属':
             from = chatworkConf.token.robot
-            toRoomId[0] = chatworkConf.rooms.b2terashima
-            toRoomId[1] = chatworkConf.rooms.b2ikemura
-            toRoomId[2] = chatworkConf.rooms.b2tamatushima
-            toRoomId[2] = chatworkConf.rooms.b2shigyou
-            toRoomId[3] = chatworkConf.rooms.b2adachi
+            toRoomId[0] = chatworkConf.rooms.b2adachi
+            toRoomId[1] = chatworkConf.rooms.b2terashima
+            toRoomId[2] = chatworkConf.rooms.b2ikemura
+            toRoomId[3] = chatworkConf.rooms.b2tamatushima
+            toRoomId[4] = chatworkConf.rooms.b2shigyou
             break;
         }
             
