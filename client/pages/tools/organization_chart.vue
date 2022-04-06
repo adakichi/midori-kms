@@ -195,24 +195,18 @@ export default {
                         if(num === null || num === ''){ return alert('BIZTELの設定がありません')}
                         const a = document.createElement('a')
                         a.href = 'callto:'+num
-                        console.log(a)
                         a.click()
                     },
                     chipColor(login,logout){
-                        console.log(login,logout)
                         const today = moment()
                         const lastLogin  = moment(login)
                         const lastLogout  = moment(logout)
                         const diff  = lastLogin.diff(today,'days')
                         if(diff === 0 ){
-                            console.log('login:',lastLogin.format('YYYY-MM-DD HH:mm:ss'))
-                            console.log('logout:',lastLogout.format('YYYY-MM-DD HH:mm:ss'))
                             const logoutDiff  = lastLogin.isAfter(lastLogout)
                             if(logoutDiff){
-                                console.log(2)
                                 return 'green accent-3'
                             } else {
-                                console.log(3)
                                 return 'blue-grey lighten-2'
                             }
                         } else {
