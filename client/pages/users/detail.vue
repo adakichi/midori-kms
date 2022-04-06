@@ -36,7 +36,7 @@
                     </v-row>
                     <v-row>
                         <v-col>
-                            <v-text-field label="BIZTEL ID" v-model="user.biztel_id"></v-text-field>
+                            <v-text-field label="BIZTEL ID" v-model="user.biztel_id" type="number"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>
