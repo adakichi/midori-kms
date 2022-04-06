@@ -191,7 +191,6 @@ app.get('/auth/user/allUsers',(req,res)=>{
 
 //自分のpage表示 users取得
 app.get('/auth/user/me',(req,res)=>{
-  console.log('id',req.params)
   const sql = 'SELECT id, user_id, name, kana, admin, division, last_login, position, biztel_id FROM users WHERE user_id = ?'
   db_midori_users.query(sql,req.query.id,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/me' ; throw err}
