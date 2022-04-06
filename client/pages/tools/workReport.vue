@@ -342,11 +342,18 @@ export default {
                 }).then((response) =>{
                     console.log(response)
                     alert('送信おわりました！')
+                    const doYes = confirm('ログアウトしますか？')
+                    if(doYes){
+                        this.logout()
+                        alert('お疲れ様でした。')
+                    } else {
+                        alert('帰る前にログアウトしてくださいね。\n※忘れても大丈夫です。')
+                    }
                 }).catch((error)=>{
                     console.log('error:')
                     console.log(error)
                     alert(error)
-                }).then(console.log('submit:Done!'))
+                })
             },
             setFile(e){
                 console.log(e)
@@ -367,12 +374,24 @@ export default {
                     if(response.data.error){ return response.data.message}
                         console.log(response)
                         alert('送信おわりました。')
+                        const doYes = confirm('ログアウトしますか？')
+                        if(doYes){
+                            this.logout()
+                            alert('お疲れ様でした。')
+                        } else {
+                            alert('帰る前にログアウトしてくださいね。\n※忘れても大丈夫です。')
+                        }
                     })
             },
             fileGet(){
                 this.$axios.get('api/cw/send/file')
                 .then(r=>{console.log(r);alert(r.data.file_id)})                    
+            },
+            logout(){
+                const data = { user: this.$auth.user}
+                this.$auth.logout({data:data})
             }
+
         },
         computed:{
             divisionFormat(){

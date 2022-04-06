@@ -16,7 +16,7 @@
                         <v-row>
                             <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
                                 <v-chip
-                                    :color="chipColor(item.last_login)"
+                                    :color="chipColor(item.last_login,item.last_logout)"
                                     :text-color="textColor(item.last_login)"
                                 >
                                     <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
@@ -43,7 +43,7 @@
                             <v-row>
                                 <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
                                     <v-chip
-                                     :color="chipColor(item.last_login)"
+                                    :color="chipColor(item.last_login,item.last_logout)"
                                     :text-color="textColor(item.last_login)"
                                     >
                                     <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
@@ -70,7 +70,7 @@
                             <v-row>
                                 <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
                                     <v-chip
-                                     :color="chipColor(item.last_login)"
+                                    :color="chipColor(item.last_login,item.last_logout)"
                                     :text-color="textColor(item.last_login)"
                                     >
                                     <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
@@ -164,12 +164,18 @@ export default {
                         })
                     },
                     //最終ログイン日が今日の日付であればtrueを返す
-                    isLoginToday(d){
+                    isLoginToday(login, logout){
                         const today = moment()
-                        const last  = moment(d)
-                        const diff  = last.diff(today,'days')
+                        const lastLogin  = moment(login)
+                        const lastLogout  = moment(logout)
+                        const diff  = lastLogin.diff(today,'days')
                         if(diff === 0 ){
-                            return true
+                            const logoutDiff  = lastLogin.isAfter(lastLogout)
+                            if(logoutDiff){
+                                return true
+                            } else {
+                                return false
+                            }
                         } else {
                             return false
                         }
@@ -181,12 +187,23 @@ export default {
                         console.log(a)
                         a.click()
                     },
-                    chipColor(d){
+                    chipColor(login,logout){
+                        console.log(login,logout)
                         const today = moment()
-                        const last  = moment(d)
-                        const diff  = last.diff(today,'days')
+                        const lastLogin  = moment(login)
+                        const lastLogout  = moment(logout)
+                        const diff  = lastLogin.diff(today,'days')
                         if(diff === 0 ){
-                            return 'green accent-3'
+                            console.log('login:',lastLogin.format('YYYY-MM-DD HH:mm:ss'))
+                            console.log('logout:',lastLogout.format('YYYY-MM-DD HH:mm:ss'))
+                            const logoutDiff  = lastLogin.isAfter(lastLogout)
+                            if(logoutDiff){
+                                console.log(2)
+                                return 'green accent-3'
+                            } else {
+                                console.log(3)
+                                return 'grey darken-2'
+                            }
                         } else {
                             return 'grey darken-2'
                         }

@@ -172,7 +172,7 @@ export default {
   },
   methods:{
     logout(){
-      const data = { auth: this.$auth.user.name}
+      const data = { user: this.$auth.user}
       this.$auth.logout({data:data})
     }
   }

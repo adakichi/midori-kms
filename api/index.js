@@ -182,7 +182,7 @@ app.post('/auth/login',(req,res)=>{
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
   console.log('division')
-  const sql = 'SELECT id, user_id, name, admin, division, last_login, position, biztel_id FROM users'
+  const sql = 'SELECT id, user_id, name, admin, division, last_login, last_logout, position, biztel_id FROM users'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
@@ -224,8 +224,16 @@ app.put('/auth/user/editUser',(req,res)=>{
 
 //ログアウト後の動作
   app.post('/auth/logout',(req,res)=>{
-    logger.log(moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。')
-    console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.auth + ' がログアウトしました。\n--- --- --- ---')
+    console.log(req.body.user)
+    console.log(req.body.user.id)
+    console.log(req.body.user.name)
+    const sql = 'UPDATE users SET last_logout = NOW() WHERE user_id = ?'
+    const value = req.body.user.userId
+    db_midori_users.query(sql,value,(err,rows,fields)=>{
+      if(err){throw err}
+    })
+    logger.log(moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.user.name + ' がログアウトしました。','ログアウト')
+    console.log('\n--- post /auth/logout/ ---\n' + moment().format('YYYY/MM/DD HH:mm:ss')+ '>' + req.body.user.name + ' がログアウトしました。\n--- --- --- ---')
     res.redirect('/user/login')
   })
   
