@@ -152,6 +152,10 @@ app.post('/auth/login',(req,res)=>{
         console.log('---Done post login process---')
         const token = jwt.sign(payload, 'secret',{expiresIn:'12h'})
         res.json({token})
+        const sql = ' update users set last_login = NOW() where user_id = ?'
+        db_midori_users.query(sql,user[0].user_id,(err,rows,fields)=>{
+          if(err){throw err}
+        })
       }))
     })
   })
@@ -178,7 +182,7 @@ app.post('/auth/login',(req,res)=>{
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
   console.log('division')
-  const sql = 'SELECT id, user_id, name, admin, division FROM users'
+  const sql = 'SELECT id, user_id, name, admin, division, last_login FROM users'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)

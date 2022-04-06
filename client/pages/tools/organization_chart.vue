@@ -12,7 +12,10 @@
                     <v-card-text>
                         <v-row>
                             <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
-                                <v-chip>{{item.name}}</v-chip>
+                                <v-chip
+                                    :color="chipColor(item.last_login)"
+                                    :class="textColor(item.last_login)"
+                                >{{item.name}}</v-chip>
                             </v-col>
                         </v-row>
                     </v-card-text>
@@ -30,7 +33,10 @@
                         <v-card-text>
                             <v-row>
                                 <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
-                                    <v-chip>{{item.name}}</v-chip>
+                                    <v-chip
+                                     :color="chipColor(item.last_login)"
+                                     :class="textColor(item.last_login)"
+                                    >{{item.name}}</v-chip>
                                 </v-col>
                             </v-row>
                         </v-card-text>
@@ -48,7 +54,10 @@
                         <v-card-text>
                             <v-row>
                                 <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
-                                    <v-chip>{{item.name}}</v-chip>
+                                    <v-chip
+                                     :color="chipColor(item.last_login)"
+                                     :class="textColor(item.last_login)"
+                                    >{{item.name}}</v-chip>
                                 </v-col>
                             </v-row>
                         </v-card-text>
@@ -61,6 +70,7 @@
 </template>
 
 <script>
+import moment from 'moment'
 const phonebook = require('../../../client/assets/data/phone_book.json')
 export default {
                 data(){
@@ -134,6 +144,37 @@ export default {
                             this.users = response.data
                         })
                     },
+                    //最終ログイン日が今日の日付であればtrueを返す
+                    isLoginToday(d){
+                        const today = moment()
+                        const last  = moment(d)
+                        const diff  = last.diff(today,'days')
+                        if(diff === 0 ){
+                            return true
+                        } else {
+                            return false
+                        }
+                    },
+                    chipColor(d){
+                        const today = moment()
+                        const last  = moment(d)
+                        const diff  = last.diff(today,'days')
+                        if(diff === 0 ){
+                            return 'green accent-3'
+                        } else {
+                            return 'grey darken-2'
+                        }
+                    },
+                    textColor(d){
+                        const today = moment()
+                        const last  = moment(d)
+                        const diff  = last.diff(today,'days')
+                        if(diff === 0 ){
+                            return 'grey darken4--text'
+                        } else {
+                            return 'white--text'
+                        }
+                    }
                 },
                 computed:{
                     groups(){
