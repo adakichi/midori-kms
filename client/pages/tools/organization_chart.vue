@@ -3,12 +3,14 @@
         <v-row>
             <h1>組織図</h1>
         </v-row>
-        <a href="callto:1043">TEL</a>
         <v-sheet color="green lighten-2" width="100%" class="pa-4 ma-2" rounded>
         <v-row>
             <v-col v-for="(group,index) in groups.shinki" :key="index">
                 <v-card color="light-blue lighten-4">
-                    <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}</v-toolbar>
+                    <v-toolbar flat color="light-blue lighten-1">
+                        {{group.groupName}}
+                        <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                    </v-toolbar>
                     <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                     <v-card-text>
                         <v-row>
@@ -31,7 +33,9 @@
             <v-row>
                 <v-col v-for="(group,index) in groups.tokyo" :key="index">
                     <v-card max-width="200" color="light-blue lighten-4">
-                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}</v-toolbar>
+                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}
+                            <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                        </v-toolbar>
                         <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                         <v-card-text>
                             <v-row>
@@ -54,7 +58,9 @@
             <v-row>
                 <v-col v-for="(group,index) in groups.shiten" :key="index">
                     <v-card max-width="200" color="light-blue lighten-4">
-                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}</v-toolbar>
+                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}
+                            <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                        </v-toolbar>
                         <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                         <v-card-text>
                             <v-row>
@@ -163,7 +169,7 @@ export default {
                         }
                     },
                     toCall(num){
-                        if(num === null){ return alert('BIZTELの設定がありません')}
+                        if(num === null || num === ''){ return alert('BIZTELの設定がありません')}
                         const a = document.createElement('a')
                         a.href = 'callto:'+num
                         console.log(a)
@@ -190,7 +196,7 @@ export default {
                         }
                     },
                     biztelColor(num){
-                        if(num === null){
+                        if(num === null || num === ''){
                             return 'grey'
                         } else {
                             return 'orange'
@@ -201,28 +207,28 @@ export default {
                     groups(){
                         return {
                             shinki:[
-                                { group:this.shinkiKabaraiGroup,    groupName:'新規(過払い)',      leader:['下里']},
-                                { group:this.shinkiWebGroup,        groupName:'新規(WEB相続)',   leader:[]}
+                                { group:this.shinkiKabaraiGroup,    groupName:'新規(過払い)', biztel_id:'5001',     leader:['下里']},
+                                { group:this.shinkiWebGroup,        groupName:'新規(WEB相続)',biztel_id:'5002',   leader:[]}
                             ],
                             tokyo:[
-                                { group:this.chousaGroup,groupName:'調査',          leader:['中嶋']},
-                                { group:this.chuketuGroup,groupName:'中決',         leader:['湯浅']},
-                                { group:this.koumenGroup,groupName:'交面',         leader:['斗澤']},
-                                { group:this.hasanGroup,groupName:'破産',         leader:['田尾']},
-                                { group:this.kousyouGroup,groupName:'交渉',         leader:['中谷']},
-                                { group:this.kanryouGroup,groupName:'完了',         leader:['水落']},
-                                { group:this.customerGroup,groupName:'カスタマー',  leader:['菊地']},
-                                { group:this.souzokuGroup,groupName:'相続',         leader:['原田']},
-                                { group:this.mushozokuGroup,groupName:'無所属',     leader:['']},
+                                { group:this.chousaGroup,groupName:'調査',          biztel_id:'5103',          leader:['中嶋']},
+                                { group:this.chuketuGroup,groupName:'中決',         biztel_id:'5106',         leader:['湯浅']},
+                                { group:this.koumenGroup,groupName:'交面',          biztel_id:'5105',        leader:['斗澤']},
+                                { group:this.hasanGroup,groupName:'破産',           biztel_id:'1021',       leader:['田尾']},
+                                { group:this.kousyouGroup,groupName:'交渉',         biztel_id:'5104',         leader:['中谷']},
+                                { group:this.kanryouGroup,groupName:'完了',         biztel_id:'5106',         leader:['水落']},
+                                { group:this.customerGroup,groupName:'カスタマー',  biztel_id:'5109',  leader:['菊地']},
+                                { group:this.souzokuGroup,groupName:'相続',         biztel_id:'5107',         leader:['原田']},
+                                { group:this.mushozokuGroup,groupName:'無所属',     biztel_id:'',     leader:['']},
                             ],
                             shiten:[
-                                { group:this.sapporoGroup,groupName:'札幌'},
-                                { group:this.nagoyaGroup,groupName:'名古屋'},
-                                { group:this.okayamaGroup,groupName:'岡山'},
-                                { group:this.hiroshimaGroup,groupName:'広島'},
-                                { group:this.matuyamaGroup,groupName:'松山'},
-                                { group:this.kouchiGroup,groupName:'高知'},
-                                { group:this.kumamotoGroup,groupName:'熊本'}
+                                { group:this.sapporoGroup,groupName:'札幌', biztel_id:'5201',},
+                                { group:this.nagoyaGroup,groupName:'名古屋',biztel_id:'5202',},
+                                { group:this.okayamaGroup,groupName:'岡山', biztel_id:'5203',},
+                                { group:this.hiroshimaGroup,groupName:'広島',biztel_id:'5104',},
+                                { group:this.matuyamaGroup,groupName:'松山',biztel_id:'5205',},
+                                { group:this.kouchiGroup,groupName:'高知',  biztel_id:'5206',},
+                                { group:this.kumamotoGroup,groupName:'熊本',biztel_id:'5207',}
                             ]
                         }
                     },
@@ -286,3 +292,9 @@ export default {
                 }
             }
 </script>
+
+<style scoped>
+    .v-avatar:hover{
+        cursor:pointer;
+    }
+</style>
