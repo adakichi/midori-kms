@@ -182,10 +182,33 @@ app.post('/auth/login',(req,res)=>{
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
   console.log('division')
-  const sql = 'SELECT id, user_id, name, admin, division, last_login FROM users'
+  const sql = 'SELECT id, user_id, name, admin, division, last_login, position, biztel_id FROM users'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
+  })
+})
+
+//自分のpage表示 users取得
+app.get('/auth/user/me',(req,res)=>{
+  console.log('id',req.params)
+  const sql = 'SELECT id, user_id, name, kana, admin, division, last_login, position, biztel_id FROM users WHERE user_id = ?'
+  db_midori_users.query(sql,req.query.id,(err,row,fields)=>{
+    if(err){ err.whichApi = 'get /auth/user/me' ; throw err}
+    res.send(row)
+  })
+})
+
+//自分のpage更新 users取得
+app.put('/auth/user/me',(req,res)=>{
+  console.log('id',req.body)
+  const sql = 'UPDATE users SET name = ?, kana = ?, division = ?, position=?, biztel_id=? WHERE user_id = ?'
+  const values = [req.body.name,req.body.kana,req.body.division,req.body.position,req.body.biztel_id,req.body.user_id]
+  console.log(sql,values)
+  db_midori_users.query(sql,values,(err,row,fields)=>{
+    if(err){ err.whichApi = 'PUT /auth/user/me' ; throw err}
+    logger.log(req.body,'アカウントデータ更新 PUT /auth/user/me')
+    res.send('更新しました')
   })
 })
 
