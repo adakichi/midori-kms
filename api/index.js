@@ -201,10 +201,8 @@ app.get('/auth/user/me',(req,res)=>{
 
 //自分のpage更新 users取得
 app.put('/auth/user/me',(req,res)=>{
-  console.log('id',req.body)
   const sql = 'UPDATE users SET name = ?, kana = ?, division = ?, position=?, biztel_id=? WHERE user_id = ?'
   const values = [req.body.name,req.body.kana,req.body.division,req.body.position,req.body.biztel_id,req.body.user_id]
-  console.log(sql,values)
   db_midori_users.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi = 'PUT /auth/user/me' ; throw err}
     logger.log(req.body,'アカウントデータ更新 PUT /auth/user/me')
