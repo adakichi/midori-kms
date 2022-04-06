@@ -3,6 +3,7 @@
         <v-row>
             <h1>組織図</h1>
         </v-row>
+        <a href="callto:1043">TEL</a>
         <v-sheet color="green lighten-2" width="100%" class="pa-4 ma-2" rounded>
         <v-row>
             <v-col v-for="(group,index) in groups.shinki" :key="index">
@@ -14,8 +15,10 @@
                             <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
                                 <v-chip
                                     :color="chipColor(item.last_login)"
-                                    :class="textColor(item.last_login)"
-                                >{{item.name}}</v-chip>
+                                    :text-color="textColor(item.last_login)"
+                                >{{item.name}} 
+                                <v-avatar class="ml-2" :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                                </v-chip>
                             </v-col>
                         </v-row>
                     </v-card-text>
@@ -35,8 +38,10 @@
                                 <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
                                     <v-chip
                                      :color="chipColor(item.last_login)"
-                                     :class="textColor(item.last_login)"
-                                    >{{item.name}}</v-chip>
+                                    :text-color="textColor(item.last_login)"
+                                    >{{item.name}}
+                                     <v-avatar class="ml-2"  :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                                    </v-chip>
                                 </v-col>
                             </v-row>
                         </v-card-text>
@@ -56,8 +61,10 @@
                                 <v-col v-for="(item,index) in group.group" :key="index" class="pa-1">
                                     <v-chip
                                      :color="chipColor(item.last_login)"
-                                     :class="textColor(item.last_login)"
-                                    >{{item.name}}</v-chip>
+                                    :text-color="textColor(item.last_login)"
+                                    >{{item.name}}
+                                     <v-avatar class="ml-2" :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>                                
+                                    </v-chip>
                                 </v-col>
                             </v-row>
                         </v-card-text>
@@ -155,6 +162,13 @@ export default {
                             return false
                         }
                     },
+                    toCall(num){
+                        if(num === null){ return alert('BIZTELの設定がありません')}
+                        const a = document.createElement('a')
+                        a.href = 'callto:'+num
+                        console.log(a)
+                        a.click()
+                    },
                     chipColor(d){
                         const today = moment()
                         const last  = moment(d)
@@ -170,9 +184,16 @@ export default {
                         const last  = moment(d)
                         const diff  = last.diff(today,'days')
                         if(diff === 0 ){
-                            return 'grey darken4--text'
+                            return 'grey lighten-4'
                         } else {
-                            return 'white--text'
+                            return 'white'
+                        }
+                    },
+                    biztelColor(num){
+                        if(num === null){
+                            return 'grey'
+                        } else {
+                            return 'orange'
                         }
                     }
                 },
