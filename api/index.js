@@ -626,7 +626,7 @@ app.post('/payment_agency/cir/irregular', (req,res)=>{
 
 
     //まずjournal登録
-    let sql = 'INSERT INTO journal_book (motocho,debit_account,debit,credit_account,credit,customer_id, memo) VALUES (?)'
+    let sql = 'INSERT INTO journal_book (motocho,debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit,customer_id, memo) VALUES (?)'
     db_payment_agency.query(sql,[req.body.journalValues],(err1,rows1,fields1)=>{
       if(err1){ return db_payment_agency.rollback(()=>{throw err1})}
 
@@ -935,27 +935,27 @@ app.put('/payment_agency/matching',(req,res)=>{
     //(valuesArray)updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
 
     const motocho = 'cir'+ cirId
-    const sql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+    const sql = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit, customer_id) VALUES ?;'
     let postJournalVals = []
     console.log('valuesArray:',valuesArray)
     //売掛金 accounts_receivableInsertValue
     if(valuesArray[0] > 0){
-      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[0], '売掛金', valuesArray[0], customerId])
+      postJournalVals.push([motocho, '預金', bank, valuesArray[0], '売掛金', valuesArray[0], customerId])
     }
 
     //預り金 depositInsertValue
     if(valuesArray[1] > 0){
-      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[1], '預り金', valuesArray[1], customerId])
+      postJournalVals.push([motocho, '預金', bank, valuesArray[1], '預り金', valuesArray[1], customerId])
     }
 
     //前受金 advancePaymentInsertValue
     if(valuesArray[2] > 0){
-      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[2], '前受金', valuesArray[2], customerId])
+      postJournalVals.push([motocho, '預金', bank, valuesArray[2], '前受金', valuesArray[2], customerId])
     }
 
     //仮受金 temporaryReceiptInsertValue
     if(valuesArray[3] > 0){
-      postJournalVals.push([motocho, '預金['+bank+']', valuesArray[3], '仮受金', valuesArray[3], customerId])
+      postJournalVals.push([motocho, '預金', bank, valuesArray[3], '仮受金', valuesArray[3], customerId])
     }
     return {sql:sql,values:postJournalVals}
   }
@@ -1510,17 +1510,17 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
       console.log(' >DB処理１　OK')
       //journal_bookに登録
 
-      const sql2 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, memo, customer_id) VALUES ?;'
       let val2 = []
       const motocho = customerId + ':' + creditorsId
       //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
       if(reverse){
         val2 = [
-          [motocho, '売上('+importFrom+')', receivable, '売掛金', receivable, memo, customerId],  //売掛金 売上
+          [motocho, '売上', importFrom , receivable, '売掛金','', receivable, memo, customerId],  //売掛金 売上
         ]
       } else {
         val2 = [
-          [motocho, '売掛金', receivable, '売上('+importFrom+')', receivable, memo, customerId]  //売掛金 売上
+          [motocho, '売掛金','', receivable, '売上', importFrom, receivable, memo, customerId]  //売掛金 売上
         ]
       }
       console.log('val2:',val2)
@@ -1747,10 +1747,9 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
       if(err1){ err1.whichApi= 'customer/refund: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       //仕訳データ入力
-      const sql2 = 'INSERT INTO journal_book (date, motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES (?);'
+      const sql2 = 'INSERT INTO journal_book (date, motocho, debit_account,debit_subaccount, debit, credit_account, credit_subaccount, credit, memo, customer_id) VALUES (?);'
       const motocho = '返金'+req.body.customerId
-      const bankAccount = '預金[' + req.body.bank + ']'
-      const values2 = [date, motocho,'仮受金', amount, bankAccount, amount, req.body.memo, req.body.customerId]
+      const values2 = [date, motocho,'仮受金', '', amount, '預金', req.body.bank, amount, req.body.memo, req.body.customerId]
       console.log(sql2)
       db_payment_agency.query(sql2,[values2],(err2,rows2,fields2)=>{
         if(err2){ err2.whichApi= 'customer/refund: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
@@ -1778,7 +1777,7 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
 */
 app.post('/payment_agency/journal_book',(req,res)=>{
   console.log('POST /payment_agency/journal_book')
-  let sql = 'INSERT INTO journal_book (motocho,debit_account,debit,credit_account,credit,customer_id, memo) VALUES (?)'
+  let sql = 'INSERT INTO journal_book (motocho,debit_account,debit_subaccount,debit,credit_account,credit_subaccount,credit,customer_id, memo) VALUES (?)'
   console.log(req.body.values)
   db_payment_agency.query(sql,[req.body.values],(err,rows,fields)=>{
     if(err){ throw err}
@@ -1795,10 +1794,10 @@ app.post('/payment_agency/journal_book',(req,res)=>{
 app.put('/payment_agency/journal_book',(req,res)=>{
   console.log('\nPUT /payment_agency/journal_book')
   const options = req.body.options
-  const values = [req.body.memo, req.body[options]]
-  let sql = 'UPDATE journal_book set memo = ? where journal_book_id = ?'
+  const values = [req.body.memo,req.body.debit_subaccount, req.body.credit_subaccount, req.body.journal_book_id]
+  let sql = 'UPDATE journal_book set memo = ?, debit_subaccount =?, credit_subaccount =? where journal_book_id = ?'
   if(options === 'journal_book_for_receivable'){
-    sql = 'UPDATE journal_book_for_receivable set memo = ? where journal_book_for_receivable_id = ?'
+    sql = 'UPDATE journal_book_for_receivable set memo = ?, debit_subaccount =?, credit_subaccount where journal_book_for_receivable_id = ?'
   }
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
@@ -1921,7 +1920,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             console.log('rows3: ')
 
             //手順3 journal_bookに処理
-            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES ?;'
+            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, customer_id) VALUES (?);'
             const journalInsertValueArray = createJournalArray(editedScheduleObject)
             console.log('journal book val array:',journalInsertValueArray)
             db_payment_agency.query(journalBookSql,[journalInsertValueArray],(err4,rows4,fields4)=>{
@@ -1954,12 +1953,14 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
 //temporary_transaction用の関数
 //journal values を作成する
 function createJournalArray(editedScheduleObject){
-  //'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, customer_id) VALUES (?);'
+  //'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, customer_id) VALUES (?);'
   const motocho = 'ps' + editedScheduleObject.payment_schedule_id
-  const advancePayment = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1) + (parseInt(editedScheduleObject.commission,10) * 1.1)
+  const advisoryFee = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1)
+  const commission = (parseInt(editedScheduleObject.commission,10) * 1.1)
   let journalArray = []
-  journalArray.push([ motocho, '預り金', editedScheduleObject.amount, '預金[ﾍﾟｲﾍﾟｲ]', editedScheduleObject.amount, editedScheduleObject.customer_id])
-  journalArray.push([ motocho, '前受金', advancePayment, '売上', advancePayment, editedScheduleObject.customer_id ])
+  journalArray.push([ motocho, '預り金', '', editedScheduleObject.amount, '預金[ﾍﾟｲﾍﾟｲ]', editedScheduleObject.amount, editedScheduleObject.customer_id])
+  journalArray.push([ motocho, '前受金', '', advisoryFee, '売上', '顧問料', advisoryFee, editedScheduleObject.customer_id ])
+  journalArray.push([ motocho, '前受金', '', commission,  '売上', '代行手数料', commission, editedScheduleObject.customer_id ])
   return journalArray
 }
 

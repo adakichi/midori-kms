@@ -110,7 +110,9 @@
                 <v-card-text>
                     <v-select :items="itemsMotocho" v-model="journal.motocho" label="元帳" ></v-select>
                     <v-select label="借方勘定科目" v-model="journal.debitAccount" :items="journalAccount"></v-select>
+                    <v-select label="借方勘定 補助科目" v-model="journal.debitSubaccount" :items="journalAccount"></v-select>
                     <v-select label="貸方勘定科目" v-model="journal.creditAccount" :items="journalAccount"></v-select>
+                    <v-select label="貸方勘定 補助科目" v-model="journal.creditSubaccount" :items="journalAccount"></v-select>
                     <v-text-field v-model="journal.amount" disabled label="金額"></v-text-field>
                     <v-text-field v-model="journal.customerId" type="number" label="受任番号" hint="特に無い場合はゼロのままでOK"></v-text-field>
                     <v-text-field v-model="journal.memo" label="メモ"></v-text-field>
@@ -165,7 +167,7 @@ export default {
 
             //jounal dialog
             journalDialog:false,
-            journal:{motocho:'',debitAccount:'',creditAccount:'',customerId:0,memo:''},
+            journal:{motocho:'',debitAccount:'',debitSubaccount:'',creditAccount:'',creditSubaccount:'',customerId:0,memo:''},
             itemsMotocho:['利息','振込手数料'],
             journalAccount:['預金[ﾐﾂｲｽﾐﾄﾓ]','預金[ｼｺｸ]','預金[ﾍﾟｲﾍﾟｲ]','受取利息','振込手数料'],
             /////////////
@@ -304,7 +306,7 @@ export default {
             if(doNot){ return }
             console.log(this.selectItem)
             const motocho = this.journal.motocho + ':cir[' + this.selectItem.come_in_records_id+']'
-            const journalArray = [motocho,this.journal.debitAccount,this.journal.amount,this.journal.creditAccount, this.journal.amount, this.journal.customerId,this.journal.memo]
+            const journalArray = [motocho,this.journal.debitAccount,this.journal.debitSubaccount,this.journal.amount,this.journal.creditAccount,this.journal.creditSubaccount, this.journal.amount, this.journal.customerId,this.journal.memo]
             this.$axios.post('api/payment_agency/cir/irregular',{journalValues:journalArray,cirId:this.selectItem.come_in_records_id,customerId:this.journal.customerId ,memo:this.journal.memo,motocho:this.journal.motocho})
             .then(response=>{
                 if(response.data.error){return alert(response.data.message)}

@@ -20,11 +20,50 @@
                 :headers="journalBookHeaders"
                 :search="filter"
                 >
+                    <!-- 借方勘定補助科目 -->
+                    <template v-slot:item.debit_subaccount="{item}">
+                        <v-edit-dialog
+                            v-model="editDialogDebitSubaccount"
+                            large
+                            @save="saveUpdate(item)"
+                            :return-value.sync="item.debit_subaccount"
+                        >   
+                            {{item.debit_subaccount}}
+                            <template v-slot:input>
+                                <v-text-field
+                                    v-model="item.debit_subaccount"
+                                    label="借方勘定　補助科目"
+                                    single-line
+                                ></v-text-field>
+                            </template>
+                        </v-edit-dialog>
+                    </template>
+
+                    <!-- 貸方勘定補助科目 -->
+                    <template v-slot:item.credit_subaccount="{item}">
+                        <v-edit-dialog
+                            v-model="editDialogCreditSubaccount"
+                            large
+                            @save="saveUpdate(item)"
+                            :return-value.sync="item.credit_subaccount"
+                        >   
+                            {{item.credit_subaccount}}
+                            <template v-slot:input>
+                                <v-text-field
+                                    v-model="item.credit_subaccount"
+                                    label="貸方勘定　補助科目"
+                                    single-line
+                                ></v-text-field>
+                            </template>
+                        </v-edit-dialog>
+                    </template>
+
+                    <!-- メモ欄 -->
                     <template v-slot:item.memo="{item}">
                         <v-edit-dialog
                             v-model="editDialogMemo"
                             large
-                            @save="saveMemo(item)"
+                            @save="saveUpdate(item)"
                             :return-value.sync="item.memo"
                         >   
                             {{item.memo}}
@@ -88,6 +127,8 @@ export default {
             journalBook:[],
             filter:'',
             editDialogMemo:false,
+            editDialogDebitSubaccount:false,
+            editDialogCreditSubaccount:false,
 
             /////dialog//////
             dialog:false,
@@ -108,7 +149,9 @@ export default {
                 { text:'元帳',  value:'motocho'},
                 { text:'日付',  value:'date'},
                 { text:'借方勘定科目',  value:'debit_account'},
+                { text:'借方勘定補助科目',  value:'debit_subaccount'},
                 { text:'貸方勘定科目',  value:'credit_account'},
+                { text:'貸方勘定補助科目',  value:'credit_subaccount'},
                 { text:'借方',  value:'debit'},
                 { text:'貸方',  value:'credit'},
                 { text:'番号',  value:'customer_id'},
@@ -140,8 +183,7 @@ export default {
             const link = createDownloadATag(exportText)
             link.click()
         },
-        saveMemo(e){
-        console.log(e)
+        saveUpdate(e){
         e.options = Object.keys(e)[0]
         const doNot = !confirm('編集しますか？')
         if(doNot){ return }
