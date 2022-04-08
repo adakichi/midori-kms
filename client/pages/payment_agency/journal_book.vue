@@ -169,7 +169,7 @@ export default {
         createNewJournal(){
             const doNot = !confirm('本当に登録してOKですか？')
             if(doNot){ return }
-            const valArray = [this.motocho,'預金[' + this.bankTo + ']',this.amount,'預金[' + this.bankFrom + ']', this.amount, this.customerId,this.memo]
+            const valArray = [this.motocho,'預金', this.bankTo ,this.amount,'預金', this.bankFrom, this.amount, this.customerId,this.memo]
             this.$axios.post('api/payment_agency/journal_book/',{values:valArray})
             .then(response=>{
                 if(response.data.error){return alert(response.data.message)}
