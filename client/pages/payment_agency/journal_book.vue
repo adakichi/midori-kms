@@ -177,7 +177,7 @@ export default {
         },
         downloadCsv(){
             //②CSVダウンロード
-            const fields = ['motocho', 'date', 'debit_account', 'credit_account', 'debit', 'credit', 'customer_id','name']
+            const fields = ['motocho', 'date', 'debit_account','debit_subaccount', 'credit_account','credit_subaccount', 'debit', 'credit', 'customer_id','name','memo']
             const json2csvParser = new Parser({fields:fields,header:false,withBOM:true})
             let exportText = json2csvParser.parse(this.journalBook)
             const link = createDownloadATag(exportText)
