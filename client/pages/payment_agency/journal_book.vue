@@ -10,7 +10,7 @@
                         >
                         </v-text-field>
                     <v-spacer></v-spacer>
-                    <v-btn class="mr-1" @click="openDialog">仕訳作成<v-icon>mdi-magnify</v-icon></v-btn>
+                    <v-btn class="mr-1" @click="openDialog">仕訳作成<v-icon>mdi-clipboard-edit</v-icon></v-btn>
                     <v-btn class="mr-1" @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
                     <v-btn class="mr-1" @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
                     <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>
