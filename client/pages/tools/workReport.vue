@@ -202,26 +202,44 @@
                     <v-row v-show="selectedDivision === '完了'? true :false">
                         <v-col>
                             <v-text-field
-                            v-model="counter.kanryou.kaden"
-                            label="架電"
+                            v-model="counter.kanryou.kanryoushoruiData"
+                            label="完了書類(データ作成)"
                             type="number"
                             suffix="件"
                             ></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field
-                            v-model="counter.kanryou.jyuden"
-                            label="受電"
+                            v-model="counter.kanryou.kanryoushoruiPrint"
+                            label="完了書類(印刷)"
+                            type="number"
+                            suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row v-show="selectedDivision === '完了'? true :false">
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.kanryou.mail"
+                            label="郵送袋詰"
                             type="number"
                             suffix="件"
                             ></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field
-                            v-model="counter.kanryou.kanryoushorui"
-                            label="完了書類作成"
+                            v-model="counter.kanryou.mailWchek"
+                            label="郵送Wチェック"
                             type="number"
                             suffix="件"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col>
+                            <v-text-field
+                            v-model="counter.kanryou.pdf"
+                            label="PDF"
+                            type="number"
+                            suffix="分"
                             ></v-text-field>
                         </v-col>
                     </v-row>
@@ -322,7 +340,7 @@ export default {
                 chousa:         {keisan:'', kaden:'', kaihuu:'', bantuke:'',fax:'',pdf:'',furiwake:''},
                 chuketuKomen:   {chuketu:'', kaden:'', jisseki:'', ishikaku:''},
                 koushou:        {kaden:'', jyuden:'', wakai:'', saikoushou:''},
-                kanryou:        {kaden:'', jyuden:'', kanryoushorui:''},
+                kanryou:        {kanryoushoruiData:'',kanryousyoruiPrint:'', mail:'', mailWcheck:'', pdf:''},
                 customer:       {kaden:'', jyuden:'', koumen:'',chat:''}
             },
             report:''
@@ -452,7 +470,7 @@ export default {
                         To = '[To:4683218]中谷[To:4855892]青木[To:6098578]兵藤'
                         break;
                     case '完了':
-                        counterStrings = '架電：'+ this.counter.kanryou.kaden +'件\n受電：'+ this.counter.kanryou.jyuden +'件\n完了書類：' + this.counter.kanryou.kanryoushorui + '件'
+                        counterStrings = '完了作成：'+ this.counter.kanryou.kanryoushoruiData +'件\n完了書類印刷：'+ this.counter.kanryou.kanryousyoruiPrint +'件\n郵送袋詰：' + this.counter.kanryou.mail +'件\n郵送Wchek：' + this.counter.kanryou.mailWchek +'件\nPDF：' + this.counter.kanryou.pdf + '分'
                         To = '[To:4682397]渡邉[To:4682436]水落[To:6009275]武田'
                         break;
                     case 'カスタマー':
