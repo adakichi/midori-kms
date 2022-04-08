@@ -1477,20 +1477,23 @@ app.post('/payment_agency/customer/temp2receivable',(req,res)=>{
   })
 })
 
-//カスタマーの売掛金を外部から振り替えてくる作業(SAIZO/LU)
+//カスタマーの売掛金を立てる（全て売掛金に。）
 //optionがtrueの場合は反対仕訳。
-app.post('/payment_agency/customer/importReceivable',(req,res)=>{
-  console.log('pa/customer/importReceivable')
-  const receivable = Number(req.body.value)
+app.post('/payment_agency/customer/make_sales/',(req,res)=>{
+  console.log('post pa/customer/make_sales')
+  const receivable = Number(req.body.amount)
   const memo       = req.body.memo
-  const importFrom = req.body.importFrom
   const customerId = req.body.customerId
-  const creditorsId  = req.body.creditorsId
+  const subaccount = req.body.subaccount
+  const creditorsId = req.body.creditorsId
   //制御用
   const reverse  = req.body.option
   console.log(req.body)
   db_payment_agency.beginTransaction((err)=>{
-    if(err){ err.whichApi= 'get pa/customer/importReceivable'; throw err}
+    if(err){ 
+      err.whichApi= 'post pa/customer/make_sales'
+      return db_payment_agency.rollback(()=>{ throw err })
+    }
 
     //最初にcustomersの金額を変更
     let sql1 = ''
@@ -1505,27 +1508,27 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
       }
     console.log('val1:',val1)
     db_payment_agency.query(sql1,val1,(err1,rows1,fields1)=>{
-      if(err1){ err1.whichApi= 'importReceivable: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
+      if(err1){ err1.whichApi= 'make_sales: @1'; return db_payment_agency.rollback(()=>{ throw err1 })}
 
       console.log(' >DB処理１　OK')
       //journal_bookに登録
 
-      const sql2 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, memo, customer_id) VALUES ?;'
+      const sql2 = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, memo, customer_id) VALUES ?;'
       let val2 = []
       const motocho = customerId + ':' + creditorsId
       //option(リバース)がtrueの場合 と通常の場合でsqlを変更する
       if(reverse){
         val2 = [
-          [motocho, '売上', importFrom , receivable, '売掛金','', receivable, memo, customerId],  //売掛金 売上
+          [motocho, '売上', subaccount , receivable, '売掛金','', receivable, memo, customerId],  //売掛金 売上
         ]
       } else {
         val2 = [
-          [motocho, '売掛金','', receivable, '売上', importFrom, receivable, memo, customerId]  //売掛金 売上
+          [motocho, '売掛金', '', receivable, '売上', subaccount, receivable, memo, customerId]  //売掛金 売上
         ]
       }
       console.log('val2:',val2)
         db_payment_agency.query(sql2,[val2],(err2,rows2,fields2)=>{
-          if(err2){ err2.whichApi= 'importReceivable: @2'; db_payment_agency.rollback(()=>{ throw err2 })}
+          if(err2){ err2.whichApi= 'make_sales: @2'; return db_payment_agency.rollback(()=>{ throw err2 })}
           console.log(' >DB処理2 OK')
 
           //3もしも売掛金がマイナスになったら、売掛金|仮受金の処理を入れる。
@@ -1533,7 +1536,7 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
           const sql3 = 'SELECT * FROM customers WHERE customer_id = ?'
           const val3 = customerId
           db_payment_agency.query(sql3,val3,(err3,rows3,fields3)=>{
-            if(err3){ err3.whichApi= 'importReceivable: @3'; db_payment_agency.rollback(()=>{ throw err3 })}
+            if(err3){ err3.whichApi= 'make_salse: @3'; return db_payment_agency.rollback(()=>{ throw err3 })}
             console.log(' >DB処理3 OK')
 
             //3-2売掛金がマイナスか判定する
@@ -1546,31 +1549,31 @@ app.post('/payment_agency/customer/importReceivable',(req,res)=>{
              const sql41 = 'UPDATE customers set accounts_receivable = accounts_receivable + ?, temporary_receipt = temporary_receipt + ? WHERE customer_id = ?'
              const val41 = [diffValue, diffValue, customerId]
               db_payment_agency.query(sql41,val41,(err41,rows41,fields41)=>{
-                if(err41){ err41.whichApi= 'importReceivable: @41'; db_payment_agency.rollback(()=>{ throw err41 })}
+                if(err41){ err41.whichApi= 'make_sales: @41'; return db_payment_agency.rollback(()=>{ throw err41 })}
                 console.log(' >DB処理41 OK')
 
                 //4-2
-                const sql42 = 'INSERT INTO journal_book_for_receivable (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
+                const sql42 = 'INSERT INTO journal_book (motocho, debit_account, debit, credit_account, credit, memo, customer_id) VALUES ?;'
                 const val42 = [
                   [motocho, '売掛金', receivable, '仮受金', receivable, memo, customerId],  //売掛金 売上
                 ]
                 db_payment_agency.query(sql42,[val42],(err42,rows42,fields42)=>{
-                  if(err42){ err42.whichApi= 'importReceivable: @42'; db_payment_agency.rollback(()=>{ throw err42 })}
+                  if(err42){ err42.whichApi= 'make_sales: @42'; return db_payment_agency.rollback(()=>{ throw err42 })}
                   console.log(' >DB処理42 OK')
                   db_payment_agency.commit((err00)=>{
-                    if(err00){err0.whichApi= 'importReceivable: @00'; db_payment_agency.rollback(()=>{ throw err00 })}
-                    logger.log([req.body,sql42],'振替処理(売掛金|仮受金) pa/customer/importReceivable')
-                    console.log('売掛importおわりました。\n振替処理 importReceivable>',req.body,'振替処理 importReceivable(売掛金|仮受金)>',val42)
-                    res.send('売掛importおわりました。\nWorning!!:\n売掛金が' + diffValue + '円 マイナスになったので、仮受金にもどしてあります。\n入金が一円も無い場合は修正を管理者に依頼してください。')
+                    if(err00){err0.whichApi= 'make_sales: @00'; return db_payment_agency.rollback(()=>{ throw err00 })}
+                    logger.log([req.body,sql42],'売上処理 pa/customer/make_sales')
+                    console.log('売上処理おわりました。\n振替処理 make_sales>',req.body,'売上処理>',val42)
+                    res.send('売上処理おわりました。\nWorning!!:\n売掛金が' + diffValue + '円 マイナスになったので、仮受金にもどしてあります。\n入金が一円も無い場合は修正を管理者に依頼してください。')
                   })          
                 })
               })
             } else {
               db_payment_agency.commit((err0)=>{
-                if(err0){err0.whichApi= 'importReceivable: @0'; db_payment_agency.rollback(()=>{ throw err0 })}
-                logger.log(req.body,'振替処理 pa/customer/importReceivable')
-                console.log('売掛importおわりました。\n振替処理 importReceivable>',req.body)
-                res.send('売掛importおわりました。')
+                if(err0){err0.whichApi= 'make_sales: @0'; return db_payment_agency.rollback(()=>{ throw err0 })}
+                logger.log(req.body,'売上処理 pa/customer/make_sales')
+                console.log('売上処理おわりました。\n売上処理 make_sales>',req.body)
+                res.send('売上処理おわりました。')
               })    
             }
           })

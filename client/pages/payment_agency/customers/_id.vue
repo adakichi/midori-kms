@@ -683,10 +683,13 @@
         <!-- 会計情報 -->
         <v-tab-item>
             <v-card>
+                <v-toolbar>
+                    <v-btn @click="openMakeSales">売上計上</v-btn>
+                </v-toolbar>
             <v-container>
                     <v-row>
                         <v-col>
-                            <v-text-field label="債務整理売掛金" suffix=" 円" :value="customer.accounts_receivable" @click="openEditReceivableDialog"></v-text-field>
+                            <v-text-field label="債務整理売掛金" disabled suffix=" 円" :value="customer.accounts_receivable"></v-text-field>
                         </v-col>
                         <v-col>
                             <v-text-field label="支払い済み債務" disabled suffix=" 円" :value="customer.confirm_payment"></v-text-field>
@@ -780,23 +783,44 @@
             </v-card>
         </v-tab-item>
         </v-tabs-items>
-        <!-- 売掛金の編集ダイアログ -->
-        <v-dialog v-model="editReceivableDialog">
+
+        <!-- 売上計上のダイアログ -->
+        <v-dialog v-model="makeSalesDialog">
             <v-card>
-                <v-card-title>売掛金　←　外部</v-card-title>
+                <v-card-title>売上計上</v-card-title>
                 <v-card-text>
-                    <v-select :items="importFromCreditorItems" v-model="importFromCreditor" label="債権者" item-text="creditor_name" item-value="creditor_id"></v-select>
-                    <v-select :items="importFromItems" v-model="importFrom" label="読込元"></v-select>
-                    <v-text-field label="売掛金" type="number" suffix=" 円" v-model="editedReceivableValue"></v-text-field>
-                    <v-text-field label="仕訳メモ" v-model="editedReceivableMemo"></v-text-field>
+                    <v-container>
+                        <v-row>
+                            <v-col>
+                                <v-select :items="whichType" v-model="salesType" label="方針"></v-select>
+                            </v-col>
+                            <v-col>
+                                <v-select :items="salesItems" v-model="makeSales.subaccount" label="売上種別"></v-select>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                <v-text-field label="金額(税込み)" type="number" suffix=" 円" v-model="makeSales.amount"></v-text-field>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                <v-select :items="importFromCreditorItems" v-model="importFromCreditor" return-object label="債権者" item-text="creditor_name" item-value="creditor_id"></v-select>
+                            </v-col>
+                            <v-col>
+                                <v-text-field label="仕訳メモ" v-model="makeSales.memo" hint="債権者IDと名前は自動で入ります。"></v-text-field>
+                            </v-col>
+                        </v-row>
+                    </v-container>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn @click="loadingReceivable(false)">インポート</v-btn>
-                    <v-btn @click="loadingReceivable(true)" color="warning"  v-show="isAdmin">反対仕訳</v-btn>
+                    <v-btn @click="postMakeSales(false)">売上確定</v-btn>
+                    <v-btn @click="postMakeSales(true)" color="warning"  v-show="isAdmin">反対仕訳</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
 
         <!-- 預り金の編集ダイアログ -->
         <v-dialog v-model="editDepositDialog">
@@ -1000,13 +1024,13 @@ export default {
             editDialogPaymentDay:false,
             editDialogExpectedAmount:false,
             editDialogMemo:false,
-            /////売掛金編集関係/////
-            editReceivableDialog:false,
-            editedReceivableValue:0,
-            editedReceivableMemo:'',
-            importFrom:'',
-            importFromItems:['SAIZO','LU','GR'],
-            importFromCreditor:'',
+
+            /////売上計上///////////
+            makeSalesDialog:false,
+            makeSales:{subaccount:'',amount:'',memo:''},
+            salesType:'',
+            whichType:['債務整理','過払い','破産'],
+            importFromCreditor:{},
             //////////
             /////預り金編集関係/////
             editDepositDialog:false,
@@ -1124,15 +1148,17 @@ export default {
             //journal_book用
             journalBook:[],
             journalBookHeaders:[
-                { text:'元帳',  value:'motocho'},
-                { text:'日付',  value:'date'},
-                { text:'借方勘定科目',  value:'debit_account'},
-                { text:'貸方勘定科目',  value:'credit_account'},
-                { text:'借方',  value:'debit'},
-                { text:'貸方',  value:'credit'},
-                { text:'番号',  value:'customer_id'},
-                { text:'名前',  value:'name'},
-                { text:'メモ',  value:'memo'},
+                { text:'元帳',              value:'motocho'},
+                { text:'日付',              value:'date'},
+                { text:'借方勘定科目',      value:'debit_account'},
+                { text:'借方勘定補助科目',  value:'debit_subaccount'},
+                { text:'貸方勘定科目',      value:'credit_account'},
+                { text:'貸方勘定補助科目',  value:'credit_subaccount'},
+                { text:'借方',              value:'debit'},
+                { text:'貸方',              value:'credit'},
+                { text:'番号',              value:'customer_id'},
+                { text:'名前',              value:'name'},
+                { text:'メモ',              value:'memo'},
             ],
             editDialgMemo:false,
 
@@ -1174,6 +1200,21 @@ export default {
         },
         isAdmin(){
             return this.$auth.user ? (this.$auth.user.isAdmin === 1 ? true : false ) : false
+        },
+        salesItems(){
+            let salesItem = []
+            switch(this.salesType){
+                case '債務整理':
+                    salesItem.push('着手金(債)','成功報酬(債)','事務手数料(債)','出張費用(債)','内容証明(債)','代行手数料','顧問料')
+                break
+                case '過払い':
+                    salesItem.push('基本報酬(過)','減額報酬(過)','回収報酬(過)','事務手数料(債)','裁判費用(過)','出張費用(債)','強制執行(過)','相続人調査費用(過)','遺産分割協議書作成費用(過)')
+                break
+                case '破産':
+                    salesItem.push('破産申立','個人再生申立','立替金(破産)')
+                break
+            }
+            return salesItem
         }
     },
     methods:{
@@ -1445,29 +1486,30 @@ export default {
                 this.popupSnackBar('登録しました')
             })
         },
-        /////////売掛金編集ダイアログ関係///////////////////////////////////////
-        openEditReceivableDialog(){
-            this.editReceivableDialog = true
+        /////////売上編集ダイアログ//////////////////////////////////////////////////////
+        openMakeSales(){
+            this.makeSalesDialog = true
         },
-        loadingReceivable(e){
-            if(this.editedReceivableValue === 0 || this.importFrom === '' || this.importFromCreditor === ''){return alert('数字が空？\nもしくは読込元を選択してください。')}
+        postMakeSales(e){
+            if(this.makeSales.amount <= 0 || this.importFromCreditor === ''){return alert('数字が空？\nもしくは読込元を選択してください。')}
             let doNot = !confirm('本当に登録しますか？')
             if(doNot){ return alert('キャンセル')}
-            let data = {value:this.editedReceivableValue, memo:this.editedReceivableMemo, customerId:this.customerId,importFrom:this.importFrom,creditorsId:this.importFromCreditor}
+            const memoStrings = '[' + this.importFromCreditor.creditor_id + ':' + this.importFromCreditor.creditor_name + '] '+ this.makeSales.memo
+            let data = {amount:this.makeSales.amount, memo:memoStrings, customerId:this.customerId, subaccount:this.makeSales.subaccount,creditorsId:this.importFromCreditor.creditor_id}
             if(e){
                 data.option = true
                 doNot = !confirm('これは反対仕訳です、間違いありませんか？')
             }
             if(doNot ){ return alert('キャンセル')}
-            this.$axios.post('api/payment_agency/customer/importReceivable/',data)
+            this.$axios.post('api/payment_agency/customer/make_sales/',data)
             .then(response=>{
                 if(response.data.error){ return alert(response.data.message)}
                 this.popupSnackBar(response.data)
                 this.refreshCustomer()
+                this.makeSales = {subaccount:'',amount:'',memo:''}
                 this.editReceivableDialog = false
-                this.editedReceivableValue = 0
-                this.importFrom = ''
                 this.importFromCreditor = ''
+                this.salesType = ''
             })
         },
         ////////////////////////////////////////////////
