@@ -467,7 +467,7 @@ export default {
                         break;
                     case '交渉':
                         counterStrings = '交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n'
-                        To = '[To:4683218]中谷[To:4855892]青木[To:6098578]兵藤'
+                        To = '[To:4683218]中谷[To:4855892]青木[To:6098578]兵藤[To:5850247]竹村[To:4683013]熊谷'
                         break;
                     case '完了':
                         counterStrings = '完了作成：'+ this.counter.kanryou.kanryoushoruiData +'件\n完了書類印刷：'+ this.counter.kanryou.kanryousyoruiPrint +'件\n郵送袋詰：' + this.counter.kanryou.mail +'件\n郵送Wchek：' + this.counter.kanryou.mailWchek +'件\nPDF：' + this.counter.kanryou.pdf + '分'
