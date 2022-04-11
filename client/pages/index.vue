@@ -11,6 +11,9 @@
         <VuetifyLogo />
       </v-card>
       <v-card>
+        <v-card-title class="justify-center d-flex">
+          <v-btn to="/users/login" color="primary" width="95%">ログインページ</v-btn>
+        </v-card-title>
         <v-card-title class="headline">
           MIDORI Knowledge Management System
         </v-card-title>
@@ -80,3 +83,8 @@
     </v-col>
   </v-row>
 </template>
+
+<script>
+export default {
+}
+</script>

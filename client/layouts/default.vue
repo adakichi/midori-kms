@@ -134,11 +134,6 @@ export default {
           to: '/'
         },
         {
-          icon: 'mdi-login',
-          title: 'Login',
-          to: '/users/login'
-        },
-        {
           icon: 'mdi-cash-fast',
           title: '代行支払い',
           to: '/payment_agency'
@@ -168,6 +163,11 @@ export default {
       right: true,
       rightDrawer: false,
       title: 'MIDORI-KMS'
+    }
+  },
+  computed:{
+    isLoggedIn(){
+      return this.$auth.isLoggedIn
     }
   },
   methods:{
