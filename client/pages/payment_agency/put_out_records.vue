@@ -341,8 +341,8 @@ export default {
                 {text:'メモ',     value:'memo', groupable:false}
             ],
             //snack bar
-            snack:'',
-            snackColor:'',
+            snack:false,
+            snackColor:'sucess',
             snackText:'',
         }
     },
@@ -440,8 +440,10 @@ export default {
             const okArray = target
             const today = todayString()
             this.$axios.put('/api/payment_agency/payment_schedules/temporary_pay',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
-            .then(() =>{
+            .then((response) =>{
                 this.searchRecords()
+                if(response.data.error){ return alert(response.data.message)}
+                    this.popupSnackBar(response.data)
                 })
         },
         deleteExpected(){
@@ -469,7 +471,14 @@ export default {
         goCustomerPage(e){
             console.log(e)
            this.$router.push('/payment_agency/customers/'+ Number(e.customer_id))
-        }
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
+        },
     },
     created(){
         this.dateRange[1]=getNextWeek()

@@ -1860,7 +1860,7 @@ app.put('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
   }),date).then((response)=>{
     console.log(' >仮出金処理 終了',response)
     logger.log(req.body,'仮出金処理 ---Put payment_schedules/temporary_pay')
-    res.send(response)
+    res.send(response.length +'件\n仮出金処理しました。')
   })  
 })
 
@@ -1880,7 +1880,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
     const selectExpectedsIsNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NULL OR expected_amount IS NULL OR expected_commission IS NULL OR expected_advisory_fee IS NULL) AND paid_date is null'
     db_payment_agency.query(selectExpectedsIsNullSql,editedScheduleId,(err0,rows,fields)=>{
       if(err0 || rows.length === 0){
-        console.log(err0)
+        console.log('err0:',err0)
         return db_payment_agency.rollback(()=>{
           throw err0
         })
@@ -1897,7 +1897,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
         ]
             db_payment_agency.query(updateScheduleSql, updateDataArray,(err2,rows2,fields2)=>{
           if(err2){
-            console.log(err2)
+            console.log('err2:',err2)
             return db_payment_agency.rollback(()=>{
               throw err2
             })
@@ -1915,7 +1915,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
           console.log('sql:',updateCustomersSql,'value:',updateCustomersValue)
           db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
-              console.log(err3)
+              console.log('err3:',err3)
               return db_payment_agency.rollback(()=>{
                 throw err3
               })
@@ -1926,9 +1926,9 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, customer_id) VALUES (?);'
             const journalInsertValueArray = createJournalArray(editedScheduleObject)
             console.log('journal book val array:',journalInsertValueArray)
-            db_payment_agency.query(journalBookSql,[journalInsertValueArray],(err4,rows4,fields4)=>{
+            db_payment_agency.query(journalBookSql,journalInsertValueArray,(err4,rows4,fields4)=>{
               if(err4){
-                console.log(err4)
+                console.log('err4:',err4)
                 return db_payment_agency.rollback(()=>{
                   throw err4
                 })
@@ -1961,9 +1961,10 @@ function createJournalArray(editedScheduleObject){
   const advisoryFee = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1)
   const commission = (parseInt(editedScheduleObject.commission,10) * 1.1)
   let journalArray = []
-  journalArray.push([ motocho, '預り金', '', editedScheduleObject.amount, '預金[ﾍﾟｲﾍﾟｲ]', editedScheduleObject.amount, editedScheduleObject.customer_id])
-  journalArray.push([ motocho, '前受金', '', advisoryFee, '売上', '顧問料', advisoryFee, editedScheduleObject.customer_id ])
-  journalArray.push([ motocho, '前受金', '', commission,  '売上', '代行手数料', commission, editedScheduleObject.customer_id ])
+  //        =>        motocho / debit_account / debit_subaccount / debit /                    credit_account / credit_subaccount / credit /                     customer_id/
+  journalArray.push([ motocho, '預り金',        '',               editedScheduleObject.amount, '預金',          'ペイペイ',        editedScheduleObject.amount, editedScheduleObject.customer_id ])
+  journalArray.push([ motocho, '前受金',        '',               advisoryFee,                 '売上',         '顧問料',           advisoryFee,                 editedScheduleObject.customer_id ])
+  journalArray.push([ motocho, '前受金',        '',               commission,                  '売上',         '代行手数料',       commission,                  editedScheduleObject.customer_id ])
   return journalArray
 }
 
