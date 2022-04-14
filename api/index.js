@@ -212,12 +212,12 @@ app.put('/auth/user/me',(req,res)=>{
 //admin page用 users変更
 app.put('/auth/user/editUser',(req,res)=>{
   console.log('Put -- /auth/user/editUser -- ')
-  const sql = 'UPDATE users SET name = ?, admin = ?, division = ? WHERE id = ?;'
-  const values = [req.body.name, req.body.admin, req.body.division, req.body.id]
+  const sql = 'UPDATE users SET name = ?, kana = ?, admin = ?, division = ?, position=?, biztel_id = ? WHERE id = ?;'
+  const values = [req.body.name, req.body.kana, req.body.admin, req.body.division, req.body.position, req.body.biztel_id, req.body.id]
   db_midori_users.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi = 'put /auth/user/editUser' ; throw err }
-    console.log(req.body.name +'を'+ req.body.admin +'に変更しました。')
-    logger.log(req.body.name +'を'+ req.body.admin +'に変更しました。','Put -- /auth/user/editUser -- ')
+    console.log(req.body.name +'を'+ req.body +'に変更しました。')
+    logger.log(req.body.name +'を'+ req.body +'に変更しました。','Put -- /auth/user/editUser -- ')
     res.send('OK')
   })
 })

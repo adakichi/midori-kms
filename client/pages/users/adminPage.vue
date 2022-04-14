@@ -14,6 +14,72 @@
                         :search="searchText"
                         show-group-by
                         >
+                            <!-- name -->
+                            <template v-slot:item.name="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.name"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.name }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                          v-model="props.item.name"
+                                          label="Edit"
+                                          single-line
+                                        ></v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                          </template>
+
+                            <!-- kana -->
+                            <template v-slot:item.kana="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.kana"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.kana }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                          v-model="props.item.kana"
+                                          label="Edit"
+                                          single-line
+                                        ></v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                          </template>
+
+                            <!-- BIZTEL -->
+                            <template v-slot:item.biztel_id="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.biztel_id"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.biztel_id }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                        type="number"
+                                          v-model="props.item.biztel_id"
+                                          label="Edit"
+                                          single-line
+                                        ></v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                          </template>
+
+
+                            <!-- 所属 -->
                             <template v-slot:item.division="props">
                                 <v-edit-dialog
                                   :return-value.sync="props.item.division"
@@ -36,6 +102,32 @@
                                       </template>
                                 </v-edit-dialog>
                           </template>
+
+                            <!-- 役職 -->
+                            <template v-slot:item.position="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.position"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.position }}
+                                    <template v-slot:input>
+                                        <v-select
+                                          :items="positions"
+                                          v-model="props.item.position"
+                                          :value="props.item.position"
+                                          label="Edit"
+                                          single-line
+                                          counter
+                                        ></v-select>
+                                      </template>
+                                </v-edit-dialog>
+                          </template>
+
+                            <!-- 管理者 -->
                             <template v-slot:item.admin="{item}">
                                 <v-simple-checkbox
                                 v-model="item.admin === 0 ? false : true "
@@ -59,6 +151,7 @@ export default {
             isDialog:false,
             searchText:'',
             divisions:['新規(過払い)','新規(WEB相続)','調査','中決','交面','破産','交渉','完了','カスタマー','債務整理','相続','札幌','名古屋','岡山','広島','松山','高知','熊本','無所属'],
+            positions:['SL','L','SM','M','D'],
             usersHeaders:[
                 {text:'ID', value:'user_id'},
                 {text:'氏名', value:'name'},
