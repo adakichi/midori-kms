@@ -1797,14 +1797,15 @@ app.post('/payment_agency/journal_book',(req,res)=>{
 app.put('/payment_agency/journal_book',(req,res)=>{
   console.log('\nPUT /payment_agency/journal_book')
   const options = req.body.options
-  const values = [req.body.memo,req.body.debit_subaccount, req.body.credit_subaccount, req.body.journal_book_id]
+  const values = [req.body.memo,req.body.debit_subaccount, req.body.credit_subaccount, req.body[options]]
   let sql = 'UPDATE journal_book set memo = ?, debit_subaccount =?, credit_subaccount =? where journal_book_id = ?'
-  if(options === 'journal_book_for_receivable'){
-    sql = 'UPDATE journal_book_for_receivable set memo = ?, debit_subaccount =?, credit_subaccount where journal_book_for_receivable_id = ?'
+  if(options === 'journal_book_for_receivable_id'){
+    sql = 'UPDATE journal_book_for_receivable set memo = ?, debit_subaccount =?, credit_subaccount =? where journal_book_for_receivable_id = ?'
   }
+  console.log('---------------------------------------\nSQL:\n',values,sql)
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
-    console.log('journalメモを編集しました-> ID',req.body[options],'memo:',req.body.memo)
+    console.log('journalメモを編集しました-> '+ options +':',req.body[options],'memo:',req.body.memo)
     logger.log([req.body[options],'memo:\n' + req.body.memo],'journalメモを編集 PUT /payment_agency/journal_book')
     res.send('journalメモを編集しました')
   })
