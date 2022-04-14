@@ -1802,7 +1802,6 @@ app.put('/payment_agency/journal_book',(req,res)=>{
   if(options === 'journal_book_for_receivable_id'){
     sql = 'UPDATE journal_book_for_receivable set memo = ?, debit_subaccount =?, credit_subaccount =? where journal_book_for_receivable_id = ?'
   }
-  console.log('---------------------------------------\nSQL:\n',values,sql)
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
     console.log('journalメモを編集しました-> '+ options +':',req.body[options],'memo:',req.body.memo)
