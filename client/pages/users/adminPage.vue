@@ -62,8 +62,13 @@ export default {
             usersHeaders:[
                 {text:'ID', value:'user_id'},
                 {text:'氏名', value:'name'},
+                {text:'カナ', value:'kana'},
+                {text:'BIZTEL', value:'biztel_id'},
                 {text:'管理者', value:'admin'},
                 {text:'所属', value:'division'},
+                {text:'役職', value:'position'},
+                {text:'最終ログイン', value:'last_login'},
+                {text:'最終ログアウト', value:'last_logout'},
                 {text:'編集', value:'action'},
             ]
         }
