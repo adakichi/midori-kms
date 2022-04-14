@@ -12,11 +12,18 @@
                 </v-card>
             </v-col>
         </v-row>
+        <v-row>
+            <v-col v-for="(menu,index) in menus" :key="index" sm="6" md="4" lg="3" xl="1">
+                <menu-card :item="menu" :mWidth="200"></menu-card>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
 <script>
+import menu_card from '~/components/menu_card.vue'
 export default {
+  components: { menu_card },
     layout : 'pa',
     data(){
         return{

@@ -3,8 +3,10 @@
         <h1><v-icon>mdi-tools</v-icon>Tools</h1>
     <v-row>
         <v-col
+        sm="6" md="4" lg="3" xl="1"
         v-for="item in cards"
-        :key="item.title">
+        :key="item.title"
+        >
             <menu-card :item="item"></menu-card>
         </v-col>
     </v-row>
