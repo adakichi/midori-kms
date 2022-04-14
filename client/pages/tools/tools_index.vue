@@ -49,6 +49,12 @@ export default {
                     to:"/tools/organization_chart",
                     description:"組織図",
                     icon:"mdi-family-tree"
+                },
+                {
+                    title:"シフト表",
+                    to:"/tools/work-shift-table",
+                    description:"シフト表（テスト）",
+                    icon:"mdi-calendar-month-outline"
                 }
             ],
             item:{title:"tesuto", to:"to",description:"せつめい", icon:"mdi-phone"}
