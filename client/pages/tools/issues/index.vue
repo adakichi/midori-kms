@@ -11,14 +11,16 @@
         <v-row>
             <v-col v-for="item in issues" :key="item.issues_id">
                 <v-badge content="New" overlap offset-x="30">
-                <v-card>
+                <v-card height="250">
                     <v-row>
                         <v-col>
                             <v-card-title>{{item.title}}</v-card-title>
+                            <v-divider></v-divider>
                             <v-card-text>{{item.description}}</v-card-text>
-                            <v-card-actions>
+                            <v-card-actions class="mt-auto">
+                                <v-spacer></v-spacer>
                                 <v-btn color="primary" @click="editTitle(item)">編集</v-btn>
-                                <v-btn :to="'/tools/issue/' + item.issue_id">Go issues</v-btn>
+                                <v-btn :to="'/tools/issue/' + item.issue_id">掲示板へ</v-btn>
                             </v-card-actions>
                         </v-col>
                     </v-row>

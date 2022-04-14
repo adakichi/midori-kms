@@ -1,17 +1,6 @@
 <template>
     <v-container>
-                <h1>代行支払い</h1>
-        <v-row>
-            <v-col v-for="(menu,index) in menus" :key="index">
-                <v-card color="grey darken-3" :to="menu.to" min-width="200" height="150">
-                        <v-card-title>
-                            {{menu.title}}
-                        </v-card-title>
-                        <v-divider></v-divider>
-                    <v-card-text>{{menu.description}}</v-card-text>
-                </v-card>
-            </v-col>
-        </v-row>
+        <h1>代行支払い</h1>
         <v-row>
             <v-col v-for="(menu,index) in menus" :key="index" sm="6" md="4" lg="3" xl="1">
                 <menu-card :item="menu" :mWidth="200"></menu-card>
