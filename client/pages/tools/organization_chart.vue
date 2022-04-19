@@ -156,7 +156,6 @@ export default {
                         const lastLoginStr  = moment(login).format('YYYY-MM-DD')
                         const lastLogoutStr  = moment(logout).format('YYYY-MM-DD')
                         const diff  = moment(lastLoginStr).diff(moment(todayStr),'days')
-                        console.log(diff)
                         if(diff === 0 ){
                             const logoutDiff  = moment(lastLoginStr).isAfter(moment(lastLogoutStr))
                             if(logoutDiff){
