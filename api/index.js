@@ -276,7 +276,7 @@ app.get("/cw/send",function(req,res,next){
 
 //chatworkへの転送api
 ////関数FROM util.js////
-import {forwardingAddress} from '/midori-kms/client/plugins/util.js'  //転送api用にreq.body.divisionで送信先を変える関数
+import {forwardingAddress} from '../client/plugins/util.js'  //転送api用にreq.body.divisionで送信先を変える関数
 ////////
 app.post("/cw/send",function(req,res,next){
     console.log('\nPOST:/cw/send\n---start cw send process---')
