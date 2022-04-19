@@ -333,6 +333,7 @@ export default {
                 { text:"札幌", value:"札幌"},
                 { text:"松山", value:"松山"},
                 { text:"高知", value:"高知"},
+                { text:"無所属", value:"無所属"},
                 ],
             //各課の件数カウント用　わかりづらいので、OBJECTにして一つにまとめます。
             counter:{
