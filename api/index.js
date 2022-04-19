@@ -181,7 +181,6 @@ app.post('/auth/login',(req,res)=>{
 
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
-  console.log('division')
   const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id FROM users'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
@@ -2211,7 +2210,6 @@ app.get('/payment_agency/journal_book/',(req,res)=>{
     }
     values.push(options.customerId)
   }
-  console.log(sql,values)
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
     console.log(rows[0])
