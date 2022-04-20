@@ -1268,10 +1268,7 @@ app.get('/payment_agency/customer/cis',(req,res)=>{
 //顧客毎の入金予定　登録
 app.post('/payment_agency/customer/cis',(req,res)=>{
   console.log('\n--- POST customer cis ---')
-  console.log(req.body)
-  console.log('------------')
   const values = req.body.map((obj)=>[obj.id,obj.amount,obj.date])
-  console.log(values)
   const sql = 'INSERT INTO come_in_schedules (customer_id, expected_amount, payment_day) VALUES ?;'
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
     if(err){ err.whichApi= 'post payment_agency/customer/cis' ;throw err}
