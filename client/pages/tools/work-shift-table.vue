@@ -5,30 +5,58 @@
         </v-row>
         <p><v-icon color="yellow">mdi-star</v-icon>サブリーダー　<v-icon color="yellow">mdi-star</v-icon><v-icon color="yellow">mdi-star</v-icon>リーダー</p>
         <v-row>
-            <v-col v-for="d in divisions"  :key="d">
-                <v-checkbox v-model="selectDivision" :label="d" :value="d"></v-checkbox>
-            </v-col>
+                <v-menu offset-y open-on-hover>
+                    <template v-slot:activator="{on,attr}">
+                        <v-btn  @click="pushselectDivisions(shinkiD)" v-bind="attr" v-on="on" class="mr-3">新規</v-btn>
+                    </template>
+                    <v-list dense>
+                        <v-list-item link v-for="d in shinkiD" :key="d">
+                            <v-list-item-content @click="pushselectDivisions([d])" >{{d}}</v-list-item-content>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+                <v-menu offset-y open-on-hover>
+                    <template v-slot:activator="{on,attr}">
+                        <v-btn  @click="pushselectDivisions(['調査','中決','交面','破産','交渉','完了','カスタマー','相続','無所属'])" v-bind="attr" v-on="on" class="mr-3">東京</v-btn>
+                    </template>
+                    <v-list dense>
+                        <v-list-item link v-for="d in tokyoD"  :key="d">
+                            <v-list-item-title @click="pushselectDivisions([d])">{{d}}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+
+                <v-btn @click="pushselectDivisions(souzokuD)" class="mr-3">相続</v-btn>
+                <v-btn @click="pushselectDivisions(musyozokuD)" class="mr-3">無所属</v-btn>
+
+                <v-menu offset-y open-on-hover>
+                    <template v-slot:activator="{on,attr}">
+                        <v-btn @click="pushselectDivisions(shitenD)" v-bind="attr" v-on="on" class="mr-3">支店</v-btn>
+                    </template>
+                    <v-list dense>
+                        <v-list-item link v-for="d in shitenD"  :key="d">
+                            <v-list-item-title @click="pushselectDivisions([d])">{{d}}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+                <v-btn @click="pushselectDivisions(divisions)" class="mr-3">全選択</v-btn>
+        </v-row>
+        <!-- v-chip -->
+        <v-row>
+        <v-card height="100px" class="pa-2 mt-1" width="100%">
+                <v-chip v-for="(division,index) in selectDivisions" :key="index" class="mr-1 mt-1" close @click:close="pushselectDivisions([division])">{{division}}</v-chip>
+        </v-card>
         </v-row>
         <v-row>
             <v-card>
-                <v-simple-table fixed-header height="350" dense>
-                    <template v-slot:default>
-                    <thead>
-                        <tr>
-                        <th>
-                            名前
-                        </th>
-                        <th v-for="n in 31" :key="n">{{n}}日</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="user in selectUsers" :key="user.id">
-                            <td>{{user.name}}</td>
-                            <td v-for="i in 31" :key="i"  @click="whatday(i,user)">{{i}}</td>
-                        </tr>
-                    </tbody>
-                    </template>
-                </v-simple-table>
+                <v-data-table
+                :items="selectUsers"
+                :headers="selectUsersHeaders"
+                :items-per-page="-1"
+                fixed-header
+                no-data-text="部署が選択されていません"
+                >
+                </v-data-table>
             </v-card>
         </v-row>
     </v-container>
@@ -36,26 +64,19 @@
 
 <script>
 import moment from 'moment'
-const phonebook = require('../../../client/assets/data/phone_book.json')
 export default {
                 data(){
                     return{
                         users:[],
+                        //////////////////////////////
                         divisions:['新規(過払い)','新規(WEB相続)','調査','中決','交面','破産','交渉','完了','カスタマー','相続','無所属','札幌','名古屋','岡山','広島','松山','高知','熊本'],
-                        selectDivision:[],
-                        panel:[0,1,2,3,4,5,6,7,8],
-                        isOpen : {
-                            customer:false,
-                            backoffice:false,
-                            negotiation:false,
-                            koumen:false,
-                            research:false,
-                            souzoku:false,
-                            sonota:false,
-                            shinki:false,
-                            bookmark:false
-                        },
-                        phonebooks:phonebook.book,
+                        shinkiD:['新規(過払い)','新規(WEB相続)'],
+                        tokyoD:['調査','中決','交面','破産','交渉','完了','カスタマー'],
+                        souzokuD:['相続'],
+                        musyozokuD:['無所属'],
+                        shitenD:['札幌','名古屋','岡山','広島','松山','高知','熊本'],
+                        //////////////////////////////
+                        selectDivisions:[],
                     }
                 },
                 methods: {
@@ -65,63 +86,19 @@ export default {
                             this.users = response.data
                         })
                     },
-                    whatday(i,user){
-                        alert(user.name+"さんの\n"+i+"日目です")
-                    },
-                    //最終ログイン日が今日の日付であればtrueを返す
-                    isLoginToday(login, logout){
-                        const today = moment()
-                        const lastLogin  = moment(login)
-                        const lastLogout  = moment(logout)
-                        const diff  = lastLogin.diff(today,'days')
-                        if(diff === 0 ){
-                            const logoutDiff  = lastLogin.isAfter(lastLogout)
-                            if(logoutDiff){
-                                return true
-                            } else {
-                                return false
-                            }
+                    pushselectDivisions(divisions){
+                        const result = divisions.every(sd=>{
+                            return this.selectDivisions.includes(sd)
+                        })
+                        console.log(result)
+                        if(result){
+                            const newArray = this.selectDivisions.filter(d=>{
+                                return divisions.indexOf(d) == -1
+                            })
+                            console.log(newArray)
+                            this.selectDivisions = newArray
                         } else {
-                            return false
-                        }
-                    },
-                    toCall(num){
-                        if(num === null || num === ''){ return alert('BIZTELの設定がありません')}
-                        const a = document.createElement('a')
-                        a.href = 'callto:'+num
-                        a.click()
-                    },
-                    chipColor(login,logout){
-                        const today = moment()
-                        const lastLogin  = moment(login)
-                        const lastLogout  = moment(logout)
-                        const diff  = lastLogin.diff(today,'days')
-                        if(diff === 0 ){
-                            const logoutDiff  = lastLogin.isAfter(lastLogout)
-                            if(logoutDiff){
-                                return 'green accent-3'
-                            } else {
-                                return 'blue-grey lighten-2'
-                            }
-                        } else {
-                            return 'grey darken-2'
-                        }
-                    },
-                    textColor(d){
-                        const today = moment()
-                        const last  = moment(d)
-                        const diff  = last.diff(today,'days')
-                        if(diff === 0 ){
-                            return 'grey lighten-4'
-                        } else {
-                            return 'white'
-                        }
-                    },
-                    biztelColor(num){
-                        if(num === null || num === ''){
-                            return 'grey'
-                        } else {
-                            return 'orange'
+                            this.selectDivisions.push(...divisions)
                         }
                     },
                     isLeader(p){
@@ -160,10 +137,18 @@ export default {
                 computed:{
                     selectUsers(){
                         return this.users.filter(u=>{
-                            return this.selectDivision.some(div=>{
+                            return this.selectDivisions.some(div=>{
                                 return div === u.division
                             })
                         })
+                    },
+                    selectUsersHeaders(){
+                        let endOfMonth = Number(moment().endOf('month').format('D'))
+                        let headers = [{text:'名前',   value:'name',    width:'140px',divider:true}]
+                        for(let i = 1; i <= endOfMonth ; i++){
+                            headers.push({text:i,value:i,divider:true, sortable:false})
+                        }
+                        return headers
                     },
                     groups(){
                         return {
@@ -250,15 +235,7 @@ export default {
                 },
                 created(){
                     this.getUsers()
+                    this.selectDivisions.push(this.$auth.user.division)
                 }
             }
 </script>
-
-<style scoped>
-    table th,table td{
-        width: 100%;
-    }
-    table tr{
-        border-bottom: 1px solid black;
-    }
-</style>
