@@ -182,7 +182,7 @@ app.post('/auth/login',(req,res)=>{
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
   console.log('division')
-  const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id FROM users'
+  const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id FROM users ORDER BY FIELD(division,"熊本","高知","松山","広島","岡山","名古屋","札幌","相続","カスタマー","完了","交渉","破産","交面","中決","調査","新規(過払い)","新規(WEB相続)", "無所属") DESC, FIELD(position, "SL", "L", "SM", "M", "D") DESC'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
