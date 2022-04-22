@@ -1004,7 +1004,6 @@
 
 <script>
 const moment = require('moment')
-import {sumPs} from '/midori-kms/client/plugins/util.js'
 export default {
     layout : 'pa',
     data(){

@@ -198,7 +198,7 @@
 </template>
 
 <script>
-import { getIdsFromPaymentSchedules } from '/midori-kms/client/plugins/util.js'
+import { getIdsFromPaymentSchedules } from '/client/plugins/util.js'
 // methods:DounloadCsv用の関数色々
   //selectedの配列の支払い総額を計算
 function totalAmount (arr){
@@ -261,8 +261,8 @@ function todayString(){
 }
 
 //Download用のaタグ作成用関数
-import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
-import {getNextWeek,judgePay} from '/midori-kms/client/plugins/util.js'
+import {createDownloadATag} from '/client/plugins/util.js'
+import {getNextWeek,judgePay} from '/client/plugins/util.js'
 const {Parser} = require('json2csv')
 const iconv = require('iconv-lite')
 export default {

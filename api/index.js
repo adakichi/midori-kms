@@ -277,7 +277,7 @@ app.get("/cw/send",function(req,res,next){
 
 //chatworkへの転送api
 ////関数FROM util.js////
-import {forwardingAddress} from '/midori-kms/client/plugins/util.js'  //転送api用にreq.body.divisionで送信先を変える関数
+import {forwardingAddress} from '../client/plugins/util.js'  //転送api用にreq.body.divisionで送信先を変える関数
 ////////
 app.post("/cw/send",function(req,res,next){
     console.log('\nPOST:/cw/send\n---start cw send process---')
@@ -1269,10 +1269,7 @@ app.get('/payment_agency/customer/cis',(req,res)=>{
 //顧客毎の入金予定　登録
 app.post('/payment_agency/customer/cis',(req,res)=>{
   console.log('\n--- POST customer cis ---')
-  console.log(req.body)
-  console.log('------------')
   const values = req.body.map((obj)=>[obj.id,obj.amount,obj.date])
-  console.log(values)
   const sql = 'INSERT INTO come_in_schedules (customer_id, expected_amount, payment_day) VALUES ?;'
   db_payment_agency.query(sql,[values],(err,rows,fields)=>{
     if(err){ err.whichApi= 'post payment_agency/customer/cis' ;throw err}
@@ -2211,7 +2208,6 @@ app.get('/payment_agency/journal_book/',(req,res)=>{
     }
     values.push(options.customerId)
   }
-  console.log(sql,values)
   db_payment_agency.query(sql,values,(err,rows,fields)=>{
     if(err){ throw err}
     console.log(rows[0])

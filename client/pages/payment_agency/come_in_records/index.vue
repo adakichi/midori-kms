@@ -143,10 +143,10 @@
 </template>
 
 <script>
-import {createDownloadATag} from '/midori-kms/client/plugins/util.js'
-import {getNextMonth}       from '/midori-kms/client/plugins/util.js'
-import {getLastMonth}       from '/midori-kms/client/plugins/util.js'
-import {getMonthAfterNext}       from '/midori-kms/client/plugins/util.js'
+import {createDownloadATag} from '/client/plugins/util.js'
+import {getNextMonth}       from '/client/plugins/util.js'
+import {getLastMonth}       from '/client/plugins/util.js'
+import {getMonthAfterNext}       from '/client/plugins/util.js'
 const {Parser} = require('json2csv')
 
 export default {

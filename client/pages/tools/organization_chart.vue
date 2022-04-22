@@ -130,12 +130,12 @@ export default {
                     },
                     //最終ログイン日が今日の日付であればtrueを返す
                     isLoginToday(login, logout){
-                        const today = moment()
-                        const lastLogin  = moment(login)
-                        const lastLogout  = moment(logout)
-                        const diff  = lastLogin.diff(today,'days')
+                        const todayStr = moment().format('YYYY-MM-DD')
+                        const lastLoginStr  = moment(login).format('YYYY-MM-DD')
+                        const lastLogoutStr  = moment(logout).format('YYYY-MM-DD')
+                        const diff  = moment(lastLoginStr).diff(moment(todayStr),'days')
                         if(diff === 0 ){
-                            const logoutDiff  = lastLogin.isAfter(lastLogout)
+                            const logoutDiff  = moment(lastLoginStr).isAfter(moment(lastLogoutStr))
                             if(logoutDiff){
                                 return true
                             } else {
@@ -152,12 +152,12 @@ export default {
                         a.click()
                     },
                     chipColor(login,logout){
-                        const today = moment()
-                        const lastLogin  = moment(login)
-                        const lastLogout  = moment(logout)
-                        const diff  = lastLogin.diff(today,'days')
+                        const todayStr = moment().format('YYYY-MM-DD')
+                        const lastLoginStr  = moment(login).format('YYYY-MM-DD')
+                        const lastLogoutStr  = moment(logout).format('YYYY-MM-DD')
+                        const diff  = moment(lastLoginStr).diff(moment(todayStr),'days')
                         if(diff === 0 ){
-                            const logoutDiff  = lastLogin.isAfter(lastLogout)
+                            const logoutDiff  = moment(lastLoginStr).isAfter(moment(lastLogoutStr))
                             if(logoutDiff){
                                 return 'green accent-3'
                             } else {
