@@ -2488,6 +2488,37 @@ app.delete('/issue',(req,res)=>{
   })
 })
 
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+//シフト用
+
+app.get('/work-shift',(req,res)=>{
+  console.log('--- Get Work shift ---')
+  console.log(req.query)
+  const sql = 'SELECT users.name, users.division, users.position, ws.user_id, ws.date, ws.start, ws.end, ws.day_off, ws.memo FROM midori_users.users LEFT JOIN work_shift as ws ON users.user_id = ws.user_id;'
+  db_mkms.query(sql,(errs,rows,fields)=>{
+    if(errs){throw errs}
+    res.send(rows)
+    console.log('--- Done get work shift ---')
+  })
+})
+
+app.post('/work-shift',(req,res)=>{
+  console.log('--- Post Work shift ---')
+  console.log(req.body)
+  const sql = 'INSERT INTO work_shift (user_id, date, start, end, day_off) values (?);'
+  const values = [[...req.body.days],req.body.user_id]
+  console.log(values)
+  db_mkms.query(sql,values,(errs,rows,fields)=>{
+    if(errs){throw errs}
+    res.send(rows)
+    console.log('--- Done POST work shift ---')
+  })
+})
+
 // データベースのendは不要です。
 // db.end()
 db_mkms.on('error',function(err){

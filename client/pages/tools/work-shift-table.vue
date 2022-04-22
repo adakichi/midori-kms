@@ -5,6 +5,7 @@
         </v-row>
         <p><v-icon color="yellow">mdi-star</v-icon>サブリーダー　<v-icon color="yellow">mdi-star</v-icon><v-icon color="yellow">mdi-star</v-icon>リーダー</p>
         <v-row>
+            <v-btn @click="openDialog">一括登録</v-btn>
                 <v-menu offset-y open-on-hover>
                     <template v-slot:activator="{on,attr}">
                         <v-btn  @click="pushselectDivisions(shinkiD)" v-bind="attr" v-on="on" class="mr-3">新規</v-btn>
@@ -58,7 +59,50 @@
                 >
                 </v-data-table>
             </v-card>
-        </v-row>
+            <v-dialog v-model="dialog" max-width="700px">
+                <v-card color="lightstategrey" class="white--text">
+                    <v-card-title>{{regist.name}}:{{regist.user_id}}<v-spacer></v-spacer><v-icon :disabled="isBefore" @click="subtractMonth()">mdi-chevron-left</v-icon>{{selectMonth}}月<v-icon @click="addMonth()">mdi-chevron-right</v-icon></v-card-title>
+                    <v-card-text>
+                        <v-tooltip v-for="n in Array.from('ABCDE')" :key="n" bottom>
+                            <template v-slot:activator="{on,attrs}">
+                                <v-chip color="green lighten-1" class="mr-3" v-bind="attrs" v-on="on">{{n}}</v-chip>
+                            </template>
+                            <span>{{shiftType[n].start}} ~ {{shiftType[n].end}}</span>
+                        </v-tooltip>
+                        <v-tooltip v-for="n in Array.from('FGHIJKLMN')" :key="n" bottom>
+                            <template v-slot:activator="{on,attrs}">
+                                <v-chip color="green darken-4" class="mr-3" v-bind="attrs" v-on="on">{{n}}</v-chip>
+                            </template>
+                            <span>{{shiftType[n].start}} ~ {{shiftType[n].end}}</span>
+                        </v-tooltip>
+                    </v-card-text>
+                    <v-card-text>
+                        <v-simple-table style="background-color:lightslategray; color:black;">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px;">月</th>
+                                    <th style="width:30px;">火</th>
+                                    <th style="width:30px;">水</th>
+                                    <th style="width:30px;">木</th>
+                                    <th style="width:30px;">金</th>
+                                    <th style="width:30px;">土</th>
+                                    <th style="width:30px;">日</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="m in 6" :key="m">
+                                    <td v-for="n in 7" :key="n" :style="'background-color:'+bgc(n)+';'">
+                                        {{returnDate(shiftTable[((m-1)*7)+n])}}<br>
+                                        {{returnStart(shiftTable[((m-1)*7)+n])}}<br>
+                                        {{returnEnd(shiftTable[((m-1)*7)+n])}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </v-simple-table>
+                    </v-card-text>
+                </v-card>
+            </v-dialog>
+        </v-row>{{users}}
     </v-container>
 </template>
 
@@ -77,11 +121,113 @@ export default {
                         shitenD:['札幌','名古屋','岡山','広島','松山','高知','熊本'],
                         //////////////////////////////
                         selectDivisions:[],
+
+                        // dialog ////////////////////////////
+                        dialog:true,
+                        selectMonth:null,
+                        shiftTable2:[
+                            {'週':'1週目','月':'','火':'','水':'','木':'','金':'','土':'','日':'',},
+                            {'週':'2週目','月':'','火':'','水':'','木':'','金':'','土':'','日':'',},
+                            {'週':'3週目','月':'','火':'','水':'','木':'','金':'','土':'','日':'',},
+                            {'週':'4週目','月':'','火':'','水':'','木':'','金':'','土':'','日':'',},
+                            {'週':'5週目','月':'','火':'','水':'','木':'','金':'','土':'','日':'',},
+                        ],
+                        shiftTable:[
+                        ],
+                        shiftTableHeaders:[
+                            {text:'週',value:'週', width:'10px', sortable:false, divider:true, align:'center'},
+                            {text:'月',value:'月', width:'15px', sortable:false, divider:true, align:'center'},
+                            {text:'火',value:'火', width:'15px', sortable:false, divider:true, align:'center'},
+                            {text:'水',value:'水', width:'15px', sortable:false, divider:true, align:'center'},
+                            {text:'木',value:'木', width:'15px', sortable:false, divider:true, align:'center'},
+                            {text:'金',value:'金', width:'15px', sortable:false, divider:true, align:'center'},
+                            {text:'土',value:'土', width:'15px', sortable:false, divider:true, align:'center'},
+                            {text:'日',value:'日', width:'15px', sortable:false, divider:true, align:'center'},
+                        ],
+                        regist:{ name:'', user_id:'', days:[]},
+                        shiftType:{
+                            'A':{type:'A', start:'09:00', end:'18:00'},
+                            'B':{type:'B', start:'10:00', end:'19:00'},
+                            'C':{type:'C', start:'12:00', end:'21:00'},
+                            'D':{type:'D', start:'11:00', end:'20:00'},
+                            'E':{type:'E', start:'08:00', end:'17:00'},
+                            'F':{type:'F', start:'09:00', end:'17:00'},
+                            'G':{type:'G', start:'09:30', end:'18:30'},
+                            'H':{type:'H', start:'13:00', end:'19:00'},
+                            'I':{type:'I', start:'09:00', end:'14:00'},
+                            'J':{type:'J', start:'09:00', end:'15:00'},
+                            'K':{type:'K', start:'09:00', end:'16:00'},
+                            'L':{type:'L', start:'10:00', end:'15:00'},
+                            'M':{type:'M', start:'15:00', end:'19:00'},
+                            'N':{type:'N', start:'13:00', end:'21:00'},
+                            'O':{type:'O', start:'14:00', end:'21:00'},
+                            'P':{type:'P', start:'15:00', end:'21:00'},
+                            'Q':{type:'Q', start:'16:00', end:'21:00'},
+                            'R':{type:'R', start:'17:00', end:'21:00'},
+                            'S':{type:'S', start:'10:00', end:'17:00'},
+                            'T':{type:'T', start:'10:00', end:'16:00'},
+                            'U':{type:'U', start:'18:00', end:'21:00'},
+                        }
                     }
                 },
                 methods: {
+                    returnDate(obj){
+                        if(!obj){return }
+                        return moment(obj?.date).format('DD日')
+                    },
+                    returnType(){
+                        if(!obj){return }
+                        if(obj.day_off !== '出勤'){ return '●'}
+                    },
+                    returnStart(obj){
+                        return obj?.start
+                    },
+                    returnEnd(obj){
+                        return obj?.end
+                    },
+                    bgc(num){
+                        if(num == 6){
+                            return 'steelblue'
+                        } else if(num == 7){
+                            return 'pink'
+                        } else {
+                            return 'silver'
+                        }
+                    },
+                    addMonth(){
+                        this.selectMonth = moment(this.selectMonth).add(1,'month').format('YYYY/MM/DD')
+                        this.pushShiftTable()
+                    },
+                    subtractMonth(){
+                        this.selectMonth = moment(this.selectMonth).subtract(1,'month').format('YYYY/MM/DD')
+                        this.pushShiftTable()
+                    },
+                    pushShiftTable(){
+                        const first = moment(this.selectMonth)
+                        let firstday = first.day()
+                        const startday = ((firstday + 1) % 7) + 6
+                        let array = Array(42)
+                        for(let i = startday; i < 37 + startday; i++){
+                            const d = moment(first).add(i-startday,'days')
+                            let isDayOff = false
+                            if(d.day() === 0 || d.day() === 6) {isDayOff = true}
+                            if(d.isAfter(moment(first).subtract(1,'month').endOf('month')) && d.isBefore(moment(first).add(1,'month').startOf('month'))){
+                                array[i] = {
+                                    date:d.format('YYYY-MM-DD'),
+                                    start: isDayOff ? '00:00:00' : '09:00:00',
+                                    end  : isDayOff ? '00:00:00' : '18:00:00',
+                                    day_off:isDayOff ? '法定' : '出勤',
+                                    user_id:this.$auth.user.userId
+                            }
+
+                            }
+                        }
+                        this.shiftTable = []
+                        this.shiftTable = array
+
+                    },
                     getUsers(){
-                        this.$axios.get('api/auth/user/allUsers')
+                        this.$axios.get('api/work-shift')
                         .then(response=>{
                             this.users = response.data
                         })
@@ -132,6 +278,9 @@ export default {
                                 return false
                             break
                         }
+                    },
+                    openDialog(){
+                        this.dialog = true
                     }
                 },
                 computed:{
@@ -231,11 +380,27 @@ export default {
                     },
                     kumamotoGroup(){
                         return this.users.filter(user => user.division == '熊本')
+                    },
+                    isBefore(){
+                        return !moment().isBefore(this.selectMonth)
                     }
                 },
                 created(){
+                    this.selectMonth = moment().add(1,'month').startOf('month').format('YYYY/MM/DD')
+                    this.pushShiftTable()
                     this.getUsers()
+                    this.regist = {name:this.$auth.user.name, user_id:this.$auth.user.userId}
                     this.selectDivisions.push(this.$auth.user.division)
                 }
             }
 </script>
+
+<style scoped>
+    th{
+        font: bold;
+        font-size: 12px;
+    }
+    th, td{
+        border: solid 1px gainsboro;
+    }
+</style>
