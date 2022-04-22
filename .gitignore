@@ -91,3 +91,5 @@ sw.*
 
 #ここから追加分
 /midori-kms_config.js
+*.key
+*.crt
