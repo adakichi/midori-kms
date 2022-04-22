@@ -91,3 +91,6 @@ sw.*
 
 #ここから追加分
 /midori-kms_config.js
+#mkcert用のKey crt
+*.key   
+*.crt

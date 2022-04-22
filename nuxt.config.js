@@ -1,10 +1,16 @@
 import colors from 'vuetify/es5/util/colors'
+import fs from 'fs'
 
 export default {
   //IPアドレスで外部からアクセス可能にする為追加
   server: {
     // host: '192.168.101.204' // デフォルト: localhost
-    host: process.env.DEPLOY_HOST // デフォルト: localhost
+    host: process.env.DEPLOY_HOST, // デフォルト: localhost
+
+    https:{
+      key: fs.readFileSync('cert.key'),
+      cert: fs.readFileSync('cert.crt')
+    }
   },
 
   //auth middleware設定
