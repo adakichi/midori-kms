@@ -341,7 +341,7 @@ export default {
                 chousa:         {keisan:'', kaden:'', kaihuu:'', bantuke:'',fax:'',pdf:'',furiwake:''},
                 chuketuKomen:   {chuketu:'', kaden:'', jisseki:'', ishikaku:''},
                 koushou:        {kaden:'', jyuden:'', wakai:'', saikoushou:''},
-                kanryou:        {kanryoushoruiData:'',kanryousyoruiPrint:'', mail:'', mailWcheck:'', pdf:''},
+                kanryou:        {kanryoushoruiData:'',kanryoushoruiPrint:'', mail:'', mailWcheck:'', pdf:''},
                 customer:       {kaden:'', jyuden:'', koumen:'',chat:''}
             },
             report:''
@@ -471,7 +471,7 @@ export default {
                         To = '[To:4683218]中谷[To:4855892]青木[To:6098578]兵藤[To:5850247]竹村[To:4683013]熊谷'
                         break;
                     case '完了':
-                        counterStrings = '\n[info]完了作成：'+ this.counter.kanryou.kanryoushoruiData +'件\n完了書類印刷：'+ this.counter.kanryou.kanryousyoruiPrint +'件\n郵送袋詰：' + this.counter.kanryou.mail +'件\n郵送Wchek：' + this.counter.kanryou.mailWcheck +'件\nPDF：' + this.counter.kanryou.pdf + '分' + '\n[/info]'
+                        counterStrings = '\n[info]完了作成：'+ this.counter.kanryou.kanryoushoruiData +'件\n完了書類印刷：'+ this.counter.kanryou.kanryoushoruiPrint +'件\n郵送袋詰：' + this.counter.kanryou.mail +'件\n郵送Wchek：' + this.counter.kanryou.mailWcheck +'件\nPDF：' + this.counter.kanryou.pdf + '分' + '\n[/info]'
                         To = '[To:4682397]渡邉[To:4682436]水落[To:6009275]武田'
                         break;
                     case 'カスタマー':
