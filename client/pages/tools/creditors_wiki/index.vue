@@ -3,6 +3,10 @@
         <v-row>
             <v-col>
                 <h1>債権者 wiki</h1>
+                <v-toolbar>
+                    <v-text-field v-model="pushText"></v-text-field>
+                    <v-btn @click="webPush">Push通知</v-btn>
+                </v-toolbar>
                 <v-app-bar>
                     <v-toolbar-title>
                         {{selectedCreditor.id}}:{{selectedCreditor.name}}
@@ -383,6 +387,48 @@
 </template>
 
 <script>
+
+//  swの登録  //////////////////////////////////////////////////
+let convertedVapidKey, subscription;
+
+(async _ => {
+    try {
+        // サービスワーカー登録
+        const registration = await navigator.serviceWorker.register('/client/plugins/sw.js');
+
+        // サーバー側で生成したパブリックキーを取得し、urlBase64ToUint8Array()を使ってUit8Arrayに変換
+        const res = await fetch('/key');
+        const vapidPublicKey = await res.text();
+        convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+        // (変換した)パブリックキーをapplicationServerKeyに設定してsubscribe
+        subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+        });
+
+        // 通知の許可を求める
+        Notification.requestPermission(permission => {
+            console.log(permission); // 'default', 'granted', 'denied'
+        });
+    } catch (err) {
+        console.log(err);
+    }
+})();
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+///////////////////////////////////////////////////////////
+
+
 export default {
     data(){
         return {
@@ -422,6 +468,7 @@ export default {
                 {text:'コメント',value:'memo'},
                 {text:'編集者',  value:'editer'}
             ],
+            pushText:'',
 
             ///////////////////////////////////
             ///////////////////////////////////
@@ -433,6 +480,18 @@ export default {
         }
     },
     methods:{
+        webPush(){
+            if (!subscription) return console.log('sbuscription is null');
+            this.$axios.post('/webpushtest', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(response=>{
+                console.log(response)
+            })
+        },
         getCreditors(){
             this.$axios.get('api/mkms/creditors')
             .then(response=>{

@@ -28,7 +28,8 @@
     "multer": "^1.4.4",
     "mysql": "^2.18.1",
     "nuxt": "^2.15.7",
-    "vuetify": "^2.5.5"
+    "vuetify": "^2.5.5",
+    "web-push": "^3.4.5"
   },
   "devDependencies": {
     "@nuxtjs/vuetify": "^1.12.1"
