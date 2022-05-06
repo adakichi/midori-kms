@@ -1908,7 +1908,6 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             customerId
           ]
 
-          console.log('sql:',updateCustomersSql,'value:',updateCustomersValue)
           db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
               console.log('err3:',err3)
@@ -1919,9 +1918,8 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
             console.log('rows3: ')
 
             //手順3 journal_bookに処理
-            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, customer_id) VALUES (?);'
+            const journalBookSql = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, customer_id) VALUES (?),(?),(?);'
             const journalInsertValueArray = createJournalArray(editedScheduleObject)
-            console.log('journal book val array:',journalInsertValueArray)
             db_payment_agency.query(journalBookSql,journalInsertValueArray,(err4,rows4,fields4)=>{
               if(err4){
                 console.log('err4:',err4)
@@ -1953,6 +1951,7 @@ const temporaryPayTransaction = function(editedScheduleObject,date){
 //journal values を作成する
 function createJournalArray(editedScheduleObject){
   //'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit, customer_id) VALUES (?);'
+  console.log('editedScheduleObject:',editedScheduleObject)
   const motocho = 'ps' + editedScheduleObject.payment_schedule_id
   const advisoryFee = (parseInt(editedScheduleObject.advisory_fee,10) * 1.1)
   const commission = (parseInt(editedScheduleObject.commission,10) * 1.1)
@@ -1961,6 +1960,7 @@ function createJournalArray(editedScheduleObject){
   journalArray.push([ motocho, '預り金',        '',               editedScheduleObject.amount, '預金',          'ペイペイ',        editedScheduleObject.amount, editedScheduleObject.customer_id ])
   journalArray.push([ motocho, '前受金',        '',               advisoryFee,                 '売上',         '顧問料',           advisoryFee,                 editedScheduleObject.customer_id ])
   journalArray.push([ motocho, '前受金',        '',               commission,                  '売上',         '代行手数料',       commission,                  editedScheduleObject.customer_id ])
+  console.log('journalArray',journalArray)
   return journalArray
 }
 
