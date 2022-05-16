@@ -447,6 +447,8 @@ export default {
                 })
         },
         deleteExpected(){
+            const yesno = confirm('仮出金解除処理です。\n本当に実行しますか？')
+            if(!yesno){return}
             this.$axios.delete('/api/payment_agency/payment_schedules/temporary_pay',{data:{selected:this.selected}})
             .then(() =>{
                 this.searchRecords()
