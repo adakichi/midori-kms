@@ -178,22 +178,47 @@
                 </v-tabs-items>
             </v-col>
         </v-row>
-                        <v-snackbar
-                          v-model="snack"
-                          :timeout="3000"
-                          :color="snackColor"
-                        >
-                          {{ snackText }}
-                          <template v-slot:action="{ attrs }">
-                            <v-btn
-                              v-bind="attrs"
-                              text
-                              @click="snack = false"
-                            >
-                              Close
-                            </v-btn>
-                          </template>
-                        </v-snackbar>
+
+        <!-- リザルトテーブルのダイアログ -->
+        <v-dialog v-model="resultDialog" persistent>
+            <v-card>
+                <v-toolbar>
+                    <v-spacer/>
+                    <v-btn @click="downloadCsv(resultArray,'resultArray')">結果出力(CSV)<v-icon>mdi-download</v-icon></v-btn>
+                    <v-btn icon @click="closeResultDialog"><v-icon>mdi-close</v-icon></v-btn>
+                </v-toolbar>
+                <v-card-text>
+                    <v-data-table
+                    :items="resultArray"
+                    :headers="resultHeaders"
+                    >
+                    <template v-slot:item.error="prop">
+                        {{prop.item.error ? '失敗':'取消 成功'}}
+                    </template>
+                    <template v-slot:item.expected_date="prop">
+                        {{prop.item.expected_date ? '有り' : '無し'}}
+                    </template>
+                    </v-data-table>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+        <!-- スナックバー -->
+        <v-snackbar
+            v-model="snack"
+            :timeout="3000"
+            :color="snackColor"
+        >
+            {{ snackText }}
+            <template v-slot:action="{ attrs }">
+            <v-btn
+                v-bind="attrs"
+                text
+                @click="snack = false"
+            >
+                Close
+            </v-btn>
+            </template>
+        </v-snackbar>
     </v-container>
 </template>
 
@@ -274,6 +299,7 @@ export default {
             menuFrom:false,
             menuUntil:false,
             isMatched:false,    //マッチ済みかどうかのスイッチ。これで仮出金解除等のボタンの表示のON/OFFを切り替える。
+            resultDialog:false,
 
             //メインのDataTable用 配列
             paymentSchedules:[],
@@ -283,6 +309,7 @@ export default {
             ngArray:[],
             dateRange:['',''],
             selected:[],
+            resultArray:[],
             tabs:null,
             headers:[
                 {text:'名前',   value:'name'},
@@ -339,6 +366,12 @@ export default {
                 // {text:'顧問料',     value:'sumAdvisoryFee', groupable:false},
                 {text:'差額',     value:'diff', groupable:false},
                 {text:'メモ',     value:'memo', groupable:false}
+            ],
+            resultHeaders:[
+                {text:'結果',   value:'error'},
+                {text:'受任番号',   value:'customer_id'},
+                {text:'PS ID',   value:'payment_schedule_id'},
+                {text:'仮出金',   value:'expected_date'},
             ],
             //snack bar
             snack:false,
@@ -418,55 +451,77 @@ export default {
             const total = totalAmount(target)
             const fields = ['recordKubun', 'bankcode', 'branchcode', 'kind', 'account_number', 'account_holder', 'amount','kana']
             let json2csvParser = {}
+            let title = ''
+            let lastText = ''
             if(type === 'okArray'){
                 json2csvParser = new Parser({fields:fields,header:false,})
+                title = 'ペイペイ出金データ'
+                lastText = '\n2,,,,,' + target.length + ',' + total 
             } else if(type === 'ecArray') {
                 json2csvParser = new Parser()
+                title = '人毎データ'
+                lastText = '\n2,,,,,' + target.length + ',' + total 
+            } else if(type === 'resultArray') {
+                json2csvParser = new Parser()
+                title = '取り消し結果データ'
             }
             
             let exportText = json2csvParser.parse(target)
-            exportText = exportText + '\n2,,,,,' + target.length + ',' + total 
+            exportText = exportText + lastText
             const conv2Sjis = iconv.encode(exportText,'windows-31j')
-            let title = ''
-            if(type === 'okArray'){
-                title = 'ペイペイ出金データ'
-            } else if(type === 'ecArray') {
-                title = '人毎データ'
-            }
             const link = createDownloadATag(conv2Sjis,title)
             link.click()
             //ダウンロードしたら仮で出金としてDB update。
-            if(type === 'ecArray') { return }
-            const okArray = target
-            const today = todayString()
-            this.$axios.put('/api/payment_agency/payment_schedules/temporary_pay',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
-            .then((response) =>{
-                this.searchRecords()
-                if(response.data.error){ return alert(response.data.message)}
+            if(type === 'okArray' ){
+                const okArray = target
+                const today = todayString()
+                this.$axios.put('/api/payment_agency/payment_schedules/temporary_pay',{okArray:okArray,date:today,editCustomersArray:this.editCustomersArray})
+                .then((response) =>{
+                    this.selected = []
+                    this.editCustomersArray = []
+                    this.searchRecords()
+                    if(response.data.error){ return alert(response.data.message)}
                     this.popupSnackBar(response.data)
                 })
+            }
         },
         deleteExpected(){
             const yesno = confirm('仮出金解除処理です。\n本当に実行しますか？')
             if(!yesno){return}
             this.$axios.delete('/api/payment_agency/payment_schedules/temporary_pay',{data:{selected:this.selected}})
-            .then(() =>{
-                this.searchRecords()
-                })
+            .then((response) =>{
+                this.selected = []
+                this.resultArray = response.data
+                this.resultDialog = true
+                console.log(response.data)
+                console.log(this.resultArray)
+            })
+        },
+        closeResultDialog(){
+            const yesno = confirm('閉じると結果のデータは削除されます。\n本当に閉じて良いですか？')
+            if(!yesno){return}
+            this.resultArray = []
+            this.resultDialog = false
         },
         confirmPayments(){
+            const yesno = confirm('出金確定処理です。\n本当に実行しますか？')
+            if(!yesno){return}
             const ids = getIds(this.selected)
             const today = todayString()
             console.log('confirm')
             this.$axios.put('/api/payment_agency/payment_schedules/confirm',{ids:ids,date:today})
             .then(() =>{
+                this.selected = []
                 this.searchRecords()
-                })
+            })
         },
         cancelConfirmPayments(){
+            const yesno = confirm('出金解除処理です。\n上長に確認してください。\n\n本当に実行しますか？')
+            if(!yesno){return}
             const ids = getIds(this.selected)
             this.$axios.delete('/api/payment_agency/payment_schedules/confirm',{data:{ids:ids,date:null}})
             .then(() =>{
+                this.selected = []
                 this.searchRecords()
             })
         },

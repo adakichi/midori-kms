@@ -1967,12 +1967,14 @@ function createJournalArray(editedScheduleObject){
 app.delete('/payment_agency/payment_schedules/temporary_pay',(req,res)=>{
   console.log('\n---Delete payment_schedules/temporary_pay ---\n >仮出金を取り消しします。')
   const selected = req.body.selected
+  let responseObj = { success:[],failed:[]}
   Promise.all(selected.map(editedScheduleObject=>{
     return cancelTemporaryPayTransaction(editedScheduleObject)
   })).then((response)=>{
-    logger.log(req.body.selected,'仮出金取り消し ---Delete payment_schedules/temporary_pay ')
+    console.log('response:',response)
+    logger.log(response,'仮出金取り消し ---Delete payment_schedules/temporary_pay ')
     res.send(response)
-  })  
+  })
 })
 
 //仮出金を取り消す際のトランザクション
@@ -1985,29 +1987,39 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
   //手順3 journalArrayを削除する。
   const customerId = editedScheduleObject.customer_id
   const editedScheduleId = editedScheduleObject.payment_schedule_id
+
+  //手順0-0 送られてきたscheduleが仮出金になっていない場合、処理をキャンセルする。
+  if(editedScheduleObject.expected_date == null || editedScheduleObject.expected_date == ''){
+    editedScheduleObject.error = true
+    return resolve(editedScheduleObject)
+  }
   db_payment_agency.beginTransaction((err)=>{
     if(err){ throw err}
-    //手順0
-    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL OR expected_amount IS NOT NULL OR expected_commission IS NOT NULL OR expected_advisory_fee IS NOT NULL) AND paid_date is null;'
+    //手順0-1
+    const selectExpectedsIsNotNullSql = ' SELECT payment_schedule_id FROM payment_schedules WHERE payment_schedule_id = ? AND (expected_date IS NOT NULL AND expected_amount IS NOT NULL AND expected_commission IS NOT NULL AND expected_advisory_fee IS NOT NULL) AND paid_date is null;'
     db_payment_agency.query(selectExpectedsIsNotNullSql,editedScheduleId,(err0,rows0,fields)=>{
-      if(err0 || rows0.length === 0){
+      if(err0){
         console.log('err:',err0)
         return db_payment_agency.rollback(()=>{
-          throw err0
+          reject(err0)
+        })
+      } else if(rows0.length === 0){
+        console.log('rows0の数:',rows0.length)
+        return db_payment_agency.rollback(()=>{
+          editedScheduleObject.error = true
+          resolve(editedScheduleObject)
         })
       }
-      console.log('rows0:',rows0)
 
         //手順1
         const updateScheduleSql = ' UPDATE payment_schedules SET expected_date = null, expected_amount = null, expected_commission = null, expected_advisory_fee = null WHERE payment_schedule_id = ?;'          
-            db_payment_agency.query(updateScheduleSql, editedScheduleId,(err2,rows2,fields2)=>{
+          db_payment_agency.query(updateScheduleSql, editedScheduleId,(err2,rows2,fields2)=>{
           if(err2){
             console.log('err2:',err2)
             return db_payment_agency.rollback(()=>{
-              throw err2
+              reject(err2)
             })
           }
-          console.log('rows2:',rows2)
 
           //手順2　customersの金額を戻す
           const updateCustomersSql = 'UPDATE customers SET deposit = deposit + ?, advance_payment = advance_payment + ?, confirm_payment = confirm_payment - ? WHERE customer_id = ?;'
@@ -2020,32 +2032,29 @@ const cancelTemporaryPayTransaction = function(editedScheduleObject){
           
           db_payment_agency.query(updateCustomersSql,updateCustomersValue,(err3,rows3,fields3)=>{
             if(err3){
-              console.log(err3)
               return db_payment_agency.rollback(()=>{
-                throw err3
+                reject(err3)
               })
             }
-            console.log('rows3:',rows3)
-
+ 
             //手順3 journalを削除する。
             const journalBookSql = 'DELETE FROM journal_book WHERE motocho = ? AND delete_flag = 0;'
             const motochoValue = 'ps'+ editedScheduleObject.payment_schedule_id
             db_payment_agency.query(journalBookSql,motochoValue,(err4,rows4,fields4)=>{
               if(err4){
-                console.log(err4)
                 return db_payment_agency.rollback(()=>{
-                  throw err4
+                  reject(err4)
                 })
               }
-              console.log('rows4:',rows4)
               db_payment_agency.commit((err4)=>{
                 if(err4){
                   console.log('failed Commit!!')
                   return db_payment_agency.rollback(()=>{
-                    throw err4
+                    reject(err4)
                   })
                 }
                 console.log('Commit success!')
+                editedScheduleObject.error = false
                 resolve(editedScheduleObject)
               })            
             })
