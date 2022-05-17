@@ -64,8 +64,10 @@ export default {
         updateIssue(){
             const targetMessage = this.messages[this.editMessage.idx]
             if(!this.$auth.user){ return alert('ログインしてから送って')}
-            if(this.$auth.user.userId !== targetMessage.author){ return alert('ほかの人のは編集できません')}
             if(this.editMessage.text.length > 1000){ return alert('文字数が多いです。\n1000文字まで。')}
+            if(this.$auth.user.userId !== targetMessage.author){ 
+                alert('これは他の人の作成したメッセージです。\n追記する場合には、「追記した日 / 名前」を入れましょう。\nアンダースコア( _ )を３個並べると区切りができるので、なるべくいれてください。')
+            }
             const data = {
                 messageId:targetMessage.issues_messages_id,
                 issueId:targetMessage.issue_id,
