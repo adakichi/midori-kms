@@ -66,7 +66,8 @@ export default {
             if(!this.$auth.user){ return alert('ログインしてから送って')}
             if(this.editMessage.text.length > 1000){ return alert('文字数が多いです。\n1000文字まで。')}
             if(this.$auth.user.userId !== targetMessage.author){ 
-                alert('これは他の人の作成したメッセージです。\n追記する場合には、「追記した日 / 名前」を入れましょう。\nアンダースコア( _ )を３個並べると区切りができるので、なるべくいれてください。')
+                const yesno = confirm('これは他の人の作成したメッセージです。\n追記する場合には、「追記した日 / 名前」を入れましょう。\nアンダースコア( _ )を３個並べると区切りができるので、なるべくいれてください。\n\n「区切り・名前・日付」は記載しましたか？')
+                if(!yesno){return}
             }
             const data = {
                 messageId:targetMessage.issues_messages_id,
