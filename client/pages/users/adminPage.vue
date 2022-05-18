@@ -135,11 +135,50 @@
                                 >
                                 </v-simple-checkbox>
                             </template>
+
+                            <!-- cw_dazou_room_id -->
+                            <template v-slot:item.cw_dazou_room_id="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.cw_dazou_room_id"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.cw_dazou_room_id }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                          v-model="props.item.cw_dazou_room_id"
+                                          label="Edit"
+                                          single-line
+                                        ></v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                          </template>
+
                         </v-data-table>
                     </v-card-text>
                 </v-card>
             </v-col>
         </v-row>
+        <!-- スナックバー -->
+        <v-snackbar
+            v-model="snack"
+            :timeout="3000"
+            :color="snackColor"
+        >
+            {{ snackText }}
+            <template v-slot:action="{ attrs }">
+            <v-btn
+                v-bind="attrs"
+                text
+                @click="snack = false"
+            >
+                Close
+            </v-btn>
+            </template>
+        </v-snackbar>
     </v-container>
 </template>
 
@@ -164,7 +203,11 @@ export default {
                 {text:'最終ログアウト', value:'last_logout'},
                 {text:'DA room id', value:'cw_dazou_room_id'},
                 {text:'編集', value:'action'},
-            ]
+            ],
+            //snackbar
+            snack:'',
+            snackColor:'',
+            snackText:'',
         }
     },
     computed:{
@@ -174,10 +217,19 @@ export default {
     },
     methods:{
         save(props){
-        this.$axios.put('/api/auth/user/editUser',props.item)
-        .then(response => {
-            console.log(response)
-        })
+          this.$axios.put('/api/auth/user/editUser',props.item)
+          .then(response => {
+            if(response.data.error){return this.popupSnackBar(response.data.message,'warning')}
+            this.popupSnackBar(response.data)
+              console.log(response)
+          })
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
         },
     },
     created(){
