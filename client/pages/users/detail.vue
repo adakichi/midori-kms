@@ -39,6 +39,20 @@
                             <v-text-field label="BIZTEL ID" v-model="user.biztel_id" type="number"></v-text-field>
                         </v-col>
                     </v-row>
+                    <v-row>
+                        <v-col>
+                            <v-text-field label="DA-zou チャットワーク Room ID" v-model="user.cw_dazou_room_id" hint="DAZOUからチャットワークに通知する際に使います。">
+                                <template v-slot:append-outer>
+                                    <v-tooltip bottom>
+                                        <template v-slot:activator="{on}">
+                                            <v-icon v-on="on">mdi-help-circle-outline</v-icon>
+                                        </template>
+                                        Da-zouとのチャットワークのURLから[#!rid]以降の数字をコピーしていれてください。
+                                    </v-tooltip>
+                                </template>
+                            </v-text-field>
+                        </v-col>
+                    </v-row>
                 </v-container>
             </v-card-text>
             <v-card-actions>
