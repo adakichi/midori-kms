@@ -162,6 +162,7 @@ export default {
                 {text:'役職', value:'position'},
                 {text:'最終ログイン', value:'last_login'},
                 {text:'最終ログアウト', value:'last_logout'},
+                {text:'DA room id', value:'cw_dazou_room_id'},
                 {text:'編集', value:'action'},
             ]
         }
