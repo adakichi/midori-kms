@@ -181,7 +181,16 @@ app.post('/auth/login',(req,res)=>{
 
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
-  const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id FROM users'
+  const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id, date_format(leave_date, "%Y-%m-%d") as leave_date FROM users WHERE leave_date is null;'
+  db_midori_users.query(sql,(err,row,fields)=>{
+    if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
+    res.send(row)
+  })
+})
+
+//admin page用 users取得 ※退職者含む
+app.get('/auth/user/allUsers/all',(req,res)=>{
+  const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id, date_format(leave_date, "%Y-%m-%d") as leave_date FROM users;'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
@@ -217,6 +226,20 @@ app.put('/auth/user/editUser',(req,res)=>{
     if(err){ err.whichApi = 'put /auth/user/editUser' ; throw err }
     console.log(req.body.name +'を'+ req.body +'に変更しました。')
     logger.log(req.body.name +'を'+ req.body +'に変更しました。','Put -- /auth/user/editUser -- ')
+    res.send('変更しました。')
+  })
+})
+
+//admin page用 退所処理 変更
+app.put('/auth/user/leave-date',(req,res)=>{
+  console.log('Put -- /auth/user/leave-date -- ')
+  const sql = 'UPDATE users SET leave_date = ?  WHERE id = ?;'
+  const date = req.body.leave_date === '' ? null : req.body.leave_date
+  const values = [date, req.body.id]
+  db_midori_users.query(sql,values,(err,row,fields)=>{
+    if(err){ err.whichApi = 'put /auth/user/leave_date' ; throw err }
+    console.log(req.body.name +'を'+ req.body +'に変更しました。')
+    logger.log(req.body.name +'の退所日を'+ date +'に変更しました。','put /auth/user/leave_date -- ')
     res.send('変更しました。')
   })
 })

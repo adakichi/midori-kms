@@ -155,7 +155,36 @@
                                         ></v-text-field>
                                       </template>
                                 </v-edit-dialog>
-                          </template>
+                            </template>
+
+                            <!-- leave_date -->
+                            <template v-slot:item.leave_date="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.leave_date"
+                                  @save="putLeaveDate(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.leave_date }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                          v-model="props.item.leave_date"
+                                          label="Edit"
+                                          single-line
+                                        >
+                                        <template v-slot:append>
+                                          <v-date-picker 
+                                           v-model="props.item.leave_date"
+                                           locale="ja-jp"
+                                          ></v-date-picker>
+                                          <v-icon>mdi-calender</v-icon>
+                                        </template>
+                                        </v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                            </template>
 
                         </v-data-table>
                     </v-card-text>
@@ -202,7 +231,7 @@ export default {
                 {text:'最終ログイン', value:'last_login'},
                 {text:'最終ログアウト', value:'last_logout'},
                 {text:'DA room id', value:'cw_dazou_room_id'},
-                {text:'編集', value:'action'},
+                {text:'退所', value:'leave_date', groupable:false},
             ],
             //snackbar
             snack:'',
@@ -224,6 +253,17 @@ export default {
               console.log(response)
           })
         },
+        // 退所処理。
+        putLeaveDate(props){
+          const yesno = confirm('退所にしますか？')
+          if(!yesno){return}
+          this.$axios.put('/api/auth/user/leave-date',props.item)
+          .then(response => {
+            if(response.data.error){return this.popupSnackBar(response.data.message,'warning')}
+            this.popupSnackBar(response.data)
+              console.log(response)
+          })
+        },
         popupSnackBar(message,color){
                 let snackColor = 'success'
                 if(color){ snackColor = color }
@@ -233,7 +273,7 @@ export default {
         },
     },
     created(){
-        this.$axios.get('/api/auth/user/allUsers')
+        this.$axios.get('/api/auth/user/allUsers/all')
         .then(response => {
             console.log(response)
             this.users = response.data
