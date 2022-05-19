@@ -133,7 +133,7 @@
                     <v-tab-item>
                         <v-card>
                             <v-card-title>債務整理</v-card-title>
-                            <v-card-subtitle>さぶちゃん</v-card-subtitle>
+                            <v-card-subtitle></v-card-subtitle>
                             <v-card-text>
                                 <v-container>
                                     <v-row>
@@ -202,7 +202,7 @@
                     <v-tab-item>
                         <v-card>
                             <v-card-title>過払いデータ</v-card-title>
-                            <v-card-subtitle>さぶちゃん</v-card-subtitle>
+                            <v-card-subtitle></v-card-subtitle>
                             <v-card-text>
                                 <v-row>
                                     <v-col>
@@ -235,7 +235,7 @@
                                 </v-row>
                                 <v-row>
                                     <v-col>
-                                        <v-text-field label="訴訟提案:金額" suffix="％" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_proposal"></v-text-field>
+                                        <v-text-field label="訴訟提案:金額" suffix="％" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_maximum_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
                                         <v-text-field label="訴訟期間：最短" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earlier"></v-text-field>
@@ -260,7 +260,7 @@
                     <v-tab-item>
                         <v-card>
                             <v-card-title>詳細データ</v-card-title>
-                            <v-card-subtitle>さぶちゃん</v-card-subtitle>
+                            <v-card-subtitle></v-card-subtitle>
                             <v-card-text>
                                 <v-container>
                                     <v-row>
@@ -525,3 +525,14 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+    table{
+        border-collapse: collapse;
+    }
+
+    th,td{
+        padding: 5px;
+        border: 1px solid black;
+    }
+</style>
