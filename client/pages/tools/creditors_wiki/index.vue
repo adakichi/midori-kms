@@ -10,6 +10,7 @@
                     <v-spacer></v-spacer>
                     <v-btn to="/tools/creditors_wiki/log_list" nuxt>更新履歴一覧</v-btn>
                     <v-switch
+                    class="mt-5 ml-4"
                     v-model="isDisabled"
                     label="編集"
                     ></v-switch>
@@ -57,13 +58,51 @@
                             </v-card-text>
                         </v-card>
                     </v-tab-item>
+
+                    <!-- 概要 -->
                     <v-tab-item>
-                        <v-card>
+
+                        <!-- 表示データ -->
+                        <v-card v-show="!isDisabled">
+                            <v-card-text>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="800px">概要</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="text-align:left;" v-html="conv2br(selectedCreditor.caption)"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="800px">新規向けメモ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td v-html="conv2br(selectedCreditor.inquiry_memo)">{{selectedCreditor.inquiry_memo}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </v-card-text>
+                        </v-card>
+
+                        
+                        <v-card v-show="isDisabled">
                             <v-card-text>
                                 <v-textarea label="概要" :rows="countRows(selectedCreditor.caption)" :disabled="!isDisabled" outlined v-model="selectedCreditor.caption" :rules="[limit_length300]" counter="300"></v-textarea>
                             </v-card-text>
                             <v-card-text>
-                                <v-textarea label="新規向けメモ" :rows="countRows(selectedCreditor.caption)" :disabled="!isDisabled" outlined v-model="selectedCreditor.inquiry_memo" :rules="[limit_length300]" counter="300"></v-textarea>
+                                <v-textarea label="新規向けメモ" :rows="countRows(selectedCreditor.inquiry_memo)" :disabled="!isDisabled" outlined v-model="selectedCreditor.inquiry_memo" :rules="[limit_length300]" counter="300"></v-textarea>
                             </v-card-text>
                             <v-card-actions>
                                 <v-spacer></v-spacer>
@@ -72,7 +111,91 @@
                         </v-card>
                     </v-tab-item>
                     <v-tab-item>
-                        <v-card>
+
+                        <!-- 表示のカード -->
+                        <v-card v-show="!isDisabled">
+                            <v-card-title>受任関係</v-card-title>
+                            <v-card-text>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="300px">社名</th>
+                                            <th width="300px">旧社名</th>
+                                            <th width="100px">支店</th>
+                                            <th width="100px">地域</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.name}}</td>
+                                            <td>{{selectedCreditor.old_name}}</td>
+                                            <td>{{selectedCreditor.branch}}</td>
+                                            <td>{{selectedCreditor.area}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>受任可否(過払い)</th>
+                                            <th>受任可否(債務)</th>
+                                            <th>代理開示</th>
+                                            <th>無料引き直し</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.accept_overpaymen === 1 ? "OK" : "NG"}}</td>
+                                            <td>{{selectedCreditor.accept_debt === 1 ? "OK" : "NG"}}</td>
+                                            <td>{{selectedCreditor.survey_only === 1 ? "OK" : "NG"}}</td>
+                                            <td>{{selectedCreditor.self_culculation === 1 ? "OK" : "NG"}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>代理開示メモ</th>
+                                            <th>介入時注意点</th>
+                                            <th>その他メモ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.survey_only_memo}}</textarea></td>
+                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.caution}}</textarea></td>
+                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.survey_memo}}</textarea></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>履歴の開示期間</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.disclosure_period}}日</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </v-card-text>
+                        </v-card>
+
+                        <!-- 編集のカード -->
+                        <v-card v-show="isDisabled">
                             <v-card-title>受任関係</v-card-title>
                             <v-card-subtitle>{{selectedCreditor.name}}</v-card-subtitle>
                             <v-card-text>
@@ -130,8 +253,122 @@
                             </v-card-actions>
                         </v-card>
                     </v-tab-item>
-                    <v-tab-item>
-                        <v-card>
+                    <v-tab-item class="debt">
+
+                        <!-- 表示のカード -->
+                        <v-card v-show="!isDisabled">
+                            <v-card-title>債務整理</v-card-title>
+                            <v-card-text>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>支払い回数</th>
+                                            <th>最低金額</th>
+                                            <th>開始までの期間</th>
+                                            <th>経過利息</th>
+                                            <th>将来利息</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.number}}</td>
+                                            <td>{{selectedCreditor.minimum_payment}}円</td>
+                                            <td>{{selectedCreditor.can_wait}}日</td>
+                                            <td>{{selectedCreditor.accurued_interest}}</td>
+                                            <td>{{selectedCreditor.future_interest}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>短期取引ペナルティ</th>
+                                            <th>短期取引ペナルティメモ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.short_term == 0 ? '無し' : '有り'}}</td>
+                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.short_term_memo}}</textarea></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>和解書作成</th>
+                                            <th>和解書返還</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.contract_creater}}</td>
+                                            <td>{{selectedCreditor.return_contract_debt}}日</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>和解書メモ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.contract_memo_debt}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>時効援用メモ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.prescription_contract}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>中決時の注意点</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.contract_memo_debt}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>交渉時の注意点</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.prescription_contract}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </v-card-text>
+                        </v-card>
+
+                        <!-- 編集のカード -->
+                        <v-card v-show="isDisabled">
                             <v-card-title>債務整理</v-card-title>
                             <v-card-subtitle></v-card-subtitle>
                             <v-card-text>
@@ -199,8 +436,124 @@
                             </v-card-actions>
                         </v-card>
                     </v-tab-item>
+
+
                     <v-tab-item>
-                        <v-card>
+                        <!-- 表示のカード -->
+                        <v-card v-show="!isDisabled">
+                            <v-card-title>過払い</v-card-title>
+                            <v-card-text>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>提案まで</th>
+                                            <th>任意 上限</th>
+                                            <th>返金まで</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.until_proposal}}日</td>
+                                            <td>{{selectedCreditor.maximum_proposal}}％</td>
+                                            <td>{{selectedCreditor.return_date}}日</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>中決時の注意点</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:300px; margin:0; outline:0;">{{selectedCreditor.policy_memo_overpayment}}</textarea></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>交渉時の注意点</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:300px; margin:0; outline:0;">{{selectedCreditor.negotiation_memo_overpayment}}</textarea></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>和解書返還まで</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.return_contract_overpayment}}日</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>和解書メモ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; "><textarea disabled style="width:400px; min-height:50px; margin:0; outline:0;">{{selectedCreditor.contract_memo_overpayment}}</textarea></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>訴訟提案：金額</th>
+                                                <th>訴訟期間：最短</th>
+                                                <th>訴訟期間：最長</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.trial_maximum_proposal}}％</td>
+                                                <td>{{selectedCreditor.trial_period_earlier/30}}ヶ月</td>
+                                                <td>{{selectedCreditor.trial_period_longest/30}}ヶ月</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>訴訟メモ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.trial_memo}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </v-card-text>
+                        </v-card>
+
+                        <!-- 編集のカード -->
+                        <v-card v-show="isDisabled">
                             <v-card-title>過払いデータ</v-card-title>
                             <v-card-subtitle></v-card-subtitle>
                             <v-card-text>
@@ -238,11 +591,11 @@
                                         <v-text-field label="訴訟提案:金額" suffix="％" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_maximum_proposal"></v-text-field>
                                     </v-col>
                                     <v-col>
-                                        <v-text-field label="訴訟期間：最短" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earlier"></v-text-field>
+                                        <v-text-field label="訴訟期間：最短" suffix="日" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_earlier"></v-text-field>
                                     </v-col>
                                     ～
                                     <v-col>
-                                        <v-text-field label="訴訟期間：最長" suffix="ヶ月" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_longest"></v-text-field>
+                                        <v-text-field label="訴訟期間：最長" suffix="日" :disabled="!isDisabled" outlined v-model="selectedCreditor.trial_period_longest"></v-text-field>
                                     </v-col>
                                 </v-row>
                                 <v-row>
@@ -257,10 +610,159 @@
                             </v-card-actions>
                         </v-card>
                     </v-tab-item>
+
+                    <!-- 詳細データ -->
                     <v-tab-item>
-                        <v-card>
+
+                        <!-- 表示のカード -->
+                        <v-card v-show="!isDisabled">
+                            <v-card-title>詳細</v-card-title>
+                            <v-card-text>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="100px">SAIZO ID</th>
+                                            <th width="400px">名前</th>
+                                            <th width="400px">カナ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.saizo_id}}</td>
+                                            <td>{{selectedCreditor.name}}</td>
+                                            <td>{{selectedCreditor.kana}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="150">受任通知 郵送？</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.mail_start === 1 ? '郵送': 'FAX'}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>受任通知：メモ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:50px; margin:0; outline:0;">{{selectedCreditor.survey_memo}}</textarea></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                                <hr>
+                                <h3>本店所在地</h3>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="150">部署</th>
+                                            <th width="150">TEL</th>
+                                            <th width="150">FAX</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.division}}</td>
+                                            <td>{{selectedCreditor.phone}}</td>
+                                            <td>{{selectedCreditor.fax}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>郵便番号</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>〒{{selectedCreditor.post_code}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>住所</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.address}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <hr>
+                                <h3>受任通知送信先</h3>
+                                <div style="display: flex;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th width="150">部署</th>
+                                            <th width="150">TEL</th>
+                                            <th width="150">FAX</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{selectedCreditor.division_survey}}</td>
+                                            <td>{{selectedCreditor.phone_survey}}</td>
+                                            <td>{{selectedCreditor.fax_survey}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>郵便番号</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>〒{{selectedCreditor.post_code_survey}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>住所</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.address_survey}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </v-card-text>
+                        </v-card>
+
+                        <!-- 編集カード -->
+                        <v-card v-show="isDisabled">
                             <v-card-title>詳細データ</v-card-title>
-                            <v-card-subtitle></v-card-subtitle>
                             <v-card-text>
                                 <v-container>
                                     <v-row>
@@ -516,23 +1018,62 @@ export default {
                     return count.length + 5
                 }
             }
+        },
+        conv2br(str){
+            let converted = ''
+            if(typeof str === "string"){
+                converted = str.replace( /\n\n/g,"</p><p>")
+                return converted.replace( /\n/g,"<br>")
+            }
         }
     },
     computed:{
+        themeIsDark(){
+            return this.$vuetify.theme.isDark
+        }
     },
     created(){
         this.getCreditors()
+            console.log(this.$vuetify.theme)
     }
 }
 </script>
 
-<style scoped>
+
+<style lang="scss" scoped>
+    .theme--dark{
+        textarea:disabled{
+            color: white;
+        }
+        p{
+            color:white;
+        }
+        th,td{
+            color:#FFFFFF;
+        }
+        th{
+            background: #616161;
+        }
+        td{
+            background: #757575;
+        }
+    }
+
     table{
+        margin: 5px;
         border-collapse: collapse;
     }
 
     th,td{
         padding: 5px;
         border: 1px solid black;
+        min-width: 50px;
+        text-align: center;
+        textarea{
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
     }
+
 </style>
