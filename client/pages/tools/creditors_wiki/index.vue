@@ -37,6 +37,7 @@
                                 :items="creditors"
                                 :headers="creditorsHeaders"
                                 :search="searchText"
+                                items-per-page="20"
                                 @click:row="selectCreditor"
                                 >
                                  <template v-slot:item.accept_overpayment="{item}">
@@ -137,46 +138,24 @@
                                 </table>
                                 </div>
                                 <div style="display: flex;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>受任可否(過払い)</th>
-                                            <th>受任可否(債務)</th>
-                                            <th>代理開示</th>
-                                            <th>無料引き直し</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>{{selectedCreditor.accept_overpaymen === 1 ? "OK" : "NG"}}</td>
-                                            <td>{{selectedCreditor.accept_debt === 1 ? "OK" : "NG"}}</td>
-                                            <td>{{selectedCreditor.survey_only === 1 ? "OK" : "NG"}}</td>
-                                            <td>{{selectedCreditor.self_culculation === 1 ? "OK" : "NG"}}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                </div>
-
-                                <div style="display: flex;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>代理開示メモ</th>
-                                            <th>介入時注意点</th>
-                                            <th>その他メモ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.survey_only_memo}}</textarea></td>
-                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.caution}}</textarea></td>
-                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.survey_memo}}</textarea></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                </div>
-
-                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>受任可否(過払い)</th>
+                                                <th>受任可否(債務)</th>
+                                                <th>代理開示 可否</th>
+                                                <th>無料引き直し</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{okNgEtc(selectedCreditor.accept_overpayment)}}</td>
+                                                <td>{{okNgEtc(selectedCreditor.accept_debt)}}</td>
+                                                <td>{{okNgEtc(selectedCreditor.survey_only)}}</td>
+                                                <td>{{okNgEtc(selectedCreditor.self_culculation)}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <table>
                                         <thead>
                                             <tr>
@@ -189,6 +168,30 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                <table><thead><tr>
+                                            <th>代理開示メモ</th>
+                                    </tr></thead>
+                                    <tbody><tr>
+                                            <td style="padding:0; min-width:500px; min-height:150px;"><textarea disabled style="min-height:150px">{{selectedCreditor.survey_only_memo}}</textarea></td>
+                                </tr></tbody></table>
+                                <table><thead><tr>
+                                            <th>介入時注意点</th>
+                                    </tr></thead>
+                                    <tbody><tr>
+                                            <td style="padding:0;  min-width:500px; min-height:150px;"><textarea disabled style="min-height:150px">{{selectedCreditor.caution}}</textarea></td>
+                                </tr></tbody></table>
+                                </div>
+                                
+                                <div style="display: flex;">
+                                <table><thead><tr>
+                                            <th>その他メモ</th>
+                                    </tr></thead>
+                                    <tbody><tr>
+                                            <td style="padding:0;  min-width:500px; min-height:150px;"><textarea disabled style="min-height:150px">{{selectedCreditor.survey_memo}}</textarea></td>
+                                </tr></tbody></table>
                                 </div>
 
                             </v-card-text>
@@ -290,30 +293,27 @@
                                     <tbody>
                                         <tr>
                                             <td>{{selectedCreditor.short_term == 0 ? '無し' : '有り'}}</td>
-                                            <td style="padding:0; "><textarea disabled style="width:300px; min-height:100px; margin:0; outline:0;">{{selectedCreditor.short_term_memo}}</textarea></td>
+                                            <td style="padding:0; min-width:500px;"><textarea disabled style="min-height:50px; margin:0; outline:0;">{{selectedCreditor.short_term_memo}}</textarea></td>
                                         </tr>
                                     </tbody>
                                 </table>
                                 </div>
 
                                 <div style="display: flex;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>和解書作成</th>
-                                            <th>和解書返還</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>{{selectedCreditor.contract_creater}}</td>
-                                            <td>{{selectedCreditor.return_contract_debt}}日</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                </div>
-
-                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>和解書作成</th>
+                                                <th>和解書返還</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{selectedCreditor.contract_creater}}</td>
+                                                <td>{{selectedCreditor.return_contract_debt}}日</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <table>
                                         <thead>
                                             <tr>
@@ -322,22 +322,14 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>{{selectedCreditor.contract_memo_debt}}</td>
+                                                <td style="padding:0; min-width:500px;"><textarea disabled style="min-height:50px; margin:0; outline:0;">{{selectedCreditor.contract_memo_debt}}</textarea></td>
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>時効援用メモ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>{{selectedCreditor.prescription_contract}}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+
+                                </div>
+
+                                <div style="display: flex;">
                                     <table>
                                         <thead>
                                             <tr>
@@ -346,7 +338,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>{{selectedCreditor.contract_memo_debt}}</td>
+                                                <td style="padding:0; min-width:500px;"><textarea disabled style="min-height:150px; margin:0; outline:0;">{{selectedCreditor.policy_memo_debt}}</textarea></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -358,7 +350,22 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>{{selectedCreditor.prescription_contract}}</td>
+                                                <td style="padding:0; min-width:500px;"><textarea disabled style="min-height:150px; margin:0; outline:0;">{{selectedCreditor.negotiation_memo_debt}}</textarea></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="display: flex;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>時効援用メモ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style="padding:0; min-width:500px;"><textarea disabled style="min-height:50px; margin:0; outline:0;">{{selectedCreditor.prescription_contract}}</textarea></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -471,7 +478,7 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:300px; margin:0; outline:0;">{{selectedCreditor.policy_memo_overpayment}}</textarea></td>
+                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:200px; margin:0; outline:0;">{{selectedCreditor.policy_memo_overpayment}}</textarea></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -483,7 +490,7 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:300px; margin:0; outline:0;">{{selectedCreditor.negotiation_memo_overpayment}}</textarea></td>
+                                            <td style="padding:0; "><textarea disabled style="width:500px; min-height:200px; margin:0; outline:0;">{{selectedCreditor.negotiation_memo_overpayment}}</textarea></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -897,7 +904,8 @@ export default {
                 {text:'名前',         value:'name'},
                 {text:'過払い受任',   value:'accept_overpayment'},
                 {text:'債務整理受任',   value:'accept_debt'},
-                {text:'代理開示',     value:'survey_only'}
+                {text:'代理開示',     value:'survey_only'},
+                {text:'旧社名',     value:'old_name'}
             ],
             selectedCreditor:{name:'未選択'},
             isDisabled:false,
@@ -1070,9 +1078,11 @@ export default {
         min-width: 50px;
         text-align: center;
         textarea{
-            margin: 0;
+            margin : 0;
             padding: 0;
             outline: none;
+            width  : 100%;
+            height : 100%;
         }
     }
 
