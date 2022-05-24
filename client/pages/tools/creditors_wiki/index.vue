@@ -409,7 +409,7 @@
                                             <v-text-field label="最低支払金額" :disabled="!isDisabled" suffix="円" type="number" outlined v-model="selectedCreditor.minimum_payment"></v-text-field>
                                         </v-col>
                                         <v-col>
-                                            <v-select label="和解書作成者" :disabled="!isDisabled" outlined :items="contractCreater" v-model="selectedCreditor.contract_creater"></v-select>
+                                            <v-select label="和解書作成者" :disabled="!isDisabled" outlined :items="contractCreator" v-model="selectedCreditor.contract_creator"></v-select>
                                         </v-col>
                                         <v-col>
                                             <v-text-field label="和解書の返還まで" :disabled="!isDisabled" suffix="日" type="number" outlined v-model="selectedCreditor.return_contract_debt" hint="支払い開始日から数える場合は -(ﾏｲﾅｽ) をつけて"></v-text-field>
