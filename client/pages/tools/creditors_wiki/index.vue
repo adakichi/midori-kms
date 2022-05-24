@@ -309,7 +309,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>{{selectedCreditor.contract_creater}}</td>
+                                                <td>{{selectedCreditor.contract_creator}}</td>
                                                 <td>{{selectedCreditor.return_contract_debt}}日</td>
                                             </tr>
                                         </tbody>
@@ -918,7 +918,7 @@ export default {
             ],
             accureedString:['必要','不要','必要(提案まで)','必要(和解日まで)','必要(支払開始まで)','必要(12回であれば不要)'],
             interestString:['必要','不要','減率'],
-            contractCreater:['先方','みどり'],
+            contractCreater:['債権者','事務所'],
             mailStart:[{text:'FAXでOK',value:0},{text:'郵送',value:1},{text:'メモ参照',value:2},{text:'未選択',value:null}],
             /////////////////////////////
             shortTerm:[
