@@ -901,7 +901,7 @@ export default {
             updateMemoDialog:false,
             updateMemo:'',
             creditorsHeaders:[
-                {text:'名前',         value:'name'},
+                {text:'名前',         value:'name', width:"300px"},
                 {text:'過払い受任',   value:'accept_overpayment'},
                 {text:'債務整理受任',   value:'accept_debt'},
                 {text:'代理開示',     value:'survey_only'},
