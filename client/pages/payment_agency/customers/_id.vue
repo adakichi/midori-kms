@@ -1019,6 +1019,8 @@ export default {
             createScheduleDialog:false,
             registerComeInRecordsDialog:false,
             editTemporaryDialog:false,
+            editDialogPaymentScheduleDate:false,
+            editDialogPaymentScheduleAmount:false,
             editDialogPaymentScheduleMemo:false,
             editDialogPaymentDay:false,
             editDialogExpectedAmount:false,
