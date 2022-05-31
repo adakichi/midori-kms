@@ -233,34 +233,37 @@ export const sqls = {
       }
   
       //支払い済みを含めるかどうか
+      //※重要※ 支払い済みを含める場合、仮出金を含めるかどうかの判定をしてしまうと、仮出金を含め無いに☑が入っていた場合ヒットしなくなる！
       if(options.isPaidDate == 'true'){
         if(sql.indexOf('WHERE') >= 0){
           sql = sql + 'AND ps.paid_date is NOT NULL '
         } else {
           sql = sql + 'WHERE ps.paid_date is NOT NULL '
         }
+
       } else if(options.isPaidDate == 'false'){
         if(sql.indexOf('WHERE') >= 0){
           sql = sql + 'AND ps.paid_date is NULL '
         } else {
           sql = sql + 'WHERE ps.paid_date is NULL '
         }
+
+        //仮出金を含めるかどうか
+        if(options.isExpectedDate == 'true'){
+          if(sql.indexOf('WHERE') >= 0){
+            sql = sql + 'AND ps.expected_date is NOT NULL '
+          } else {
+            sql = sql + 'WHERE ps.expected_date is NOT NULL '
+          }
+        } else if(options.isExpectedDate == 'false'){
+          if(sql.indexOf('WHERE') >= 0){
+            sql = sql + 'AND ps.expected_date is NULL '
+          } else {
+            sql = sql + 'WHERE ps.expected_date is NULL '
+          }
+        }
       }
 
-      //仮出金を含めるかどうか
-      if(options.isExpectedDate == 'true'){
-        if(sql.indexOf('WHERE') >= 0){
-          sql = sql + 'AND ps.expected_date is NOT NULL '
-        } else {
-          sql = sql + 'WHERE ps.expected_date is NOT NULL '
-        }
-      } else if(options.isExpectedDate == 'false'){
-        if(sql.indexOf('WHERE') >= 0){
-          sql = sql + 'AND ps.expected_date is NULL '
-        } else {
-          sql = sql + 'WHERE ps.expected_date is NULL '
-        }
-      }
 
       sql = sql + 'ORDER BY date;'
       console.log('sql:',sql)
