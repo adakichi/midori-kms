@@ -254,7 +254,7 @@ export const sqls = {
         } else {
           sql = sql + 'WHERE ps.expected_date is NOT NULL '
         }
-      } else if(options.isExpectedDate == 'true'){
+      } else if(options.isExpectedDate == 'false'){
         if(sql.indexOf('WHERE') >= 0){
           sql = sql + 'AND ps.expected_date is NULL '
         } else {
@@ -263,6 +263,7 @@ export const sqls = {
       }
 
       sql = sql + 'ORDER BY date;'
+      console.log('sql:',sql)
       return {sql:sql,values:values}
     },
 
