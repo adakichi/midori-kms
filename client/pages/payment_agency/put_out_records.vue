@@ -422,11 +422,13 @@ export default {
             //this.selected　について①出金OKかどうか判定　→　②CSVダウンロード　→　③DBに仮出金登録
             //①出金OKかどうか判定
             const selected = this.selected
+            selected.sort((a,b)=>{
+                return a.date > b.date ? 1 : -1;
+            })
             this.selected = [] //初期化
             if(selected.length <= 0){ return alert('Error : 選択されてません！！')}
             //selectedからカスタマーのIDを抽出
             const ids = getIdsFromPaymentSchedules(selected)
-            console.log('ids:',ids)
             //預り金があるか等の確認の為顧客情報を取得
             this.$axios.get('api/payment_agency/payment_schedules/customers_deposit',{params:{ids:ids}})
             .then((response)=>{
@@ -444,7 +446,6 @@ export default {
             })
         },
         downloadCsv(target,type){
-            console.log('okarray len:',target.length,target.length > 0)
             if(target.length < 1){ return alert('データがありません！') }
 
             //②CSVダウンロード
@@ -495,6 +496,7 @@ export default {
                 this.resultDialog = true
                 console.log(response.data)
                 console.log(this.resultArray)
+                this.searchRecords()
             })
         },
         closeResultDialog(){
