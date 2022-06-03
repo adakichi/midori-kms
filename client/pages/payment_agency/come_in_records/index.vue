@@ -109,10 +109,10 @@
                 <v-card-title>手入力仕訳</v-card-title>
                 <v-card-text>
                     <v-select :items="itemsMotocho" v-model="journal.motocho" label="元帳" ></v-select>
-                    <v-select label="借方勘定科目" v-model="journal.debitAccount" :items="journalAccount"></v-select>
-                    <v-select label="借方勘定 補助科目" v-model="journal.debitSubaccount" :items="journalAccount"></v-select>
-                    <v-select label="貸方勘定科目" v-model="journal.creditAccount" :items="journalAccount"></v-select>
-                    <v-select label="貸方勘定 補助科目" v-model="journal.creditSubaccount" :items="journalAccount"></v-select>
+                    <v-select label="借方勘定科目"      v-model="journal.debitAccount" :items="journalAccount"></v-select>
+                    <v-select label="借方勘定 補助科目" v-model="journal.debitSubaccount" :items="journalsubaccount"></v-select>
+                    <v-select label="貸方勘定科目"      v-model="journal.creditAccount" :items="journalAccount"></v-select>
+                    <v-select label="貸方勘定 補助科目" v-model="journal.creditSubaccount" :items="journalsubaccount"></v-select>
                     <v-text-field v-model="journal.amount" disabled label="金額"></v-text-field>
                     <v-text-field v-model="journal.customerId" type="number" label="受任番号" hint="特に無い場合はゼロのままでOK"></v-text-field>
                     <v-text-field v-model="journal.memo" label="メモ"></v-text-field>
@@ -168,8 +168,9 @@ export default {
             //jounal dialog
             journalDialog:false,
             journal:{motocho:'',debitAccount:'',debitSubaccount:'',creditAccount:'',creditSubaccount:'',customerId:0,memo:''},
-            itemsMotocho:['利息','振込手数料'],
-            journalAccount:['預金[ﾐﾂｲｽﾐﾄﾓ]','預金[ｼｺｸ]','預金[ﾍﾟｲﾍﾟｲ]','受取利息','振込手数料'],
+            itemsMotocho:['利息','振込手数料','訂正'],
+            journalAccount:['預金','仮払金','受取利息','振込手数料'],
+            journalsubaccount:['ﾐﾂｲｽﾐﾄﾓ','ｼｺｸ','ペイペイ',''],
             /////////////
 
             //snackBar
