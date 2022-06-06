@@ -604,7 +604,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
                 if(rows3.length > 0){ return db_payment_agency.rollback(()=>{ resolve({message:'重複->'+ value[5] + '列目 名前:' + value[1]})})}
                 console.log('rows3:',rows3)
                 //insert
-                const sql2 = 'insert ignore into come_in_records (customer_id,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id, file_row_number) VALUES (?,?,?,?,?,?)'
+                const sql2 = 'insert ignore into come_in_records (customer_id ,come_in_name, actual_deposit_amount, actual_deposit_date, importfile_id, file_row_number) VALUES (?,?,?,?,?,?)'
                 console.log('value:',value)
                 db_payment_agency.query(sql2,value,(err4,row4,fields4)=>{
                   if(err4){console.log('err4:',err4); return db_payment_agency.rollback(()=>{ throw err4})}
@@ -797,6 +797,7 @@ app.put('/payment_agency/matching',(req,res)=>{
       const cisAmount     = data.cis.expected_amount
       const cirId         = data.cir.come_in_records_id
       const cirAmount     = data.cir.actual_deposit_amount
+      const cirActualDate     = data.cir.actual_deposit_date
       const cisVal = [cirId,cisId]
       const cisSql = 'UPDATE come_in_schedules SET come_in_records_id = ?  WHERE come_in_schedules_id = ?;'
       const cirVal = [cisId,customerId,cirId]
@@ -918,7 +919,7 @@ app.put('/payment_agency/matching',(req,res)=>{
                   }
                   console.log('rows7:',rows7)
                   //3. journal book に仕分を登録
-                  const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId,bank)
+                  const journalBookData = convPostJournalBook(cirId,updateCustomersValue,customerId,bank,cirActualDate)
                   console.log('sql:',journalBookData.sql,'value:',journalBookData.values)
                   db_payment_agency.query(journalBookData.sql,[journalBookData.values],(err8,rows8,fields8)=>{
                     if(err8){
@@ -967,31 +968,32 @@ app.put('/payment_agency/matching',(req,res)=>{
     }
   }
   //関数２）journal bookへの登録
-  function convPostJournalBook(cirId,valuesArray, customerId,bank){
+  function convPostJournalBook(cirId,valuesArray, customerId,bank,cirActualDate){
     //(valuesArray)updateCustomersValue = [accountsReceivableInsertValue, depositInsertValue, advancePaymentInsertValue, temporaryReceiptInsertValue]
 
     const motocho = 'cir'+ cirId
-    const sql = 'INSERT INTO journal_book (motocho, debit_account, debit_subaccount, debit, credit_account, credit, customer_id) VALUES ?;'
+    const datetime = moment(cirActualDate).format('YYYY-MM-DD HH:mm:ss')
+    const sql = 'INSERT INTO journal_book (motocho, date, debit_account, debit_subaccount, debit, credit_account, credit, customer_id) VALUES ?;'
     let postJournalVals = []
     console.log('valuesArray:',valuesArray)
     //売掛金 accounts_receivableInsertValue
     if(valuesArray[0] > 0){
-      postJournalVals.push([motocho, '預金', bank, valuesArray[0], '売掛金', valuesArray[0], customerId])
+      postJournalVals.push([motocho, datetime, '預金', bank, valuesArray[0], '売掛金', valuesArray[0], customerId])
     }
 
     //預り金 depositInsertValue
     if(valuesArray[1] > 0){
-      postJournalVals.push([motocho, '預金', bank, valuesArray[1], '預り金', valuesArray[1], customerId])
+      postJournalVals.push([motocho, datetime, '預金', bank, valuesArray[1], '預り金', valuesArray[1], customerId])
     }
 
     //前受金 advancePaymentInsertValue
     if(valuesArray[2] > 0){
-      postJournalVals.push([motocho, '預金', bank, valuesArray[2], '前受金', valuesArray[2], customerId])
+      postJournalVals.push([motocho, datetime, '預金', bank, valuesArray[2], '前受金', valuesArray[2], customerId])
     }
 
     //仮受金 temporaryReceiptInsertValue
     if(valuesArray[3] > 0){
-      postJournalVals.push([motocho, '預金', bank, valuesArray[3], '仮受金', valuesArray[3], customerId])
+      postJournalVals.push([motocho, datetime, '預金', bank, valuesArray[3], '仮受金', valuesArray[3], customerId])
     }
     return {sql:sql,values:postJournalVals}
   }
