@@ -171,6 +171,7 @@ export default {
             }
         },
         submitData(){
+            if(this.selected.length < 1){return alert('登録するデータを選択してください。')}
             const selectedItems = this.selected
             this.fileInfo.imported = selectedItems.length
             console.log('submit data')
