@@ -663,7 +663,7 @@ app.post('/payment_agency/cir/irregular', (req,res)=>{
 
 
     //まずjournal登録
-    let sql = 'INSERT INTO journal_book (motocho,debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit,customer_id, memo) VALUES (?)'
+    let sql = 'INSERT INTO journal_book (motocho, date, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit,customer_id, memo) VALUES (?)'
     db_payment_agency.query(sql,[req.body.journalValues],(err1,rows1,fields1)=>{
       if(err1){ return db_payment_agency.rollback(()=>{throw err1})}
 
