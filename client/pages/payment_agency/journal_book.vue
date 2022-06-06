@@ -83,6 +83,8 @@
                         <v-card-title>手入力仕訳</v-card-title>
                         <v-card-text>
                             <v-select :items="itemsMotocho" v-model="motocho" label="元帳" ></v-select>
+                            <v-text-field v-model="journalDate" label="日付" type="date"></v-text-field>
+                            <v-text-field v-model="journalTime" label="日付" type="time"></v-text-field>
                             <v-select :items="accounts" v-model="debit_account" label="借方勘定科目"></v-select>
                             <v-select label="借方：補助科目" v-model="debit_subaccount" :items="subaccounts"></v-select>
                             <v-select :items="accounts" v-model="credit_account" label="貸方勘定科目"></v-select>
@@ -120,7 +122,7 @@
 </template>
 
 <script>
-import {createDownloadATag} from '/client/plugins/util.js'
+import {createDownloadATag, getToday} from '/client/plugins/util.js'
 const {Parser} = require('json2csv')
 export default {
     layout : 'pa',
@@ -135,6 +137,8 @@ export default {
             /////dialog//////
             dialog:false,
             motocho:[],
+            journalDate:'',
+            journalTime:'',
             debit_account:'',
             credit_account:'',
             debit_subaccount:'',
@@ -212,11 +216,14 @@ export default {
         },
         openDialog(){
             this.dialog = true
+            this.journalDate = getToday()
+            this.journalTime = '00:00:00'
         },
         createNewJournal(){
             const doNot = !confirm('本当に登録してOKですか？')
             if(doNot){ return }
-            const valArray = [this.motocho,this.debit_account , this.debit_subaccount ,this.amount, this.credit_account, this.credit_subaccount, this.amount, this.customerId,this.memo]
+            const datetime = this.journalDate + ' ' + this.journalTime
+            const valArray = [this.motocho, datetime ,this.debit_account , this.debit_subaccount ,this.amount, this.credit_account, this.credit_subaccount, this.amount, this.customerId,this.memo]
             this.$axios.post('api/payment_agency/journal_book/',{values:valArray})
             .then(response=>{
                 if(response.data.error){return alert(response.data.message)}

@@ -1812,7 +1812,7 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
 */
 app.post('/payment_agency/journal_book',(req,res)=>{
   console.log('POST /payment_agency/journal_book')
-  let sql = 'INSERT INTO journal_book (motocho,debit_account,debit_subaccount,debit,credit_account,credit_subaccount,credit,customer_id, memo) VALUES (?)'
+  let sql = 'INSERT INTO journal_book (motocho, date, debit_account,debit_subaccount,debit,credit_account,credit_subaccount,credit,customer_id, memo) VALUES (?)'
   console.log(req.body.values)
   db_payment_agency.query(sql,[req.body.values],(err,rows,fields)=>{
     if(err){ throw err}
@@ -2219,7 +2219,7 @@ const cancelConfirmPaymentScheduleTransaction = function(id){
   })
 }
 
-app.get('/payment_agency/journal_book/',(req,res)=>{
+app.get('/payment_agency/journal_book',(req,res)=>{
   const options = JSON.parse(req.query.options)
   let sql = ''
   let values = []
