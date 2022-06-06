@@ -11,7 +11,6 @@ export const sqls = {
         //optionsは
         //[paid] trueなら支払い済みを検索,falseならまだ支払いしてないものを。
         //[importfileId]がある場合はimportfile_id検索追加
-        console.log('options:',options)
         let sql = 'SELECT come_in_records_id, customer_id, come_in_name, '
         sql = sql + 'actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, memo, '
         sql = sql + 'case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, '
@@ -130,7 +129,6 @@ export const sqls = {
     //optionにfromとuntilがある場合はその範囲
     //片方だけの場合は片方のみ。
     //無い場合には今日から30日で取得する。
-    console.log('get payment~ options:',options)
     let from = ''
     let until = ''
     let sql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, cis.memo, '
@@ -209,7 +207,6 @@ export const sqls = {
     // const isExpectedDate = options.isExpectedDate
     let sql = ''
     let values = []
-    console.log(options)
       sql = 'SELECT ps.payment_schedule_id, ps.payment_account_id, ps.amount, pa.advisory_fee, pa.commission, date_format(ps.date, "%Y/%m/%d")as date, ps.memo, '
       sql = sql + 'date_format(ps.paid_date,"%Y%m%d")as paid_date , date_format(ps.expected_date,"%Y%m%d")as expected_date ,cu.name, cu.kana, cu.customer_id, '
       sql = sql + 'bankcode, branchcode, kind, account_number, account_holder , creditors.creditor_name FROM payment_schedules as ps '
@@ -266,7 +263,6 @@ export const sqls = {
 
 
       sql = sql + 'ORDER BY date;'
-      console.log('sql:',sql)
       return {sql:sql,values:values}
     },
 

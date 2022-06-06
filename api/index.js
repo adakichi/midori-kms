@@ -542,12 +542,11 @@ app.post('/biztel/hangup',(req,res)=>{
 ////---- 以下payment Agency用 ----////
 //get come_in_records
 app.get('/payment_agency/cir/',(req,res)=>{
-  console.log('\n ---get payment_agensy/cir ---')
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.get_payment_agency_cir(options)
   db_payment_agency.query(sql,(err,rows,fields)=>{
     if(err){ err.whichApi = 'get /payment_agency/cir/' ; throw err }
-    console.log('\n--- /payment_agency/cir/ ---\napi server:\n---x---x---x---x---')
+    console.log('\n---get payment_agensy/cir ---','\n---x---x Done cir x---x---')
     res.send(rows)
   })
 })
@@ -657,7 +656,7 @@ app.post('/payment_agency/cir/', (req,res)=>{
 //イレギュラー入金についての処理。
 //CIRを紐づけ済みにする＆メモ欄等の入力 & 仕訳情報の入力
 app.post('/payment_agency/cir/irregular', (req,res)=>{
-  console.log('--- POST payment_agency/cir/irregular ---')
+  console.log('\n--- POST payment_agency/cir/irregular ---')
   db_payment_agency.beginTransaction(err0=>{
     if(err0){return db_payment_agency.rollback(()=>{throw err0})}
 
@@ -675,7 +674,7 @@ app.post('/payment_agency/cir/irregular', (req,res)=>{
 
         db_payment_agency.commit(err=>{
           if(err){return db_payment_agency.rollback(()=>{throw err})}
-          console.log('Success')
+          console.log('--- irregular Success ---')
           logger.log(req.body,'CIRのイレギュラー処理 payment_agency/cir/irregular')
           res.send('CIRのイレギュラー処理終わりました。')
         })
@@ -1134,12 +1133,11 @@ function cancelMatchingTransaction(targetObject){
 
 //get come in schedules
 app.get('/payment_agency/cis/',(req,res)=>{
-  console.log(req.query)
   const options = JSON.parse(JSON.stringify(req.query))
   const sql = sqls.get_payment_agency_cis(options)
   db_payment_agency.query(sql,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get /payment_agency/cis/' ;throw err}
-    console.log('\n--- Get /payment_agency/cis/ ---\napi server:\n---x---x---x---x---')
+    console.log('\n--- Get /payment_agency/cis/ ---','\n---x---x Done cis x---x---')
     res.send(rows)
   })
 })
@@ -1153,7 +1151,7 @@ app.get('/payment_agency/cis/diff',(req,res)=>{
   sql = sql + 'WHERE cis.expected_amount != cir.actual_deposit_amount;'
   db_payment_agency.query(sql,(err,rows,fields)=>{
     if(err){ err.whichApi= 'get /payment_agency/cis/diff' ;throw err}
-    console.log('\n--- Get /payment_agency/cis/diff ---\napi server:\n---x---x---x---x---')
+    console.log('\n--- Get /payment_agency/cis/diff ---','---x---x Done cis diff x---x---')
     res.send(rows)
   })
 })
