@@ -473,6 +473,14 @@ const getNextWeek = function(){
     return moment().add(7,'days').format('YYYY-MM-DD')
 }
 
+const getToday = function(){
+    return moment().format('YYYY-MM-DD')
+}
+
+const getDateTime = function(){
+    return moment().format('YYYY-MM-DD HH:mm:ss')
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -494,5 +502,7 @@ export {
     getNextMonth,
     getMonthAfterNext,
     getLastMonth,
-    getNextWeek
+    getNextWeek,
+    getToday,
+    getDateTime
 }

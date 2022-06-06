@@ -108,11 +108,13 @@
             <v-card class="pa-5">
                 <v-card-title>手入力仕訳</v-card-title>
                 <v-card-text>
-                    <v-select :items="itemsMotocho" v-model="journal.motocho" label="元帳" ></v-select>
-                    <v-select label="借方勘定科目"      v-model="journal.debitAccount" :items="journalAccount"></v-select>
-                    <v-select label="借方勘定 補助科目" v-model="journal.debitSubaccount" :items="journalsubaccount"></v-select>
-                    <v-select label="貸方勘定科目"      v-model="journal.creditAccount" :items="journalAccount"></v-select>
-                    <v-select label="貸方勘定 補助科目" v-model="journal.creditSubaccount" :items="journalsubaccount"></v-select>
+                    <v-select label="元帳"              v-model="journal.motocho"           :items="itemsMotocho"  ></v-select>
+                    <v-text-field v-model="journal.date" label="日付" type="date"></v-text-field>
+                    <v-text-field v-model="journal.time" label="日付" type="time"></v-text-field>
+                    <v-select label="借方勘定科目"      v-model="journal.debitAccount"      :items="journalAccount"></v-select>
+                    <v-select label="借方勘定 補助科目" v-model="journal.debitSubaccount"   :items="journalsubaccount"></v-select>
+                    <v-select label="貸方勘定科目"      v-model="journal.creditAccount"     :items="journalAccount"></v-select>
+                    <v-select label="貸方勘定 補助科目" v-model="journal.creditSubaccount"  :items="journalsubaccount"></v-select>
                     <v-text-field v-model="journal.amount" disabled label="金額"></v-text-field>
                     <v-text-field v-model="journal.customerId" type="number" label="受任番号" hint="特に無い場合はゼロのままでOK"></v-text-field>
                     <v-text-field v-model="journal.memo" label="メモ"></v-text-field>
@@ -147,6 +149,7 @@ import {createDownloadATag} from '/client/plugins/util.js'
 import {getNextMonth}       from '/client/plugins/util.js'
 import {getLastMonth}       from '/client/plugins/util.js'
 import {getMonthAfterNext}       from '/client/plugins/util.js'
+import {getDateTime,getToday}       from '/client/plugins/util.js'
 const {Parser} = require('json2csv')
 
 export default {
@@ -167,7 +170,7 @@ export default {
 
             //jounal dialog
             journalDialog:false,
-            journal:{motocho:'',debitAccount:'',debitSubaccount:'',creditAccount:'',creditSubaccount:'',customerId:0,memo:''},
+            journal:{motocho:'',date:'',time:'00:00:00',debitAccount:'',debitSubaccount:'',creditAccount:'',creditSubaccount:'',customerId:0,memo:''},
             itemsMotocho:['利息','振込手数料','訂正'],
             journalAccount:['預金','仮払金','受取利息','振込手数料'],
             journalsubaccount:['ﾐﾂｲｽﾐﾄﾓ','ｼｺｸ','ペイペイ',''],
@@ -301,13 +304,15 @@ export default {
             this.journalDialog = true
             console.log(this.selectItem)
             this.journal.amount = this.selectItem.actual_deposit_amount
+            this.journal.date = getToday()
         },
         createNewJournal(){
             const doNot = !confirm('本当に登録しますか？')
             if(doNot){ return }
             console.log(this.selectItem)
+            const datetime = this.journal.date + ' ' + this.journal.time
             const motocho = this.journal.motocho + ':cir[' + this.selectItem.come_in_records_id+']'
-            const journalArray = [motocho,this.journal.debitAccount,this.journal.debitSubaccount,this.journal.amount,this.journal.creditAccount,this.journal.creditSubaccount, this.journal.amount, this.journal.customerId,this.journal.memo]
+            const journalArray = [motocho, datetime, this.journal.debitAccount,this.journal.debitSubaccount,this.journal.amount,this.journal.creditAccount,this.journal.creditSubaccount, this.journal.amount, this.journal.customerId,this.journal.memo]
             this.$axios.post('api/payment_agency/cir/irregular',{journalValues:journalArray,cirId:this.selectItem.come_in_records_id,customerId:this.journal.customerId ,memo:this.journal.memo,motocho:this.journal.motocho})
             .then(response=>{
                 if(response.data.error){return alert(response.data.message)}
