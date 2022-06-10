@@ -156,7 +156,7 @@ export default {
             ////▲▲▲▲▲▲▲▲▲▲▲▲▲//////
             journalBookHeaders:[
                 { text:'元帳',  value:'motocho'},
-                { text:'日付',  value:'date'},
+                { text:'日付',  value:'accounting_date'},
                 { text:'借方勘定科目',  value:'debit_account'},
                 { text:'借方勘定補助科目',  value:'debit_subaccount'},
                 { text:'貸方勘定科目',  value:'credit_account'},
@@ -186,7 +186,7 @@ export default {
         },
         downloadCsv(){
             //②CSVダウンロード
-            const fields = ['motocho', 'date', 'debit_account','debit_subaccount', 'credit_account','credit_subaccount', 'debit', 'credit', 'customer_id','name','memo']
+            const fields = ['motocho', 'accounting_date', 'debit_account','debit_subaccount', 'credit_account','credit_subaccount', 'debit', 'credit', 'customer_id','name','memo']
             const json2csvParser = new Parser({fields:fields,header:true,withBOM:true})
             let exportText = json2csvParser.parse(this.journalBook)
             const link = createDownloadATag(exportText)
