@@ -662,7 +662,7 @@ app.post('/payment_agency/cir/irregular', (req,res)=>{
 
 
     //まずjournal登録
-    let sql = 'INSERT INTO journal_book (motocho, date, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit,customer_id, memo) VALUES (?)'
+    let sql = 'INSERT INTO journal_book (motocho, accounting_date, debit_account, debit_subaccount, debit, credit_account, credit_subaccount, credit,customer_id, memo) VALUES (?)'
     db_payment_agency.query(sql,[req.body.journalValues],(err1,rows1,fields1)=>{
       if(err1){ return db_payment_agency.rollback(()=>{throw err1})}
 
@@ -973,7 +973,7 @@ app.put('/payment_agency/matching',(req,res)=>{
 
     const motocho = 'cir'+ cirId
     const datetime = moment(cirActualDate).format('YYYY-MM-DD HH:mm:ss')
-    const sql = 'INSERT INTO journal_book (motocho, date, debit_account, debit_subaccount, debit, credit_account, credit, customer_id) VALUES ?;'
+    const sql = 'INSERT INTO journal_book (motocho, accounting_date, debit_account, debit_subaccount, debit, credit_account, credit, customer_id) VALUES ?;'
     let postJournalVals = []
     console.log('valuesArray:',valuesArray)
     //売掛金 accounts_receivableInsertValue
@@ -1814,7 +1814,7 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
 */
 app.post('/payment_agency/journal_book',(req,res)=>{
   console.log('POST /payment_agency/journal_book')
-  let sql = 'INSERT INTO journal_book (motocho, date, debit_account,debit_subaccount,debit,credit_account,credit_subaccount,credit,customer_id, memo) VALUES (?)'
+  let sql = 'INSERT INTO journal_book (motocho, accounting_date, debit_account,debit_subaccount,debit,credit_account,credit_subaccount,credit,customer_id, memo) VALUES (?)'
   console.log(req.body.values)
   db_payment_agency.query(sql,[req.body.values],(err,rows,fields)=>{
     if(err){ throw err}
@@ -2228,9 +2228,9 @@ app.get('/payment_agency/journal_book',(req,res)=>{
   console.log(options)
   //journal_book と journal_book_for_receivableどっち？
   if(options.table){
-    sql = 'SELECT *, jb.memo, DATE_FORMAT(date, "%Y/%m/%d %T")as date FROM '+ options.table +' as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
+    sql = 'SELECT *, jb.memo, DATE_FORMAT(accounting_date, "%Y/%m/%d %T")as date FROM '+ options.table +' as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
   } else {
-    sql = 'SELECT *, jb.memo, DATE_FORMAT(date, "%Y/%m/%d %T")as date FROM journal_book as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
+    sql = 'SELECT *, jb.memo, DATE_FORMAT(accounting_date, "%Y/%m/%d %T")as date FROM journal_book as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
   }
   if(options.from){ 
     sql + 'WHERE date <= "' + options.from + '" '
