@@ -1150,7 +1150,7 @@ export default {
             journalBook:[],
             journalBookHeaders:[
                 { text:'元帳',              value:'motocho'},
-                { text:'日付',              value:'date'},
+                { text:'日付',              value:'accounting_date'},
                 { text:'借方勘定科目',      value:'debit_account'},
                 { text:'借方勘定補助科目',  value:'debit_subaccount'},
                 { text:'貸方勘定科目',      value:'credit_account'},
