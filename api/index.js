@@ -2228,9 +2228,9 @@ app.get('/payment_agency/journal_book',(req,res)=>{
   console.log(options)
   //journal_book と journal_book_for_receivableどっち？
   if(options.table){
-    sql = 'SELECT *, jb.memo, DATE_FORMAT(accounting_date, "%Y/%m/%d %T")as date FROM '+ options.table +' as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
+    sql = 'SELECT *, jb.memo, DATE_FORMAT(accounting_date, "%Y/%m/%d %T")as accounting_date FROM '+ options.table +' as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
   } else {
-    sql = 'SELECT *, jb.memo, DATE_FORMAT(accounting_date, "%Y/%m/%d %T")as date FROM journal_book as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
+    sql = 'SELECT *, jb.memo, DATE_FORMAT(accounting_date, "%Y/%m/%d %T")as accounting_date FROM journal_book as jb Left JOIN customers ON jb.customer_id = customers.customer_id ' 
   }
   if(options.from){ 
     sql + 'WHERE date <= "' + options.from + '" '
