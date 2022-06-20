@@ -72,7 +72,7 @@
                 </v-data-table>
             </v-col>
         </v-row>
-        <v-dialog v-model="dialog"  max-width="800">
+        <v-dialog v-model="dialog" max-width="800">
             <v-card>
                 <v-app-bar>
                     <v-radio-group v-model="searchType" row>
@@ -104,6 +104,8 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+
+        <!-- 仕訳作成用 ダイアログ -->
         <v-dialog v-model="journalDialog" max-width="500">
             <v-card class="pa-5">
                 <v-card-title>手入力仕訳</v-card-title>
@@ -264,6 +266,7 @@ export default {
             })
         },
         match(){
+            if(typeof (this.selectedSearchResult[0]) === "undefined"){return alert('紐づけ候補を選択してください')}
             const cis  = this.selectedSearchResult[0]
             const confirmText = '名前：' + cis.name + ' 受任番号：' + cis.customer_id + ' 金額：' + cis.expected_amount + '　日付：' + cis.payment_day
             const result = confirm(confirmText + '\n上記とマッチングしますか？')
