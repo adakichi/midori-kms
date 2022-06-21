@@ -2364,12 +2364,24 @@ app.put('/payment_agency/banklist',(req,res)=>{
 //mkmsの債権者情報取得
 app.get('/mkms/creditors',(req,res)=>{
   console.log('GET mkms/creditors')
-  const sql = 'SELECT * FROM creditors'
+  const sql = 'SELECT * FROM creditors ORDER BY name_kana'
   db_mkms.query(sql,(err,rows,fields)=>{
-    if(err){err.whichApi= 'get /issues/'; throw err}
+    if(err){err.whichApi= 'get mkms/creditors'; throw err}
     res.send(rows)
   })
 })
+
+app.post('/mkms/creditors',(req,res)=>{
+  console.log('POST mkms/creditors',req.body)
+  const sql = 'INSERT INTO creditors (saizo_id,name, name_kana, accept_overpayment, accept_debt, survey_only, mail_start) VALUES (?,?,?,?,?,?,?);'
+  const vals=[req.body.saizo_id,req.body.name,req.body.name_kana, req.body.accept_overpayment, req.body.accept_debt, req.body.survey_only, req.body.mail_start]
+  db_mkms.query(sql,vals,(err,rows,fields)=>{
+    if(err){err.whichApi= 'post mkms/creditors/'; throw err}
+    logger.log(req.body,'mkms債権者情報登録 POST mkms/creditors')
+    res.send(req.body.name + 'を登録しました。')
+  })
+})
+
 
 app.put('/mkms/creditors/edit',(req,res)=>{
   console.log('put mkms/creditors/edit')

@@ -9,6 +9,7 @@
                     </v-toolbar-title>
                     <v-spacer></v-spacer>
                     <v-btn to="/tools/creditors_wiki/log_list" nuxt>更新履歴一覧</v-btn>
+                    <v-btn @click="newDialogOpen">新規登録</v-btn>
                     <v-switch
                     class="mt-5 ml-4"
                     v-model="isDisabled"
@@ -17,6 +18,39 @@
                 </v-app-bar>
             </v-col>
         </v-row>
+
+        <!-- 新規登録ダイアログ -->
+        <v-dialog v-model="newDialog" width="500px">
+            <v-card>
+                <v-card-title>新規登録</v-card-title>
+                <v-card-text>
+                    <v-row>
+                        <v-col>
+                            <v-text-field v-model="newCreditor.saizo_id" label="SAIZO ID" hint="10桁以内の数字"></v-text-field>
+                            <v-text-field v-model="newCreditor.name" label="債権者名"></v-text-field>
+                            <v-text-field v-model="newCreditor.name_kana" label="カナ" hint="全角カナでOK"></v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
+                            <v-select :items="okNg" v-model="newCreditor.accept_overpayment" label="受任可否　過払い"></v-select>
+                            <v-select :items="okNg" v-model="newCreditor.accept_debt" label="受任可否　債務整理"></v-select>
+                        </v-col>
+                        <v-col>
+                            <v-select :items="okNg" v-model="newCreditor.survey_only" label="受任可否　代理開示"></v-select>
+                            <v-select :items="mailStart" v-model="newCreditor.mail_start" label="受任通知方法"></v-select>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+                <v-divider/>
+                <v-card-actions>
+                    <v-spacer/>
+                    <v-btn @click="registerNewCreditor">登録</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <!-- ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ -->
+
         <v-row>
             <v-col>
                 <v-tabs v-model="tabs">
@@ -29,6 +63,8 @@
                     <v-tab>更新履歴</v-tab>
                 </v-tabs>
                 <v-tabs-items v-model="tabs">
+
+                    <!-- リストタブ -->
                     <v-tab-item>
                         <v-card>
                             <v-card-title><v-text-field label="フィルター" v-model="searchText" ></v-text-field></v-card-title>
@@ -37,7 +73,7 @@
                                 :items="creditors"
                                 :headers="creditorsHeaders"
                                 :search="searchText"
-                                items-per-page="20"
+                                :items-per-page="15"
                                 @click:row="selectCreditor"
                                 >
                                  <template v-slot:item.accept_overpayment="{item}">
@@ -858,7 +894,7 @@
                     </v-tab-item>
                     <v-tab-item>
                         <v-card>
-                            <v-card-title>編集履歴<v-spacer></v-spacer><v-btn @click="getChaneLog">取得</v-btn></v-card-title>
+                            <v-card-title>編集履歴<v-spacer></v-spacer><v-btn @click="getChangeLog">取得</v-btn></v-card-title>
                             <v-card-subtitle>
                                 <v-text-field label="filter" v-model="changeLogSearchText"></v-text-field>
                             </v-card-subtitle>
@@ -888,6 +924,25 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- snackbar -->
+        <v-snackbar
+            v-model="snack"
+            :timeout="3000"
+            :color="snackColor"
+        >
+            {{ snackText }}
+            <template v-slot:action="{ attrs }">
+            <v-btn
+                v-bind="attrs"
+                text
+                @click="snack = false"
+            >
+                Close
+            </v-btn>
+            </template>
+        </v-snackbar>
+
     </v-container>
 </template>
 
@@ -897,6 +952,19 @@ export default {
         return {
             tabs:0,
             searchText:'',
+            // 新規登録関連
+            newDialog:false,
+            newCreditor:{
+                name:'',
+                name_kana:'',
+                saizo_id:'',
+                accept_overpayment:1,
+                accept_debt:1,
+                survey_only:3,
+                mail_start:0
+            },
+
+
             creditors:[],
             updateMemoDialog:false,
             updateMemo:'',
@@ -932,6 +1000,11 @@ export default {
                 {text:'コメント',value:'memo'},
                 {text:'編集者',  value:'editer'}
             ],
+            //snackBar
+            snack:false,
+            snackColor:'sucess',
+            snackText:'',
+            ////▲▲▲▲▲▲▲▲▲▲▲▲▲//////
 
             ///////////////////////////////////
             ///////////////////////////////////
@@ -963,12 +1036,12 @@ export default {
             this.$axios.put('api/mkms/creditors/edit',{data:this.selectedCreditor,memo:this.updateMemo, editer:this.$auth.user?.name})
             .then(response=>{
                 if(response.data.error){ return alert(response.data.message)}
-                alert(response.data)
+                this.popupSnackBar(response.data)
                 this.updateMemo = ''
                 this.updateMemoDialog = false
             })
         },
-        getChaneLog(){
+        getChangeLog(){
             this.$axios.get('api/mkms/creditors/changeLog',{params:{id:this.selectedCreditor.id}})
             .then(response=>{
                 if(response.data.error){ return alert(response.data.message)}
@@ -1033,6 +1106,30 @@ export default {
                 converted = str.replace( /\n\n/g,"</p><p>")
                 return converted.replace( /\n/g,"<br>")
             }
+        },
+        newDialogOpen(){
+            this.newDialog = true
+        },
+        registerNewCreditor(){
+            if(this.newCreditor.name =="" || this.newCreditor.name_kana =="" || this.newCreditor.saizo_id ==""){
+                return alert('名前/カナ/SAIZO ID　は必須入力です。')
+            }
+            this.$axios.post('api/mkms/creditors',this.newCreditor)
+            .then(response=>{
+
+                console.log(response.data)
+                if(response.data.error){return alert(response.data.message,'warning')}
+                this.popupSnackBar(response.data)
+                this.newDialog = false
+                this.getCreditors()
+            })
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
         }
     },
     computed:{
