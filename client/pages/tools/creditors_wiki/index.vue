@@ -674,7 +674,7 @@
                                         <tr>
                                             <td>{{selectedCreditor.saizo_id}}</td>
                                             <td>{{selectedCreditor.name}}</td>
-                                            <td>{{selectedCreditor.kana}}</td>
+                                            <td>{{selectedCreditor.name_kana}}</td>
                                         </tr>
                                     </tbody>
                                 </table>
