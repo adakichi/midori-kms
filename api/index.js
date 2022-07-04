@@ -1784,7 +1784,7 @@ app.post('/payment_agency/customer/refund',(req,res)=>{
       if(err1){ err1.whichApi= 'customer/refund: @1'; db_payment_agency.rollback(()=>{ throw err1 })}
 
       //仕訳データ入力
-      const sql2 = 'INSERT INTO journal_book (date, motocho, debit_account,debit_subaccount, debit, credit_account, credit_subaccount, credit, memo, customer_id) VALUES (?);'
+      const sql2 = 'INSERT INTO journal_book (accounting_date, motocho, debit_account,debit_subaccount, debit, credit_account, credit_subaccount, credit, memo, customer_id) VALUES (?);'
       const motocho = '返金'+req.body.customerId
       const values2 = [date, motocho,'仮受金', '', amount, '預金', req.body.bank, amount, req.body.memo, req.body.customerId]
       console.log(sql2)
