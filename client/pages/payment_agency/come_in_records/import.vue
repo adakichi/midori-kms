@@ -162,7 +162,7 @@ export default {
                     obj.customer_id = customerId
                     obj.come_in_name = name
                     obj.actual_deposit_amount = arr[6]
-                    obj.actual_deposit_date = warekiToSeireki(arr[2])
+                    obj.actual_deposit_date = warekiToSeireki(arr[3])
                     obj.id = arr[20]
                     resultArray.push(obj)
                 })
