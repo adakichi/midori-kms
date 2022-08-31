@@ -31,6 +31,9 @@
                             <v-checkbox label="管理者権限" v-model="user.admin" disabled></v-checkbox>                            
                         </v-col>
                         <v-col>
+                            <v-checkbox label="司法書士" v-model="user.judicial_scrivener" disabled></v-checkbox>                            
+                        </v-col>
+                        <v-col>
                             <v-autocomplete label="役職" :items="positions" v-model="user.position" disabled></v-autocomplete>
                         </v-col>
                     </v-row>

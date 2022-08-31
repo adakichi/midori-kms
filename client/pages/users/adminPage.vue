@@ -103,6 +103,15 @@
                                 </v-edit-dialog>
                           </template>
 
+                            <!-- 司法書士 -->
+                            <template v-slot:item.judicial_scrivener="{item}">
+                                <v-simple-checkbox
+                                v-model="item.judicial_scrivener === 0 ? false : true "
+                                disabled
+                                >
+                                </v-simple-checkbox>
+                          </template>
+
                             <!-- 役職 -->
                             <template v-slot:item.position="props">
                                 <v-edit-dialog
@@ -221,17 +230,18 @@ export default {
             divisions:['新規(過払い)','新規(WEB相続)','調査','中決','交面','破産','交渉','完了','カスタマー','債務整理','相続','札幌','名古屋','岡山','広島','松山','高知','熊本','無所属'],
             positions:['SL','L','SM','M','D'],
             usersHeaders:[
-                {text:'ID', value:'user_id'},
-                {text:'氏名', value:'name'},
-                {text:'カナ', value:'kana'},
-                {text:'BIZTEL', value:'biztel_id'},
-                {text:'管理者', value:'admin'},
-                {text:'所属', value:'division'},
-                {text:'役職', value:'position'},
+                {text:'ID',       value:'user_id'},
+                {text:'氏名',     value:'name'},
+                {text:'カナ',     value:'kana'},
+                {text:'BIZTEL',   value:'biztel_id'},
+                {text:'管理者',   value:'admin'},
+                {text:'所属',     value:'division'},
+                {text:'司法書士', value:'judicial_scrivener'},
+                {text:'役職',     value:'position'},
                 {text:'最終ログイン', value:'last_login'},
                 {text:'最終ログアウト', value:'last_logout'},
                 {text:'DA room id', value:'cw_dazou_room_id'},
-                {text:'退所', value:'leave_date', groupable:false},
+                {text:'退所',       value:'leave_date', groupable:false},
             ],
             //snackbar
             snack:'',

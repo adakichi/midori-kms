@@ -205,7 +205,7 @@ app.get('/auth/user/allUsers',(req,res)=>{
 
 //admin page用 users取得 ※退職者含む
 app.get('/auth/user/allUsers/all',(req,res)=>{
-  const sql = 'SELECT id, user_id, name, kana, admin, division, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id, date_format(leave_date, "%Y-%m-%d") as leave_date FROM users;'
+  const sql = 'SELECT id, user_id, name, kana, admin, division, judicial_scrivener, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id, date_format(leave_date, "%Y-%m-%d") as leave_date FROM users;'
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
@@ -214,7 +214,7 @@ app.get('/auth/user/allUsers/all',(req,res)=>{
 
 //自分のpage表示 users取得
 app.get('/auth/user/me',(req,res)=>{
-  const sql = 'SELECT id, user_id, name, kana, admin, division, last_login, position, biztel_id, cw_dazou_room_id FROM users WHERE user_id = ?'
+  const sql = 'SELECT id, user_id, name, kana, admin, division,judicial_scrivener, last_login, position, biztel_id, cw_dazou_room_id FROM users WHERE user_id = ?'
   db_midori_users.query(sql,req.query.id,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/me' ; throw err}
     res.send(row)
