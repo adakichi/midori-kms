@@ -7,11 +7,11 @@
         <p>
             <v-chip color="blue-grey lighten-2">
             ログアウト済み
-            <v-avatar class="ml-2" :color="orange"><v-icon small>mdi-phone</v-icon></v-avatar>
+            <v-avatar class="ml-2" color="grey"><v-icon small>mdi-phone</v-icon></v-avatar>
             </v-chip>
             <v-chip color="grey darken-4">
             本日ログイン無し
-            <v-avatar class="ml-2" :color="orange"><v-icon small>mdi-phone</v-icon></v-avatar>
+            <v-avatar class="ml-2" color="grey"><v-icon small>mdi-phone</v-icon></v-avatar>
             </v-chip>
         </p>
         <v-sheet color="green lighten-2" width="100%" class="pa-4 ma-2" rounded>
@@ -19,7 +19,6 @@
             <v-col v-for="(group,index) in groups.shinki" :key="index">
                 <v-card color="light-blue lighten-4">
                     <v-toolbar flat color="light-blue lighten-1">
-                        {{group.groupName}}
                         <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
                     </v-toolbar>
                     <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
@@ -59,6 +58,7 @@
                                     >
                                     <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
                                     {{item.name}}
+                                    <v-icon v-if="item.judicial_scrivener ? true : false" color="white" style="margin-left:4px;">mdi-card-account-details-outline</v-icon>
                                      <v-avatar class="ml-2"  :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
                                     </v-chip>
                                 </v-col>
