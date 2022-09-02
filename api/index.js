@@ -2392,7 +2392,6 @@ app.put('/mkms/creditors/edit',(req,res)=>{
   const convData = sqls.mkms_creditors_edit_put(creditor)
   const sql1 = convData.sql
   const values1 = convData.values
-  console.log(convData)
   db_mkms.beginTransaction((err)=>{
     if(err){ console.log('err だよ');throw err }
 
