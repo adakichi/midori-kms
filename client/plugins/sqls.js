@@ -359,7 +359,6 @@ export const sqls = {
 
   //put('/mkms/creditors/edit')用
   mkms_creditors_edit_put(creditor){
-    console.log(creditor)
     const sql = `
       UPDATE 
         creditors 
