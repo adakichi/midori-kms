@@ -2389,8 +2389,10 @@ app.put('/mkms/creditors/edit',(req,res)=>{
   const creditor = req.body.data
   const memo = req.body.memo
   const editer = req.body.editer
-  const sql1 = 'UPDATE creditors SET saizo_id = ?, name = ?, name_kana = ?, inquiry_memo = ?, caption = ?, old_name = ?, branch = ?, area = ?, accept_overpayment = ?, accept_debt = ?, survey_only = ?, survey_only_memo = ?, self_culculation = ?, caution = ?, phone_survey = ?, fax = ?, post_code = ?, address = ?, survey_memo = ?, disclosure_period = ?,number = ?, can_wait = ?, accurued_interest = ?, future_interest = ?, minimum_payment = ?, contract_creator = ?,return_contract_debt=?, contract_memo_debt=?, prescription_contract = ?, policy_memo_debt = ?, negotiation_memo_debt = ?, until_proposal = ?, maximum_proposal = ?, return_date = ?, policy_memo_overpayment = ?, negotiation_memo_overpayment = ?, return_contract_overpayment = ?, trial_memo = ?, trial_maximum_proposal = ?, trial_period_earlier = ?,trial_period_longest = ? WHERE id = ?;'
-  const values1 = [creditor.saizo_id, creditor.name, creditor.name_kana, creditor.inquiry_memo, creditor.caption, creditor.old_name, creditor.branch, creditor.area, creditor.accept_overpayment, creditor.accept_debt, creditor.survey_only, creditor.survey_only_memo, creditor.self_culculation,creditor.caution, creditor.phone_survey,creditor.fax, creditor.post_code, creditor.address, creditor.survey_memo, creditor.disclosure_period, creditor.number, creditor.can_wait, creditor.accurued_interest, creditor.future_interest, creditor.minimum_payment, creditor.contract_creator, creditor.return_contract_debt, creditor.contract_memo_debt, creditor.prescription_contract, creditor.policy_memo_debt, creditor.negotiation_memo_debt, creditor.until_proposal, creditor.maximum_proposal, creditor.return_date, creditor.policy_memo_overpayment, creditor.negotiation_memo_overpayment, creditor.return_contract_overpayment, creditor.trial_memo, creditor.trial_maximum_proposal,creditor.trial_period_earlier, creditor.trial_period_longest, creditor.id]
+  const convData = sqls.mkms_creditors_edit_put(creditor)
+  const sql1 = convData.sql
+  const values1 = convData.values
+  console.log(convData)
   db_mkms.beginTransaction((err)=>{
     if(err){ console.log('err だよ');throw err }
 

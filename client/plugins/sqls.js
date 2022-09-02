@@ -346,6 +346,131 @@ export const sqls = {
     debitSql  :'INSERT INTO gl_deposit (partner_account, debit, customer_id) VALUE (?, ?, ?);',
     creditSql :'INSERT INTO gl_deposit (partner_account, credit, customer_id) VALUE (?, ?, ?);',
     customerDepositIncreseSql :'UPDATE customers SET deposit = deposit + ? WHERE customer_id = ?'
+  },
+
+
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  //mkms用のSQL
+
+  //put('/mkms/creditors/edit')用
+  mkms_creditors_edit_put(creditor){
+    console.log(creditor)
+    const sql = `
+      UPDATE 
+        creditors 
+      SET 
+        saizo_id = ?, 
+        name = ?, 
+        name_kana = ?, 
+        caption = ?, 
+        inquiry_memo = ?, 
+        old_name = ?, 
+        branch = ?, 
+        area = ?, 
+        accept_overpayment = ?, 
+        accept_debt = ?, 
+        survey_only = ?, 
+        survey_only_memo = ?, 
+        self_culculation = ?, 
+        caution = ?, 
+        division = ?,
+        phone = ?,
+        fax = ?, 
+        post_code = ?, 
+        address = ?, 
+        division_survey = ?,
+        phone_survey = ?, 
+        fax_survey = ?, 
+        post_code_survey = ?, 
+        address_survey = ?,
+        mail_start = ?,  
+        survey_memo = ?, 
+        disclosure_period = ?, 
+        number = ?, 
+        can_wait = ?, 
+        accurued_interest = ?, 
+        future_interest = ?, 
+        short_term = ?,
+        short_term_memo = ?,
+        minimum_payment = ?, 
+        contract_creator = ?, 
+        return_contract_debt=?, 
+        contract_memo_debt=?, 
+        prescription_contract = ?, 
+        policy_memo_debt = ?, 
+        negotiation_memo_debt = ?, 
+        until_proposal = ?, 
+        maximum_proposal = ?, 
+        return_date = ?, 
+        policy_memo_overpayment = ?, 
+        negotiation_memo_overpayment = ?, 
+        return_contract_overpayment = ?, 
+        contract_memo_overpayment = ?, 
+        trial_memo = ?, 
+        trial_maximum_proposal = ?, 
+        trial_period_earlier = ?, 
+        trial_period_longest = ?
+      WHERE id = ?;
+    `    
+    const values = [
+      creditor.saizo_id, 
+      creditor.name, 
+      creditor.name_kana, 
+      creditor.caption, 
+      creditor.inquiry_memo, 
+      creditor.old_name, 
+      creditor.branch, 
+      creditor.area, 
+      creditor.accept_overpayment, 
+      creditor.accept_debt, 
+      creditor.survey_only, 
+      creditor.survey_only_memo, 
+      creditor.self_culculation, 
+      creditor.caution, 
+      creditor.division,
+      creditor.phone, 
+      creditor.fax, 
+      creditor.post_code, 
+      creditor.address, 
+      creditor.division_survey, 
+      creditor.phone_survey, 
+      creditor.fax_survey,
+      creditor.post_code_survey, 
+      creditor.address_survey, 
+      creditor.mail_start, 
+      creditor.survey_memo, 
+      creditor.disclosure_period, 
+      creditor.number, 
+      creditor.can_wait, 
+      creditor.accurued_interest, 
+      creditor.future_interest,
+      creditor.short_term,
+      creditor.short_term_memo, 
+      creditor.minimum_payment, 
+      creditor.contract_creator, 
+      creditor.return_contract_debt, 
+      creditor.contract_memo_debt, 
+      creditor.prescription_contract, 
+      creditor.policy_memo_debt, 
+      creditor.negotiation_memo_debt, 
+      creditor.until_proposal, 
+      creditor.maximum_proposal, 
+      creditor.return_date, 
+      creditor.policy_memo_overpayment, 
+      creditor.negotiation_memo_overpayment, 
+      creditor.return_contract_overpayment,
+      creditor.contract_memo_overpayment,  
+      creditor.trial_memo, 
+      creditor.trial_maximum_proposal, 
+      creditor.trial_period_earlier, 
+      creditor.trial_period_longest, 
+      creditor.id]
+    return {sql:sql,values:values}
   }
 
 }

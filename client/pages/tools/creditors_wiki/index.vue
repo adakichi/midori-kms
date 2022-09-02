@@ -992,6 +992,7 @@ export default {
                 {text:'郵送',       value:2},
                 {text:'メモ参照',   value:3},
                 {text:'未確認',     value:0},
+                {text:'受任不可',   value:4},
                 {text:'データ無し',     value:null}
                 ],
             /////////////////////////////
@@ -1156,6 +1157,9 @@ export default {
                 break
                 case 3:
                     returnString = "メモ参照"
+                break
+                case 4:
+                    returnString = "受任不可"
                 break
             }
             return returnString
