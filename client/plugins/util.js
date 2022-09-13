@@ -112,8 +112,10 @@ const matchCis = function(cis,cir){
             let nameMatchedArray = matchName(cirlItem.come_in_name,cis)
             console.log('nameMatchedArray判定:',nameMatchedArray.length !== 0)
             console.log('nameMatchedArray:',nameMatchedArray)
+
             //ひとつもマッチしなかった場合bank_account_nameとマッチングをかける
-            if(nameMatchedArray.length == 0){
+            //※注意 そもそも名前が無い場合はbank_accout_nameが空のものとマッチングしてしまうので、come_in_nameが空のものを除く。
+            if(nameMatchedArray.length == 0 && cirlItem.come_in_name !== ""){
                 nameMatchedArray = matchBankAccountName(cirlItem.come_in_name,cis)
                 console.log('bank match後：',nameMatchedArray)
             }
