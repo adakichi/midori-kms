@@ -863,13 +863,20 @@ app.put('/payment_agency/matching',(req,res)=>{
                 let accountsReceivableInsertValue = 0 //売掛金の減らす額
                 console.log('temporaryReceipt:',temporaryReceipt)
 
-                if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals.subTotal === 0 ){
+                // ※下記の３つ目の条件について。
+                // まれに、入金予定金額が次回の支払いに必要な金額に満たない場合が有ります。（「とりあえず手元にある１万円入金します」といったようなケース）
+                // その場合に、else 以降の分岐に進んでしまった場合、３の処理でtemporaryReceiptがマイナスになってしまいます。
+                // そこで下記分岐条件に３つ目の条件を追加しました。 2022/10/04安達
+                // 追記：上記について、思考停止して、全て仮受金としてしまうと、[手動で出金できる人をリストアップする]＆[預り金＆前受金への振替]等の手間が発生してしまう。
+                //     ：優先的に支払いできる支払いに充てる等の検討が必要。
+                if(temporaryReceipt < resultGetSubTotals.subTotal || resultGetSubTotals.subTotal === 0 || cisAmount < resultGetSubTotals.subTotal){
                   //入金額よりも次回支払い金額の方が大きい場合　or　次回支払い無し  は全て仮受金に入れて処理を終わる
                   temporaryReceiptInsertValue = temporaryReceipt
                   temporaryReceipt = 0
                 } else {
                   //入金額よりも次回支払い金額が小さい場合は
                   //1.予定金額よりも,入金額が大きい場合　は予定金額を超えた部分は全て仮受金に入れる。
+                  //cisAmountは入金予定の金額
                   if(temporaryReceipt > cisAmount){
                     temporaryReceiptInsertValue += (temporaryReceipt - cisAmount)
                     temporaryReceipt -= (temporaryReceipt - cisAmount)
