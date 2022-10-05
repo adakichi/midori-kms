@@ -53,9 +53,10 @@ const matchCis = function(cis,cir){
     }
 
     //日付のマッチング。CIRの日付から27日後　よりも前の場合のみマッチングさせる
+    // 2022/10/05 安達 27日後ではなくて、10日後までにして、自動で前受金＆預り金への振替がどれだけ減らせるか実験する。
     const matchDate = function(cirDate,cisDate){
         const cirMoment = moment(cirDate)
-        const cisMoment = moment(cisDate).add(-27,'days')
+        const cisMoment = moment(cisDate).add(-10,'days')
         //cisを27日減算した場合にcirよりも古い日付になればマッチしてOKにする（true)を返す。
         console.log('matchDate判定：',cisMoment.isBefore(cirMoment))
         return cisMoment.isBefore(cirMoment)
