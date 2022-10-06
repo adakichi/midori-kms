@@ -705,9 +705,14 @@ app.post('/payment_agency/matching',(req,res)=>{
   const baseDate = req.body.baseDate
   const fileIds = req.body.insertIds
   const bank = req.body.bank
-  const until   = moment(baseDate).add(27,'days').format('YYYY-MM-DD')
+  const until   = moment(baseDate).add(15,'days').format('YYYY-MM-DD')
   let getCirSql = 'SELECT come_in_records_id, customer_id, come_in_name, actual_deposit_amount, DATE_FORMAT(actual_deposit_date, "%Y/%m/%d") as actual_deposit_date, come_in_schedules_id, case WHEN come_in_schedules_id IS NULL THEN "false" ELSE "TRUE" END as matched, delete_flag, DATE_FORMAT(created_at,"%Y/%m/%d %H:%i:%s") as created_at, importfile_id, file_row_number FROM come_in_records WHERE come_in_records_id IN (?);'
-  const getCisSql = 'SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id FROM come_in_schedules as cis INNER JOIN customers on cis.customer_id = customers.customer_id WHERE cis.payment_day <= "' + until + '" AND cis.come_in_records_id is null ORDER BY payment_day;'
+  const getCisSql = `SELECT cis.come_in_schedules_id, cis.customer_id, date_format(payment_day, "%Y/%m/%d")as payment_day, expected_amount, come_in_records_id, customers.name, customers.kana, customers.bank_account_name, customers.lu_id 
+                      FROM come_in_schedules as cis 
+                      INNER JOIN customers 
+                      on cis.customer_id = customers.customer_id 
+                      WHERE cis.payment_day <= "` + until + `" 
+                        AND cis.come_in_records_id is null ORDER BY payment_day;`
   console.log('fileIds:',fileIds)
   console.log('-------------------')
   //マッチング用のCIRをinsertID(cir_id)の番号で取得
