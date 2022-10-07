@@ -848,8 +848,14 @@ app.put('/payment_agency/matching',(req,res)=>{
               let temporaryReceipt = cirAmount //入金額
               
               //5.1 customerの直近27日以内のpayment_scheduleを取得 valueはcustomer_id,cisの支払い予定日の27日後の日付
-              const selectSchedulesSql = 'SELECT * FROM payment_schedules as ps LEFT OUTER JOIN payment_accounts as pa ON ps.payment_account_id = pa.payment_account_id WHERE pa.customer_id = ? AND ps.date <= ? AND ps.expected_date is null ;'
-              const after27days = moment(data.cis.payment_day).add(27,'d').format('YYYY-MM-DD')
+              //2022/10/07 安達 マッチング用の予定を27日ではなく15日で取ってくるようにする。
+              const selectSchedulesSql = `SELECT * FROM payment_schedules as ps 
+                                          LEFT OUTER JOIN payment_accounts as pa 
+                                          ON ps.payment_account_id = pa.payment_account_id 
+                                          WHERE pa.customer_id = ? 
+                                            AND ps.date <= ? 
+                                            AND ps.expected_date is null ;`
+              const after27days = moment(data.cis.payment_day).add(15,'d').format('YYYY-MM-DD')
               console.log('customerID,after27days',[customerId,after27days])
               db_payment_agency.query(selectSchedulesSql,[customerId,after27days],(err6,rows6,fields6)=>{
                 if(err6){
