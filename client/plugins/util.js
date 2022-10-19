@@ -415,11 +415,6 @@ function hankana2Zenkana(str) {
         '｡': '。', '､': '、', 'ｰ': 'ー', '｢': '「', '｣': '」', '･': '・'
     };
 
-    function zenkaku2HankakuEisu(str) {
-        return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
-            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-        });
-    }
     
 
     var reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
@@ -463,6 +458,13 @@ function zenkana2BigHankana(str) {
             .replace(/゛/g, 'ﾞ')
             .replace(/゜/g, 'ﾟ');
 };
+
+function zenkaku2HankakuEisu(str) {
+    return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+    });
+}
+
 
 const objIsEmpty = function(target){
     return !Object.keys(target).length
