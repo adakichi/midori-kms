@@ -415,6 +415,13 @@ function hankana2Zenkana(str) {
         '｡': '。', '､': '、', 'ｰ': 'ー', '｢': '「', '｣': '」', '･': '・'
     };
 
+    function zenkaku2HankakuEisu(str) {
+        return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+    }
+    
+
     var reg = new RegExp('(' + Object.keys(kanaMap).join('|') + ')', 'g');
     return str
             .replace(reg, function (match) {
@@ -502,6 +509,7 @@ export {
     zenkana2BigHankana,
     zenkana2Hankana,   
     hankana2Zenkana,
+    zenkaku2HankakuEisu,
     objIsEmpty,
     getNextMonth,
     getMonthAfterNext,
