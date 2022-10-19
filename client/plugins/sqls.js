@@ -317,22 +317,17 @@ export const sqls = {
     let sql = ''
     let convertedValue = value
     switch(options.searchType){
-      case 'all':
-        sql = 'SELECT * FROM customers'
-        break
       case 'jyunin':
         sql = 'SELECT * FROM customers WHERE customer_id = ? ;'
         break
       case 'lu':
         sql = 'SELECT * FROM customers WHERE lu_id = ? ;'
         break
-      case 'namae':
-        sql = 'SELECT * FROM customers WHERE name LIKE ? ;'
-        convertedValue = '%' + value + '%'
-        break
-      case 'kana':
-        sql = 'SELECT * FROM customers WHERE kana LIKE ? ;'
-        convertedValue = '%' + value + '%'
+      case 'name':
+        sql = `SELECT * FROM customers 
+                WHERE name LIKE ? 
+                OR kana LIKE ?;`
+        convertedValue = ['%' + value + '%','%' + value + '%']
         break
       }
     return {value:convertedValue,sql:sql}

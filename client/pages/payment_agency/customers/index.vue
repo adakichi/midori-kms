@@ -24,10 +24,9 @@
                 <v-app-bar>
                     <v-radio-group v-model="searchType" mandatory row>
                         <v-radio label="受任番号"   value="jyunin"></v-radio>
-                        <v-radio label="名前"       value="namae"></v-radio>
-                        <v-radio label="カナ"         value="kana"></v-radio>
+                        <v-radio label="名前"       value="name"></v-radio>
                         <v-radio label="LU"         value="lu"></v-radio>
-                        <v-radio label="全表示"     value="all"></v-radio>
+                        <v-radio label="自動"     value="auto"></v-radio>
                     </v-radio-group>
                     <v-spacer></v-spacer>
                     <v-text-field v-model="targetText" label="search" @keydown.enter="searchCustomer"></v-text-field>
@@ -67,17 +66,37 @@
                 <v-row v-show="!customers[0]"><v-col>
                 <v-sheet class="text-center" color="grey darken-3">該当無し</v-sheet>
                 </v-col></v-row>
+
+        <!-- スナックバー -->
+        <v-snackbar
+            v-model="snack"
+            :timeout="3000"
+            :color="snackColor"
+        >
+            {{ snackText }}
+            <template v-slot:action="{ attrs }">
+            <v-btn
+                v-bind="attrs"
+                text
+                @click="snack = false"
+            >
+                Close
+            </v-btn>
+            </template>
+        </v-snackbar>
+
     </v-container>
 </template>
 
 <script>
+import {zenkaku2HankakuEisu} from "../../../plugins/util.js"
 export default {
     layout : 'pa',
     data(){
         return{
             targetText:'',
             search:'',
-            searchType:'kana',
+            searchType:'auto',
             registerDialogIsOpen:false,
             newCustomer:{
                 customer_id:'',
@@ -89,7 +108,12 @@ export default {
                 { text:'customer_id', value:'customer_id'},
                 { text:'name', value:'name'},
                 { text:'kana', value:'kana'}
-            ]
+            ],
+            //snack bar
+            snack:'',
+            snackColor:'',
+            snackText:''
+
         }
     },
     computed:{
@@ -99,9 +123,28 @@ export default {
     },
     methods:{
         searchCustomer(){
+            this.targetText = zenkaku2HankakuEisu(this.targetText)
+            //面倒なので、文字列か数字かで検索オプションを自動で判別する
+            if(this.searchType == "auto"){
+                if( isNaN(this.targetText)){
+                    //文字列の場合は名前検索
+                    this.searchType = "name"
+                } else {
+                    //数字の場合　=>電話番号か受任番号か
+                    this.searchType = "phone_number"
+
+                    //文字数が５の場合のみ受任番号で検索
+                    if(this.targetText.length == 5){
+                        this.searchType = "jyunin"
+                    }
+                }
+                this.popupSnackBar("検索方法：" + this.searchType)
+            }
+
             const options = {
                 "searchType":this.searchType,
             }
+            console.log(options.searchType)
             this.$store.dispatch('pa/searchCustomers',{targetText:this.targetText,options:options})
             .then(()=>{if(this.customers.length === 1){
                 this.$router.push('/payment_agency/customers/'+ Number(this.customers[0].customer_id))
@@ -121,6 +164,13 @@ export default {
                 alert(response.data)
                 this.$router.push('/payment_agency/customers/'+ Number(this.newCustomer.customer_id))
             })
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
         }
     }
 }
