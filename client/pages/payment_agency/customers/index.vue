@@ -130,13 +130,7 @@ export default {
                     //文字列の場合は名前検索
                     this.searchType = "name"
                 } else {
-                    //数字の場合　=>電話番号か受任番号か
-                    this.searchType = "phone_number"
-
-                    //文字数が５の場合のみ受任番号で検索
-                    if(this.targetText.length == 5){
-                        this.searchType = "jyunin"
-                    }
+                    this.searchType = "jyunin"
                 }
                 this.popupSnackBar("検索方法：" + this.searchType)
             }
