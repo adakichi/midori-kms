@@ -734,14 +734,22 @@
                     <v-row>
                         <v-col>
                             <v-app-bar>
+                                <v-text-field
+                                v-model="jbFilterStr"
+                                label="フィルター"
+                                class="mx-4 mt-4"
+                                >
+                                </v-text-field>
                                 <v-spacer></v-spacer>
                                 <v-btn @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
                                 <v-btn @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
-                            </v-app-bar>
+                                <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>                            </v-app-bar>
                             <v-data-table
                             :items="journalBook"
                             :headers="journalBookHeaders"
                             :items-per-page="-1"
+                            :search="jbFilterStr"
+                            show-group-by
                             >
                                         <template v-slot:item.memo="{item}">
                                             <v-edit-dialog
@@ -1003,6 +1011,8 @@
 </template>
 
 <script>
+import {createDownloadATag, getToday} from '/client/plugins/util.js'
+const {Parser} = require('json2csv')
 const moment = require('moment')
 export default {
     layout : 'pa',
@@ -1161,6 +1171,7 @@ export default {
                 { text:'名前',              value:'name'},
                 { text:'メモ',              value:'memo'},
             ],
+            jbFilterStr:"",
             editDialgMemo:false,
 
             ////▲▲▲▲▲▲▲▲▲////////////
@@ -1846,6 +1857,15 @@ export default {
             this.popupSnackBar(response.data)
             })
         },
+        downloadCsv(){
+            //②CSVダウンロード
+            const fields = ['motocho', 'accounting_date', 'debit_account','debit_subaccount', 'credit_account','credit_subaccount', 'debit', 'credit', 'customer_id','name','memo']
+            const json2csvParser = new Parser({fields:fields,header:true,withBOM:true})
+            let exportText = json2csvParser.parse(this.journalBook)
+            const link = createDownloadATag(exportText,this.customer.name)
+            link.click()
+        },
+
     },
     created(){
         (async()=>{
