@@ -36,7 +36,7 @@
             <v-tab>入金予定</v-tab>
             <v-tab>顧客情報</v-tab>
             <v-tab>会計情報</v-tab>
-            <v-tab>仕訳情報</v-tab>
+            <v-tab @click="getJournalBook()">仕訳情報</v-tab>
         </v-tabs>
         <v-tabs-items v-model="tabs">
 
@@ -741,9 +741,8 @@
                                 >
                                 </v-text-field>
                                 <v-spacer></v-spacer>
-                                <v-btn @click="getJournalBook('journal_book')">検索<v-icon>mdi-magnify</v-icon></v-btn>
-                                <v-btn @click="getJournalBook('journal_book_for_receivable')">売掛検索<v-icon>mdi-magnify</v-icon></v-btn>
-                                <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>                            </v-app-bar>
+                                <v-btn @click="downloadCsv">CSV<v-icon>mdi-download</v-icon></v-btn>
+                            </v-app-bar>
                             <v-data-table
                             :items="journalBook"
                             :headers="journalBookHeaders"
@@ -1826,11 +1825,10 @@ export default {
         },
         ///////////////////////////////////////
         //journal_book
-        getJournalBook(table){
+        getJournalBook(){
             const options = {
                 until:null,
                 from:null,
-                table:table,
                 customerId:this.customerId
             }
             this.$axios.get('api/payment_agency/journal_book/',{params:{options:options}})
