@@ -356,7 +356,6 @@ export default {
                 const doNot = !window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
                 if(doNot){ return }     //キャンセルの処理
                 const body = this.messageBody
-                return console.log(body)
                 axios.post('/api/cw/send',{
                     content: body,
                     division:this.selectedDivision
