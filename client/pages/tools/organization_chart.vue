@@ -206,8 +206,9 @@ export default {
                                 toText += '[To:' + item.cw_to_id + ']' + item.name
                             }
                         })
-                        console.log(navigator.clipboard)
-                        navigator.clipboard.writeText(toText)
+                        //httpsでないとclipboard APIが使えないので、alert表示で対応する
+                        //navigator.clipboard.writeText(toText)
+                        alert(toText)
                         this.popupSnackBar('chatworkのTo IDをコピーしました。')
                     },
                     chipColor(login,logout){
