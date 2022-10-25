@@ -415,7 +415,6 @@ export default {
                 const uri = '/api/auth/user/allUsers/all/continuation'
                 this.$axios.get(uri)
                 .then(response => {
-                    console.log(response.data)
                     this.users = response.data
                 })
             }
@@ -506,7 +505,15 @@ export default {
             toArray(){
                 let resultArray = []
                 resultArray = this.users.filter(item=>{
-                    return item.division == this.selectedDivision
+                    if(this.selectedDivision == 'カスタマー'){
+                        if(item.division == 'カスタマー' || item.division == '交面' ){return true}      
+                    } else if(this.selectedDivision == '交面'){
+                        if(item.division == 'カスタマー' || item.division =='交面' || item.division =='中決'){return true} 
+                    } else if(this.selectedDivision == '中決'){
+                        if(item.division == '交面' || item.division == '中決' ){ return true}
+                    } else {
+                        return item.division == this.selectedDivision
+                    }
                 })
                 return resultArray
             },

@@ -285,7 +285,7 @@ function forwardingAddress (division){
             break;
         case '交面':
             from = chatworkConf.token.robot
-            toRoomId[0] = chatworkConf.rooms.koumenChuketuRoom
+            toRoomId[0] = chatworkConf.rooms.KanryouRoom
             break;
         case '破産':
             from = chatworkConf.token.robot
