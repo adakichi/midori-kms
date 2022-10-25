@@ -123,6 +123,23 @@
                 </v-col>
             </v-row>
         </v-sheet>
+                <!-- snackbar -->
+                <v-snackbar
+                    v-model="snack"
+                    :timeout="3000"
+                    :color="snackColor"
+                >
+                    {{ snackText }}
+                    <template v-slot:action="{ attrs }">
+                    <v-btn
+                        v-bind="attrs"
+                        text
+                        @click="snack = false"
+                    >
+                        Close
+                    </v-btn>
+                    </template>
+                </v-snackbar>
     </v-container>
 </template>
 
@@ -146,6 +163,10 @@ export default {
                             bookmark:false
                         },
                         phonebooks:phonebook.book,
+                        //snackBar
+                        snack:false,
+                        snackColor:'sucess',
+                        snackText:'',
                     }
                 },
                 methods: {
@@ -185,7 +206,9 @@ export default {
                                 toText += '[To:' + item.cw_to_id + ']' + item.name
                             }
                         })
+                        console.log(navigator.clipboard)
                         navigator.clipboard.writeText(toText)
+                        this.popupSnackBar('chatworkのTo IDをコピーしました。')
                     },
                     chipColor(login,logout){
                         const todayStr = moment().format('YYYY-MM-DD')
@@ -251,7 +274,14 @@ export default {
                                 return false
                             break
                         }
-                    }
+                    },
+                    popupSnackBar(message,color){
+                            let snackColor = 'success'
+                            if(color){ snackColor = color }
+                            this.snack      = true
+                            this.snackColor = snackColor
+                            this.snackText  = message
+                    },
                 },
                 computed:{
                     groups(){
