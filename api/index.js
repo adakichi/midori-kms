@@ -196,7 +196,26 @@ app.post('/auth/login',(req,res)=>{
 
 //admin page用 users取得
 app.get('/auth/user/allUsers',(req,res)=>{
-  const sql = 'SELECT id, user_id, name, kana, admin, division, judicial_scrivener, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id, date_format(leave_date, "%Y-%m-%d") as leave_date FROM users WHERE leave_date is null;'
+  const sql = `
+              SELECT 
+                id, 
+                user_id, 
+                name, 
+                kana, 
+                admin, 
+                division, 
+                judicial_scrivener, 
+                date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, 
+                date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, 
+                position, 
+                biztel_id, 
+                cw_dazou_room_id, 
+                date_format(leave_date, "%Y-%m-%d") as leave_date 
+              FROM 
+                users 
+              WHERE 
+                leave_date is null;
+              `
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     res.send(row)
