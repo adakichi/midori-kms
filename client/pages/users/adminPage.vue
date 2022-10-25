@@ -3,6 +3,21 @@
         <v-row>
             <v-col>
                 <v-card>
+                  <v-card-title>
+                        <v-spacer/>
+                        <v-radio-group v-model="searchType" row>
+                          <v-radio 
+                            label="all"
+                            value="all"></v-radio>
+                          <v-radio 
+                            label="雇用中"
+                            value="continuation"></v-radio>
+                          <v-radio 
+                            label="退職者"
+                            value="retiree"></v-radio>
+                        </v-radio-group>
+                    <v-btn @click="getUsers()">再表示</v-btn>
+                  </v-card-title>
                     <v-card-subtitle>
                         <v-text-field label="Search" v-model="searchText"></v-text-field>
                     </v-card-subtitle>
@@ -145,6 +160,27 @@
                                 </v-simple-checkbox>
                             </template>
 
+                            <!-- cw_to_id -->
+                            <template v-slot:item.cw_to_id="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.cw_to_id"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.cw_to_id }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                          v-model="props.item.cw_to_id"
+                                          label="Edit"
+                                          single-line
+                                        ></v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                            </template>
+
                             <!-- cw_dazou_room_id -->
                             <template v-slot:item.cw_dazou_room_id="props">
                                 <v-edit-dialog
@@ -226,6 +262,7 @@ export default {
         return {
             users:[],
             isDialog:false,
+            searchType:'continuation',
             searchText:'',
             divisions:['新規(過払い)','新規(WEB相続)','調査','中決','交面','破産','交渉','完了','カスタマー','債務整理','相続','札幌','名古屋','岡山','広島','松山','高知','熊本','無所属'],
             positions:['SL','L','SM','M','D'],
@@ -240,6 +277,7 @@ export default {
                 {text:'役職',     value:'position'},
                 {text:'最終ログイン', value:'last_login'},
                 {text:'最終ログアウト', value:'last_logout'},
+                {text:'CW To ID', value:'cw_to_id'},
                 {text:'DA room id', value:'cw_dazou_room_id'},
                 {text:'退所',       value:'leave_date', groupable:false},
             ],
@@ -281,13 +319,27 @@ export default {
                 this.snackColor = snackColor
                 this.snackText  = message
         },
+        getUsers(){
+          let uri = ''
+          const type = this.searchType
+          if(type =='all'){
+            uri = '/api/auth/user/allUsers/all'
+          } else if (type == 'continuation'){
+            uri = '/api/auth/user/allUsers/all/continuation'
+          } else if (type == 'retiree'){
+            uri = '/api/auth/user/allUsers/all/retiree'
+          }
+          this.$axios.get(uri)
+          .then(response => {
+              console.log(response)
+              this.users = response.data
+          })
+
+        }
+
     },
     created(){
-        this.$axios.get('/api/auth/user/allUsers/all')
-        .then(response => {
-            console.log(response)
-            this.users = response.data
-        })
+      this.getUsers()
     }
 }
 </script>

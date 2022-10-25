@@ -205,7 +205,83 @@ app.get('/auth/user/allUsers',(req,res)=>{
 
 //admin page用 users取得 ※退職者含む
 app.get('/auth/user/allUsers/all',(req,res)=>{
-  const sql = 'SELECT id, user_id, name, kana, admin, division, judicial_scrivener, date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, position, biztel_id, cw_dazou_room_id, date_format(leave_date, "%Y-%m-%d") as leave_date FROM users;'
+  const sql = `
+              SELECT
+                 id, 
+                 user_id, 
+                 name, 
+                 kana, 
+                 admin, 
+                 division, 
+                 judicial_scrivener, 
+                 date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, 
+                 date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, 
+                 position, biztel_id, 
+                 cw_dazou_room_id, 
+                 cw_to_id,
+                 date_format(leave_date, "%Y-%m-%d") as leave_date 
+              FROM 
+                users
+              `
+  db_midori_users.query(sql,(err,row,fields)=>{
+    if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
+    console.log(row[0])
+    res.send(row)
+  })
+})
+
+//admin page用 users取得 ※退職者含まない
+app.get('/auth/user/allUsers/all/continuation',(req,res)=>{
+  const sql = `
+              SELECT
+                 id, 
+                 user_id, 
+                 name, 
+                 kana, 
+                 admin, 
+                 division, 
+                 judicial_scrivener, 
+                 date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, 
+                 date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, 
+                 position, biztel_id, 
+                 cw_dazou_room_id, 
+                 cw_to_id,
+                 date_format(leave_date, "%Y-%m-%d") as leave_date 
+              FROM 
+                users
+              WHERE 
+              users.leave_date IS NULL;
+              `
+
+  db_midori_users.query(sql,(err,row,fields)=>{
+    if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
+    console.log(row[0])
+    res.send(row)
+  })
+})
+
+app.get('/auth/user/allUsers/all/retiree',(req,res)=>{
+  const sql = `
+              SELECT
+                 id, 
+                 user_id, 
+                 name, 
+                 kana, 
+                 admin, 
+                 division, 
+                 judicial_scrivener, 
+                 date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, 
+                 date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, 
+                 position, biztel_id, 
+                 cw_dazou_room_id, 
+                 cw_to_id,
+                 date_format(leave_date, "%Y-%m-%d") as leave_date 
+              FROM 
+                users
+              WHERE 
+              users.leave_date IS NOT NULL;
+              `
+
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
     console.log(row[0])
@@ -236,8 +312,8 @@ app.put('/auth/user/me',(req,res)=>{
 //admin page用 users変更
 app.put('/auth/user/editUser',(req,res)=>{
   console.log('Put -- /auth/user/editUser -- ')
-  const sql = 'UPDATE users SET name = ?, kana = ?, admin = ?, division = ?, position=?, biztel_id = ?, cw_dazou_room_id = ?  WHERE id = ?;'
-  const values = [req.body.name, req.body.kana, req.body.admin, req.body.division, req.body.position, req.body.biztel_id, req.body.cw_dazou_room_id, req.body.id]
+  const sql = 'UPDATE users SET name = ?, kana = ?, admin = ?, division = ?, position=?, biztel_id = ?, cw_to_id = ?, cw_dazou_room_id = ?  WHERE id = ?;'
+  const values = [req.body.name, req.body.kana, req.body.admin, req.body.division, req.body.position, req.body.biztel_id, req.body.cw_to_id, req.body.cw_dazou_room_id, req.body.id]
   db_midori_users.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi = 'put /auth/user/editUser' ; throw err }
     console.log(req.body.name +'を'+ req.body +'に変更しました。')
