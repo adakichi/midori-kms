@@ -208,7 +208,8 @@ app.get('/auth/user/allUsers',(req,res)=>{
                 date_format(last_login, "%Y-%m-%d %H:%k:%s") as last_login, 
                 date_format(last_logout, "%Y-%m-%d %H:%k:%s") as last_logout, 
                 position, 
-                biztel_id, 
+                biztel_id,
+                cw_to_id, 
                 cw_dazou_room_id, 
                 date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
