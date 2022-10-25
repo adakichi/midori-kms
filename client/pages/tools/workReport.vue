@@ -315,6 +315,7 @@ export default {
     auth:true,
     data() {
         return {
+            users:[],
             name:'',
             counter:{},
             file:null,
@@ -355,6 +356,7 @@ export default {
                 const doNot = !window.confirm(this.selectedDivision + '宛です。\n本当に送信しますか？')
                 if(doNot){ return }     //キャンセルの処理
                 const body = this.messageBody
+                return console.log(body)
                 axios.post('/api/cw/send',{
                     content: body,
                     division:this.selectedDivision
@@ -409,6 +411,14 @@ export default {
             logout(){
                 const data = { user: this.$auth.user}
                 this.$auth.logout({data:data})
+            },
+            getUsers(){
+                const uri = '/api/auth/user/allUsers/all/continuation'
+                this.$axios.get(uri)
+                .then(response => {
+                    console.log(response.data)
+                    this.users = response.data
+                })
             }
 
         },
@@ -447,6 +457,9 @@ export default {
                 let body = "[info][title]" + this.name + "[/title]"
                 let counterStrings = ''
                 let To = ''
+                this.toArray.forEach(item=>{
+                    To += '[To:' + item.cw_to_id + ']' + item.name
+                })
                 switch(this.selectedDivision){
                     case '新規(過払い)':
                         counterStrings = '\n[info]架電：'+ this.counter.shinki.kaden +'受電：'+ this.counter.shinki.jyuden+'件\n成約：'+ this.counter.shinki.seiyaku +'件'+'件\nメール：'+ this.counter.shinki.mail +'件'+'件\nチャット：'+ this.counter.shinki.shat +'件' + '\n[/info]'
@@ -456,46 +469,47 @@ export default {
                         break;
                     case '調査':
                         counterStrings  = '\n[info]計算：'+ this.counter.chousa.keisan +'件\n架電：'+this.counter.chousa.kaden+'件\n郵送開封：'+this.counter.chousa.kaihuu+'分\n番付：'+ this.counter.chousa.bantuke +'分\nfax：'+ this.counter.chousa.fax +'分\nPDF：'+ this.counter.chousa.pdf +'分\n履歴振分：'+ this.counter.chousa.furiwake +'分' + '\n[/info]'
-                        To = '[To:5636248]中嶋 [To:4129183]田中[To:5109143]野村 [To:6044810]後藤'
                         break;
                     case '交面':
                         counterStrings = '\n[info]中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件' + '\n[/info]'
-                        To = '[To:4682306]斗澤 [To:6482288]森 [To:6718521]湯淺 [To:6400356]長谷川'
                         break;
                     case '中決'://上記交面と一緒です。
                         counterStrings = '\n[info]中決：'+ this.counter.chuketuKomen.chuketu +'件\n交面架電：'+ this.counter.chuketuKomen.kaden +'件\n交面実績：' + this.counter.chuketuKomen.jisseki + '件\n意思確認：'+ this.counter.chuketuKomen.ishikaku +'件' + '\n[/info]'
-                        To = '[To:4682306]斗澤 [To:6482288]森 [To:6718521]湯淺 [To:6400356]長谷川'
                         break;
                     case '交渉':
                         counterStrings = '\n[info]交渉架電：'+this.counter.koushou.kaden+'件\n交渉受電：'+ this.counter.koushou.jyuden +'件\n和解：' + this.counter.koushou.wakai + '件\n再交渉：'+ this.counter.koushou.saikoushou + '件\n' + '\n[/info]'
-                        To = '[To:4683218]中谷[To:4855892]青木[To:6098578]兵藤[To:5850247]竹村[To:4683013]熊谷'
                         break;
                     case '完了':
                         counterStrings = '\n[info]完了作成：'+ this.counter.kanryou.kanryoushoruiData +'件\n完了書類印刷：'+ this.counter.kanryou.kanryoushoruiPrint +'件\n郵送袋詰：' + this.counter.kanryou.mail +'件\n郵送Wchek：' + this.counter.kanryou.mailWcheck +'件\nPDF：' + this.counter.kanryou.pdf + '分' + '\n[/info]'
-                        To = '[To:4682397]渡邉[To:4682436]水落[To:6009275]武田'
                         break;
                     case 'カスタマー':
                         counterStrings = '\n[info]架電：'+ this.counter.customer.kaden +'件\n受電：'+ this.counter.customer.jyuden +'件\n交面実績：' + this.counter.customer.koumen + '件\n:チャット：' + this.counter.customer.chat + '\n[/info]'
-                        To = '[To:4682722]並木[To:5263669]青木[To:5264264]菊地[To:5306690]高橋[To:5537119]深澤'
                         break;
                     case '相続':
                         counterStrings = ''
-                        To = '[To:4683317]辻井[To:4683339]蝋山[To:4683349]島口　[To:4683363]原田'
                         break;
                     case '札幌':
                         counterStrings = ''
-                        To = '[To:4683416]鈴木[To:4683427]濱谷[To:4683440]小山[To:4683447]宮澤'
                         break;
                     case '松山':
                         counterStrings = ''
-                        To = '[To:4683486]大西[To:4683470]辻本[To:4683497]戒能'
                         break;
                     case '高知':
                         counterStrings = ''
-                        To = '[To:4683382]髙橋[To:4683397]大橋[To:4683403]松岡[To:4897210]竹内'
                         break;
                 }
-                return body = body + counterStrings + '\n[hr]業務報告\n' + this.report + "[/info]" + To
+                if(this.selectedDivision == '新規(過払い)' || this.selectedDivision == '新規(WEB相続)'){
+                    return body = body + counterStrings + '\n[hr]業務報告\n' + this.report + "[/info]"
+                } else {
+                    return body = body + counterStrings + '\n[hr]業務報告\n' + this.report + "[/info]" + To
+                }
+            },
+            toArray(){
+                let resultArray = []
+                resultArray = this.users.filter(item=>{
+                    return item.division == this.selectedDivision
+                })
+                return resultArray
             },
             isChuketuKomen(){
                 if(this.selectedDivision === '中決' ||this.selectedDivision === '交面' ){
@@ -526,6 +540,7 @@ export default {
             } else {
                 this.name = 'guest'
             }
+            this.getUsers()
         }
     }
 </script>
