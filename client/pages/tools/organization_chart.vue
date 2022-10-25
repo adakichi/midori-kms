@@ -19,7 +19,16 @@
             <v-col v-for="(group,index) in groups.shinki" :key="index">
                 <v-card color="light-blue lighten-4">
                     <v-toolbar flat color="light-blue lighten-1">
+                        {{group.groupName}}
                         <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                        <v-avatar size="30" class="ml-2" color="white" @click="cwid2Clipboard(group.groupName)">
+                            <img
+                                alt="Avatar"
+                                src="../../assets/img/cw_logomark_color_rgb_PNG.png"
+                                width="3px"
+                                height="3px"
+                            >
+                        </v-avatar>
                     </v-toolbar>
                     <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                     <v-card-text>
@@ -45,8 +54,17 @@
             <v-row>
                 <v-col v-for="(group,index) in groups.tokyo" :key="index">
                     <v-card max-width="200" color="light-blue lighten-4">
-                        <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}
+                        <v-toolbar flat color="light-blue lighten-1">
+                            {{group.groupName}}
                             <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                            <v-avatar size="30" class="ml-2" color="white" @click="cwid2Clipboard(group.groupName)">
+                                <img
+                                    alt="Avatar"
+                                    src="../../assets/img/cw_logomark_color_rgb_PNG.png"
+                                    width="3px"
+                                    height="3px"
+                                >
+                            </v-avatar>
                         </v-toolbar>
                         <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                         <v-card-text>
@@ -75,6 +93,14 @@
                     <v-card max-width="200" color="light-blue lighten-4">
                         <v-toolbar flat color="light-blue lighten-1">{{group.groupName}}
                             <v-avatar size="30" class="ml-2" :color="biztelColor(group.biztel_id)" @click="toCall(group.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>
+                            <v-avatar size="30" class="ml-2" color="white" @click="cwid2Clipboard(group.groupName)">
+                                <img
+                                    alt="Avatar"
+                                    src="../../assets/img/cw_logomark_color_rgb_PNG.png"
+                                    width="3px"
+                                    height="3px"
+                                >
+                            </v-avatar>
                         </v-toolbar>
                         <v-card-subtitle v-for="(l,index) in group.leader" :key="index" class="black--text">リーダー：{{l}}</v-card-subtitle>
                         <v-card-text>
@@ -86,6 +112,7 @@
                                     >
                                     <v-icon v-if="isLeader(item.position)" v-for="n of countStar(item.position)" :key="n" color="yellow">mdi-star</v-icon>
                                     {{item.name}}
+                                    <v-icon v-if="item.judicial_scrivener ? true : false" color="white" style="margin-left:4px;">mdi-card-account-details-outline</v-icon>
                                      <v-avatar class="ml-2" :color="biztelColor(item.biztel_id)" @click="toCall(item.biztel_id)"><v-icon small>mdi-phone</v-icon></v-avatar>                                
                                     </v-chip>
                                 </v-col>
@@ -150,6 +177,15 @@ export default {
                         const a = document.createElement('a')
                         a.href = 'callto:'+num
                         a.click()
+                    },
+                    cwid2Clipboard(groupName){
+                        let toText = ''
+                        this.users.forEach(item=>{
+                            if(groupName == item.division){
+                                toText += '[To:' + item.cw_to_id + ']' + item.name
+                            }
+                        })
+                        navigator.clipboard.writeText(toText)
                     },
                     chipColor(login,logout){
                         const todayStr = moment().format('YYYY-MM-DD')
