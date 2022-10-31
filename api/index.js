@@ -245,7 +245,6 @@ app.get('/auth/user/allUsers/all',(req,res)=>{
               `
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
-    console.log(row[0])
     res.send(row)
   })
 })
@@ -275,7 +274,6 @@ app.get('/auth/user/allUsers/all/continuation',(req,res)=>{
 
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
-    console.log(row[0])
     res.send(row)
   })
 })
@@ -304,7 +302,6 @@ app.get('/auth/user/allUsers/all/retiree',(req,res)=>{
 
   db_midori_users.query(sql,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/allUsers' ; throw err}
-    console.log(row[0])
     res.send(row)
   })
 })
