@@ -44,6 +44,9 @@
                     </v-row>
                     <v-row>
                         <v-col>
+                            <v-text-field label="チャットワーク To ID:" v-model="user.cw_to_id" hint="チャットワークの自分宛ID"></v-text-field>
+                        </v-col>
+                        <v-col>
                             <v-text-field label="DA-zou チャットワーク Room ID" v-model="user.cw_dazou_room_id" hint="DAZOUからチャットワークに通知する際に使います。">
                                 <template v-slot:append-outer>
                                     <v-tooltip bottom>
@@ -54,6 +57,11 @@
                                     </v-tooltip>
                                 </template>
                             </v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col>
+                            <v-text-field label="MAIL PASSWORD:" v-model="user.mail_pass" hint="自分のメールアドレスを登録する際に使います"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-container>

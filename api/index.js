@@ -211,6 +211,7 @@ app.get('/auth/user/allUsers',(req,res)=>{
                 biztel_id,
                 cw_to_id, 
                 cw_dazou_room_id, 
+                mail_pass,
                 date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users 
@@ -239,6 +240,7 @@ app.get('/auth/user/allUsers/all',(req,res)=>{
                  position, biztel_id, 
                  cw_dazou_room_id, 
                  cw_to_id,
+                 mail_pass,
                  date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users
@@ -265,6 +267,7 @@ app.get('/auth/user/allUsers/all/continuation',(req,res)=>{
                  position, biztel_id, 
                  cw_dazou_room_id, 
                  cw_to_id,
+                 mail_pass,
                  date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users
@@ -278,6 +281,7 @@ app.get('/auth/user/allUsers/all/continuation',(req,res)=>{
   })
 })
 
+//admin page用 users取得 ※退職者のみ
 app.get('/auth/user/allUsers/all/retiree',(req,res)=>{
   const sql = `
               SELECT
@@ -293,6 +297,7 @@ app.get('/auth/user/allUsers/all/retiree',(req,res)=>{
                  position, biztel_id, 
                  cw_dazou_room_id, 
                  cw_to_id,
+                 mail_pass,
                  date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users
@@ -308,7 +313,26 @@ app.get('/auth/user/allUsers/all/retiree',(req,res)=>{
 
 //自分のpage表示 users取得
 app.get('/auth/user/me',(req,res)=>{
-  const sql = 'SELECT id, user_id, name, kana, admin, division,judicial_scrivener, last_login, position, biztel_id, cw_dazou_room_id FROM users WHERE user_id = ?'
+  const sql = `
+                SELECT
+                  id, 
+                  user_id, 
+                  name, 
+                  kana, 
+                  admin, 
+                  division, 
+                  judicial_scrivener, 
+                  last_login, 
+                  position, 
+                  biztel_id,
+                  cw_to_id, 
+                  cw_dazou_room_id, 
+                  mail_pass 
+                FROM 
+                  users 
+                WHERE 
+                  user_id = ?
+              ;`
   db_midori_users.query(sql,req.query.id,(err,row,fields)=>{
     if(err){ err.whichApi = 'get /auth/user/me' ; throw err}
     res.send(row)
@@ -317,8 +341,32 @@ app.get('/auth/user/me',(req,res)=>{
 
 //自分のpage更新 users取得
 app.put('/auth/user/me',(req,res)=>{
-  const sql = 'UPDATE users SET name = ?, kana = ?, division = ?, position=?, biztel_id=?, cw_dazou_room_id = ? WHERE user_id = ?'
-  const values = [req.body.name,req.body.kana,req.body.division,req.body.position,req.body.biztel_id, req.body.cw_dazou_room_id, req.body.user_id,]
+  const sql = `
+              UPDATE 
+                users 
+              SET 
+                name = ?, 
+                kana = ?, 
+                division = ?, 
+                position=?, 
+                biztel_id=?, 
+                cw_to_id=?,
+                cw_dazou_room_id = ?, 
+                mail_pass = ?
+              WHERE 
+                user_id = ?
+              ;`
+  const values = [
+                  req.body.name, 
+                  req.body.kana, 
+                  req.body.division, 
+                  req.body.position, 
+                  req.body.biztel_id, 
+                  req.body.cw_to_id, 
+                  req.body.cw_dazou_room_id, 
+                  req.body.mail_pass, 
+                  req.body.user_id,
+                ]
   db_midori_users.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi = 'PUT /auth/user/me' ; throw err}
     logger.log(req.body,'アカウントデータ更新 PUT /auth/user/me')
@@ -329,8 +377,34 @@ app.put('/auth/user/me',(req,res)=>{
 //admin page用 users変更
 app.put('/auth/user/editUser',(req,res)=>{
   console.log('Put -- /auth/user/editUser -- ')
-  const sql = 'UPDATE users SET name = ?, kana = ?, admin = ?, division = ?, position=?, biztel_id = ?, cw_to_id = ?, cw_dazou_room_id = ?  WHERE id = ?;'
-  const values = [req.body.name, req.body.kana, req.body.admin, req.body.division, req.body.position, req.body.biztel_id, req.body.cw_to_id, req.body.cw_dazou_room_id, req.body.id]
+  const sql = 
+              `UPDATE
+                 users 
+                SET 
+                  name = ?, 
+                  kana = ?, 
+                  admin = ?, 
+                  division = ?, 
+                  position=?, 
+                  biztel_id = ?, 
+                  cw_to_id = ?, 
+                  cw_dazou_room_id = ?, 
+                  mail_pass = ?
+                WHERE 
+                  id = ?
+              ;`
+  const values = [
+                  req.body.name, 
+                  req.body.kana, 
+                  req.body.admin, 
+                  req.body.division, 
+                  req.body.position, 
+                  req.body.biztel_id, 
+                  req.body.cw_to_id, 
+                  req.body.cw_dazou_room_id, 
+                  req.body.mail_pass,
+                  req.body.id
+                ]
   db_midori_users.query(sql,values,(err,row,fields)=>{
     if(err){ err.whichApi = 'put /auth/user/editUser' ; throw err }
     console.log(req.body.name +'を'+ req.body +'に変更しました。')

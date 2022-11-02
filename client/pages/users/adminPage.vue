@@ -202,6 +202,27 @@
                                 </v-edit-dialog>
                             </template>
 
+                            <!-- mail_pass -->
+                            <template v-slot:item.mail_pass="props">
+                                <v-edit-dialog
+                                  :return-value.sync="props.item.mail_pass"
+                                  @save="save(props)"
+                                  @cancel=""
+                                  @open=""
+                                  @close=""
+                                  large
+                                >
+                                  {{ props.item.mail_pass }}
+                                    <template v-slot:input>
+                                        <v-text-field
+                                          v-model="props.item.mail_pass"
+                                          label="Edit"
+                                          single-line
+                                        ></v-text-field>
+                                      </template>
+                                </v-edit-dialog>
+                            </template>
+
                             <!-- leave_date -->
                             <template v-slot:item.leave_date="props">
                                 <v-edit-dialog
@@ -279,6 +300,7 @@ export default {
                 {text:'最終ログアウト', value:'last_logout'},
                 {text:'CW To ID', value:'cw_to_id'},
                 {text:'DA room id', value:'cw_dazou_room_id'},
+                {text:'mail pass', value:'mail_pass'},
                 {text:'退所',       value:'leave_date', groupable:false},
             ],
             //snackbar
