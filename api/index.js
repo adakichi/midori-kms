@@ -212,7 +212,8 @@ app.get('/auth/user/allUsers',(req,res)=>{
                 cw_to_id, 
                 cw_dazou_room_id, 
                 mail_pass,
-                date_format(leave_date, "%Y-%m-%d") as leave_date 
+                line_pass, 
+              date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users 
               WHERE 
@@ -241,7 +242,8 @@ app.get('/auth/user/allUsers/all',(req,res)=>{
                  cw_dazou_room_id, 
                  cw_to_id,
                  mail_pass,
-                 date_format(leave_date, "%Y-%m-%d") as leave_date 
+                 line_pass, 
+                date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users
               `
@@ -268,7 +270,8 @@ app.get('/auth/user/allUsers/all/continuation',(req,res)=>{
                  cw_dazou_room_id, 
                  cw_to_id,
                  mail_pass,
-                 date_format(leave_date, "%Y-%m-%d") as leave_date 
+                 line_pass, 
+                date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users
               WHERE 
@@ -298,7 +301,8 @@ app.get('/auth/user/allUsers/all/retiree',(req,res)=>{
                  cw_dazou_room_id, 
                  cw_to_id,
                  mail_pass,
-                 date_format(leave_date, "%Y-%m-%d") as leave_date 
+                 line_pass, 
+                date_format(leave_date, "%Y-%m-%d") as leave_date 
               FROM 
                 users
               WHERE 
@@ -327,7 +331,8 @@ app.get('/auth/user/me',(req,res)=>{
                   biztel_id,
                   cw_to_id, 
                   cw_dazou_room_id, 
-                  mail_pass 
+                  mail_pass,
+                  line_pass 
                 FROM 
                   users 
                 WHERE 
@@ -352,7 +357,8 @@ app.put('/auth/user/me',(req,res)=>{
                 biztel_id=?, 
                 cw_to_id=?,
                 cw_dazou_room_id = ?, 
-                mail_pass = ?
+                mail_pass = ?, 
+                line_pass = ? 
               WHERE 
                 user_id = ?
               ;`
@@ -365,6 +371,7 @@ app.put('/auth/user/me',(req,res)=>{
                   req.body.cw_to_id, 
                   req.body.cw_dazou_room_id, 
                   req.body.mail_pass, 
+                  req.body.line_pass, 
                   req.body.user_id,
                 ]
   db_midori_users.query(sql,values,(err,row,fields)=>{
@@ -389,7 +396,8 @@ app.put('/auth/user/editUser',(req,res)=>{
                   biztel_id = ?, 
                   cw_to_id = ?, 
                   cw_dazou_room_id = ?, 
-                  mail_pass = ?
+                  mail_pass = ?,
+                  line_pass = ?
                 WHERE 
                   id = ?
               ;`
@@ -403,6 +411,7 @@ app.put('/auth/user/editUser',(req,res)=>{
                   req.body.cw_to_id, 
                   req.body.cw_dazou_room_id, 
                   req.body.mail_pass,
+                  req.body.line_pass,
                   req.body.id
                 ]
   db_midori_users.query(sql,values,(err,row,fields)=>{

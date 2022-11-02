@@ -61,6 +61,9 @@
                     </v-row>
                     <v-row>
                         <v-col>
+                            <v-text-field label="LINE PASSWORD:" v-model="user.line_pass" hint="自分のlineアカウントを登録する際に使います"></v-text-field>
+                        </v-col>
+                        <v-col>
                             <v-text-field label="MAIL PASSWORD:" v-model="user.mail_pass" hint="自分のメールアドレスを登録する際に使います"></v-text-field>
                         </v-col>
                     </v-row>

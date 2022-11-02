@@ -21,239 +21,530 @@
                     <v-card-subtitle>
                         <v-text-field label="Search" v-model="searchText"></v-text-field>
                     </v-card-subtitle>
-                    <v-card-text>
-                        <v-data-table
-                        :items="users"
-                        item-key="id"
-                        :headers="usersHeaders"
-                        :search="searchText"
-                        show-group-by
-                        >
-                            <!-- name -->
-                            <template v-slot:item.name="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.name"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.name }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                          v-model="props.item.name"
-                                          label="Edit"
-                                          single-line
-                                        ></v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                          </template>
+                    <v-tabs v-model="tabs">
+                      <v-tab>詳細</v-tab>
+                      <v-tab>PASS</v-tab>
+                    </v-tabs>
+                    <v-tabs-items v-model="tabs">
+                      <v-tab-item>
+                        <v-card>
+                          <v-card-title>syousai</v-card-title>
+                          <v-card-text>
+                              <v-data-table
+                              :items="users"
+                              item-key="id"
+                              :headers="usersInfo"
+                              :search="searchText"
+                              show-group-by
+                              >
+                                  <!-- name -->
+                                  <template v-slot:item.name="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.name"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.name }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.name"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
 
-                            <!-- kana -->
-                            <template v-slot:item.kana="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.kana"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.kana }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                          v-model="props.item.kana"
-                                          label="Edit"
-                                          single-line
-                                        ></v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                          </template>
+                                  <!-- kana -->
+                                  <template v-slot:item.kana="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.kana"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.kana }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.kana"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
 
-                            <!-- BIZTEL -->
-                            <template v-slot:item.biztel_id="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.biztel_id"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.biztel_id }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                        type="number"
-                                          v-model="props.item.biztel_id"
-                                          label="Edit"
-                                          single-line
-                                        ></v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                          </template>
+                                  <!-- BIZTEL -->
+                                  <template v-slot:item.biztel_id="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.biztel_id"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.biztel_id }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                              type="number"
+                                                v-model="props.item.biztel_id"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
 
 
-                            <!-- 所属 -->
-                            <template v-slot:item.division="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.division"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.division }}
-                                    <template v-slot:input>
-                                        <v-select
-                                          :items="divisions"
-                                          v-model="props.item.division"
-                                          :value="props.item.division"
-                                          label="Edit"
-                                          single-line
-                                          counter
-                                        ></v-select>
-                                      </template>
-                                </v-edit-dialog>
-                          </template>
+                                  <!-- 所属 -->
+                                  <template v-slot:item.division="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.division"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.division }}
+                                          <template v-slot:input>
+                                              <v-select
+                                                :items="divisions"
+                                                v-model="props.item.division"
+                                                :value="props.item.division"
+                                                label="Edit"
+                                                single-line
+                                                counter
+                                              ></v-select>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
 
-                            <!-- 司法書士 -->
-                            <template v-slot:item.judicial_scrivener="{item}">
-                                <v-simple-checkbox
-                                v-model="item.judicial_scrivener === 0 ? false : true "
-                                disabled
-                                >
-                                </v-simple-checkbox>
-                          </template>
+                                  <!-- 司法書士 -->
+                                  <template v-slot:item.judicial_scrivener="{item}">
+                                      <v-simple-checkbox
+                                      v-model="item.judicial_scrivener === 0 ? false : true "
+                                      disabled
+                                      >
+                                      </v-simple-checkbox>
+                                </template>
 
-                            <!-- 役職 -->
-                            <template v-slot:item.position="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.position"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.position }}
-                                    <template v-slot:input>
-                                        <v-select
-                                          :items="positions"
-                                          v-model="props.item.position"
-                                          :value="props.item.position"
-                                          label="Edit"
-                                          single-line
-                                          counter
-                                        ></v-select>
-                                      </template>
-                                </v-edit-dialog>
-                          </template>
+                                  <!-- 役職 -->
+                                  <template v-slot:item.position="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.position"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.position }}
+                                          <template v-slot:input>
+                                              <v-select
+                                                :items="positions"
+                                                v-model="props.item.position"
+                                                :value="props.item.position"
+                                                label="Edit"
+                                                single-line
+                                                counter
+                                              ></v-select>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
 
-                            <!-- 管理者 -->
-                            <template v-slot:item.admin="{item}">
-                                <v-simple-checkbox
-                                v-model="item.admin === 0 ? false : true "
-                                disabled
-                                >
-                                </v-simple-checkbox>
-                            </template>
+                                  <!-- 管理者 -->
+                                  <template v-slot:item.admin="{item}">
+                                      <v-simple-checkbox
+                                      v-model="item.admin === 0 ? false : true "
+                                      disabled
+                                      >
+                                      </v-simple-checkbox>
+                                  </template>
 
-                            <!-- cw_to_id -->
-                            <template v-slot:item.cw_to_id="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.cw_to_id"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.cw_to_id }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                          v-model="props.item.cw_to_id"
-                                          label="Edit"
-                                          single-line
-                                        ></v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                            </template>
+                                  <!-- cw_to_id -->
+                                  <template v-slot:item.cw_to_id="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.cw_to_id"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.cw_to_id }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.cw_to_id"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
 
-                            <!-- cw_dazou_room_id -->
-                            <template v-slot:item.cw_dazou_room_id="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.cw_dazou_room_id"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.cw_dazou_room_id }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                          v-model="props.item.cw_dazou_room_id"
-                                          label="Edit"
-                                          single-line
-                                        ></v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                            </template>
+                                  <!-- cw_dazou_room_id -->
+                                  <template v-slot:item.cw_dazou_room_id="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.cw_dazou_room_id"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.cw_dazou_room_id }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.cw_dazou_room_id"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
 
-                            <!-- mail_pass -->
-                            <template v-slot:item.mail_pass="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.mail_pass"
-                                  @save="save(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.mail_pass }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                          v-model="props.item.mail_pass"
-                                          label="Edit"
-                                          single-line
-                                        ></v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                            </template>
+                                  <!-- mail_pass -->
+                                  <template v-slot:item.mail_pass="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.mail_pass"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.mail_pass }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.mail_pass"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
 
-                            <!-- leave_date -->
-                            <template v-slot:item.leave_date="props">
-                                <v-edit-dialog
-                                  :return-value.sync="props.item.leave_date"
-                                  @save="putLeaveDate(props)"
-                                  @cancel=""
-                                  @open=""
-                                  @close=""
-                                  large
-                                >
-                                  {{ props.item.leave_date }}
-                                    <template v-slot:input>
-                                        <v-text-field
-                                          v-model="props.item.leave_date"
-                                          label="Edit"
-                                          single-line
-                                        >
-                                        <template v-slot:append>
-                                          <v-date-picker 
-                                           v-model="props.item.leave_date"
-                                           locale="ja-jp"
-                                          ></v-date-picker>
-                                          <v-icon>mdi-calender</v-icon>
-                                        </template>
-                                        </v-text-field>
-                                      </template>
-                                </v-edit-dialog>
-                            </template>
+                                  <!-- line_pass -->
+                                  <template v-slot:item.line_pass="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.line_pass"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.line_pass }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.line_pass"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
 
-                        </v-data-table>
-                    </v-card-text>
+                                  <!-- leave_date -->
+                                  <template v-slot:item.leave_date="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.leave_date"
+                                        @save="putLeaveDate(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.leave_date }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.leave_date"
+                                                label="Edit"
+                                                single-line
+                                              >
+                                              <template v-slot:append>
+                                                <v-date-picker 
+                                                v-model="props.item.leave_date"
+                                                locale="ja-jp"
+                                                ></v-date-picker>
+                                                <v-icon>mdi-calender</v-icon>
+                                              </template>
+                                              </v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
+
+                              </v-data-table>
+                          </v-card-text>
+                        </v-card>
+                      </v-tab-item>
+                      <v-tab-item>
+                        <v-card>
+                          <v-card-title>PASS</v-card-title>
+                        </v-card>
+                          <v-card-text>
+                              <v-data-table
+                              :items="users"
+                              item-key="id"
+                              :headers="usersPasses"
+                              :search="searchText"
+                              show-group-by
+                              >
+                                  <!-- name -->
+                                  <template v-slot:item.name="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.name"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.name }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.name"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
+
+                                  <!-- kana -->
+                                  <template v-slot:item.kana="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.kana"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.kana }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.kana"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
+
+                                  <!-- BIZTEL -->
+                                  <template v-slot:item.biztel_id="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.biztel_id"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.biztel_id }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                              type="number"
+                                                v-model="props.item.biztel_id"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
+
+
+                                  <!-- 所属 -->
+                                  <template v-slot:item.division="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.division"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.division }}
+                                          <template v-slot:input>
+                                              <v-select
+                                                :items="divisions"
+                                                v-model="props.item.division"
+                                                :value="props.item.division"
+                                                label="Edit"
+                                                single-line
+                                                counter
+                                              ></v-select>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
+
+                                  <!-- 司法書士 -->
+                                  <template v-slot:item.judicial_scrivener="{item}">
+                                      <v-simple-checkbox
+                                      v-model="item.judicial_scrivener === 0 ? false : true "
+                                      disabled
+                                      >
+                                      </v-simple-checkbox>
+                                </template>
+
+                                  <!-- 役職 -->
+                                  <template v-slot:item.position="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.position"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.position }}
+                                          <template v-slot:input>
+                                              <v-select
+                                                :items="positions"
+                                                v-model="props.item.position"
+                                                :value="props.item.position"
+                                                label="Edit"
+                                                single-line
+                                                counter
+                                              ></v-select>
+                                            </template>
+                                      </v-edit-dialog>
+                                </template>
+
+                                  <!-- 管理者 -->
+                                  <template v-slot:item.admin="{item}">
+                                      <v-simple-checkbox
+                                      v-model="item.admin === 0 ? false : true "
+                                      disabled
+                                      >
+                                      </v-simple-checkbox>
+                                  </template>
+
+                                  <!-- cw_to_id -->
+                                  <template v-slot:item.cw_to_id="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.cw_to_id"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.cw_to_id }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.cw_to_id"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
+
+                                  <!-- cw_dazou_room_id -->
+                                  <template v-slot:item.cw_dazou_room_id="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.cw_dazou_room_id"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.cw_dazou_room_id }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.cw_dazou_room_id"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
+
+                                  <!-- mail_pass -->
+                                  <template v-slot:item.mail_pass="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.mail_pass"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.mail_pass }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.mail_pass"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
+
+                                  <!-- line_pass -->
+                                  <template v-slot:item.line_pass="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.line_pass"
+                                        @save="save(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.line_pass }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.line_pass"
+                                                label="Edit"
+                                                single-line
+                                              ></v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
+
+                                  <!-- leave_date -->
+                                  <template v-slot:item.leave_date="props">
+                                      <v-edit-dialog
+                                        :return-value.sync="props.item.leave_date"
+                                        @save="putLeaveDate(props)"
+                                        @cancel=""
+                                        @open=""
+                                        @close=""
+                                        large
+                                      >
+                                        {{ props.item.leave_date }}
+                                          <template v-slot:input>
+                                              <v-text-field
+                                                v-model="props.item.leave_date"
+                                                label="Edit"
+                                                single-line
+                                              >
+                                              <template v-slot:append>
+                                                <v-date-picker 
+                                                v-model="props.item.leave_date"
+                                                locale="ja-jp"
+                                                ></v-date-picker>
+                                                <v-icon>mdi-calender</v-icon>
+                                              </template>
+                                              </v-text-field>
+                                            </template>
+                                      </v-edit-dialog>
+                                  </template>
+
+                              </v-data-table>
+                          </v-card-text>
+                      </v-tab-item>
+                    </v-tabs-items>
                 </v-card>
             </v-col>
         </v-row>
@@ -283,11 +574,12 @@ export default {
         return {
             users:[],
             isDialog:false,
+            tabs:0,
             searchType:'continuation',
             searchText:'',
             divisions:['新規(過払い)','新規(WEB相続)','調査','中決','交面','破産','交渉','完了','カスタマー','債務整理','相続','札幌','名古屋','岡山','広島','松山','高知','熊本','無所属'],
             positions:['SL','L','SM','M','D'],
-            usersHeaders:[
+            usersInfo:[
                 {text:'ID',       value:'user_id'},
                 {text:'氏名',     value:'name'},
                 {text:'カナ',     value:'kana'},
@@ -298,9 +590,15 @@ export default {
                 {text:'役職',     value:'position'},
                 {text:'最終ログイン', value:'last_login'},
                 {text:'最終ログアウト', value:'last_logout'},
+            ],
+            usersPasses:[
+                {text:'ID',       value:'user_id'},
+                {text:'氏名',     value:'name'},
+                {text:'所属',     value:'division'},
                 {text:'CW To ID', value:'cw_to_id'},
                 {text:'DA room id', value:'cw_dazou_room_id'},
                 {text:'mail pass', value:'mail_pass'},
+                {text:'LINE pass', value:'line_pass'},
                 {text:'退所',       value:'leave_date', groupable:false},
             ],
             //snackbar
