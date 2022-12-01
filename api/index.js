@@ -653,6 +653,80 @@ app.get("/cw/send/file",upload.single('file'),function(req,res,next){
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+//FAQ用の何がし
+app.get('/faq/',(req,res)=>{
+  console.log('\n--- Get FAQ ---')
+  const sql = 'SELECT * FROM faq'
+  db_mkms.query(sql,(err,rows,fields)=>{
+    if(err){err.whichApi = 'get /faq/' ; throw err}
+
+    res.send(rows)
+    console.log('---x---x- get faq DONE!! -x---x---')  
+  })
+})
+
+app.post('/faq/',(req,res)=>{
+  console.log('\n--- POST faq ---')
+  const sql = `
+              INSERT INTO faq
+                (title, question, answer, category, slide_url)
+              VALUES
+                (?,?,?,?,?);
+              `
+  const values = [req.body.title, req.body.question, req.body.answer, req.body.category, req.body.slide_url]
+  console.log('values:',values)
+  db_mkms.query(sql, values,(err,rows,fields)=>{
+    if(err){err.whichApi = 'post /faq/' ; throw err}
+    res.send(rows)
+    console.log('---x---x- POST FAQ DONE!! -x---x---')  
+  })
+})
+
+app.put('/faq/',(req,res)=>{
+  console.log('\n--- PUT faq ---')
+  const sql = `
+              UPDATE faq
+                SET title = ?, question = ?, answer = ?, category = ?, slide_url = ?
+              WHERE 
+                id = ?;
+              `
+  const values = [req.body.title, req.body.question, req.body.answer, req.body.category, req.body.slide_url, req.body.id]
+  db_mkms.query(sql, values,(err,rows,fields)=>{
+    if(err){err.whichApi = 'post /faq/' ; throw err}
+    res.send(rows)
+    console.log('---x---x- POST FAQ DONE!! -x---x---')  
+  })
+})
+
+app.delete('/faq/',(req,res)=>{
+  console.log('\n--- DELETE faq ---')
+  console.log(req.body.id)
+  const sql = `
+              DELETE FROM faq
+              WHERE 
+                id = ?;
+              `
+  const values = [req.body.id]
+  db_mkms.query(sql, values,(err,rows,fields)=>{
+    if(err){err.whichApi = 'post /faq/' ; throw err}
+    res.send(rows)
+    console.log('---x---x- POST FAQ DONE!! -x---x---')  
+  })
+})
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 //BIZTEL CTIの連携用API
 
 //顧客番号でSAIZOのURLを返す関数

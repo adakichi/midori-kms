@@ -1,29 +1,127 @@
 <template>
     <div>
-        <h1><v-avatar><v-icon>mdi-frequently-asked-questions</v-icon></v-avatar>FAQ</h1>
+        <h1>
+            <v-avatar>
+                <v-icon>mdi-frequently-asked-questions</v-icon>
+            </v-avatar>
+            FAQregistNewFaq
+            <v-spacer></v-spacer>
+        </h1>
         <v-row>
-            <v-col
-            v-for="item in bcp"
-            :key="item.title"
-            >
-                <v-card>
-                <v-card-title>{{item.title}}</v-card-title>
-                <v-card-text>{{item.text}}</v-card-text>
-                <v-card-actions>
-                    <v-btn @click="openSlide(item)">SLIDE</v-btn>
-                </v-card-actions>
-                </v-card>
+            <v-col>
+                <v-text-field label="キーワード検索" outlined v-model="keyword"></v-text-field>
+            </v-col>
+            <v-col>
+                <v-btn 
+                    v-if="$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false "
+                    @click="openDialog()"
+                >
+                新規登録</v-btn>
             </v-col>
         </v-row>
+
+        <!-- 登録ダイアログ -->
+        <v-dialog v-model="dialogIsOpen">
+            <v-card>
+                <v-card-text>
+                    <v-text-field label="タイトル"      v-model="newFaq.title" filled></v-text-field>
+                    <v-textarea label="質問"          v-model="newFaq.question" filled></v-textarea>
+                    <v-textarea label="回答"          v-model="newFaq.answer" filled></v-textarea>
+                    <v-text-field label="カテゴリ"      v-model="newFaq.category" filled></v-text-field>
+                    <v-text-field label="googleスライドのURL"    v-model="newFaq.slide_url" filled></v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="registNewFaq()">登録</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+
+            <v-row>
+                <v-col
+                v-for="item in filteredFaq"
+                :key="item.id"
+                >
+                    <v-card>
+                        <v-card-title>
+                            <v-row>
+                                <v-col>
+                                    <v-text-field
+                                        v-model="item.title"
+                                        label="タイトル"
+                                        :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
+                                    ></v-text-field>
+                                </v-col>
+                            </v-row>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-row>
+                                <v-col>
+                                    <h3>質問</h3>
+                                </v-col>
+                                <v-col>
+                                    <h3>回答</h3>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col>
+                                    <v-textarea
+                                        :value="item.question"
+                                        auto-grow
+                                        outlined
+                                        :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
+                                    ></v-textarea>
+                                </v-col>
+                                <v-col>
+                                    <v-textarea
+                                        :value="item.answer"
+                                        auto-grow
+                                        outlined
+                                        :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
+                                    ></v-textarea>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn block x-large @click="openSlide(item)">SLIDE</v-btn>
+                        </v-card-actions>
+                        <v-card-actions>
+                            カテゴリー：{{item.category}}
+                            <v-spacer/>
+                            最終更新日：{{item.updated_at}}
+                            <v-spacer/>
+                            <v-btn v-if="$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false " color="warning" @click="updateFaq(item)">更新</v-btn>
+                            <v-btn v-if="$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false " color="warning" @click="deleteFaq(item)" >削除</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-col>
+            </v-row>
         <slide-view ref="slide" :slide="activeSlide"></slide-view>
+
+        <!-- スナックバー -->
+        <v-snackbar
+            v-model="snack"
+            :timeout="3000"
+            :color="snackColor"
+        >
+            {{ snackText }}
+            <template v-slot:action="{ attrs }">
+            <v-btn
+                v-bind="attrs"
+                text
+                @click="snack = false"
+            >
+                Close
+            </v-btn>
+            </template>
+        </v-snackbar>
+
     </div>
 </template>
 
 <script>
 import slide_view from '~/components/slide_view.vue';
-const bcpJson = require('../../assets/data/bcp.json')
-const arrBcp = bcpJson.bcp
-console.log(arrBcp)
 export default {
   components: { slide_view },
     head(){
@@ -33,19 +131,94 @@ export default {
     },
     data(){
         return {
-            bcp: arrBcp,
-            activeSlide:{}
+            dialogIsOpen:false,
+            newFaq:{title:'',question:'',answer:'',category:'',slide_url:''},
+            keyword:'',
+            faq:[{question:'質問',answer:'回答',slide_url:'https://hogehoge.com',category:'その他'}],   
+            activeSlide:{},
+
+            //snack bar
+            snack:'',
+            snackColor:'',
+            snackText:''
+        }
+    },
+    computed:{
+        filteredFaq(){
+            if(this.keyword){
+                return this.faq.filter(item=>{
+                    item.question.indexOf(this.keyword) > -1
+                    console.log(item.question.indexOf(this.keyword))
+                })
+            } else {
+                return this.faq
+            }
         }
     },
     methods:{
         openSlide(slideData){
             const slide = {
+                id:slideData.id,
                 title:slideData.title,
-                src:slideData.src
+                src:slideData.slide_url
             }
             this.activeSlide = slide
             this.$refs.slide.clickOpenBtn()
+        },
+        openDialog(){
+            this.dialogIsOpen = true
+        },
+        getFaq(){
+            this.$axios.get('api/faq/')
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                this.faq = response.data
+            })
+        },
+        registNewFaq(){
+            this.$axios.post('api/faq/',this.newFaq)
+            .then((response)=>{
+                if(response.data.error){ return alert(response.data.message)}
+                this.popupSnackBar('ID:'+response.data.insertId+'として登録しました。')
+
+                // 初期化
+                this.getFaq()
+                this.newFaq = {question:'',answer:'',category:'',slide_url:''}
+                this.dialogIsOpen = false
+            })
+        },
+        updateFaq(faq){
+            const yesno = !confirm('更新しますか？')
+            if(yesno){return}
+            this.$axios.put('api/faq/',faq)
+            .then((response)=>{
+                console.log(response.data)
+                if(response.data.error){ return alert(response.data.message)}
+                this.popupSnackBar(faq.title+'を更新しました。')
+                this.getFaq()
+            })
+        },
+        deleteFaq(faq){
+            const yesno = !confirm('削除しますか？')
+            if(yesno){return}
+            this.$axios.delete('api/faq/',{data:faq})
+            .then((response)=>{
+                console.log(response.data)
+                if(response.data.error){ return alert(response.data.message)}
+                this.popupSnackBar('『'+faq.title+'』を削除しました。')
+                this.getFaq()
+            })
+        },
+        popupSnackBar(message,color){
+                let snackColor = 'success'
+                if(color){ snackColor = color }
+                this.snack      = true
+                this.snackColor = snackColor
+                this.snackText  = message
         }
+    },
+    created(){
+        this.getFaq()
     }
 };
 </script>
