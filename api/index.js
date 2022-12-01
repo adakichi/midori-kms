@@ -660,7 +660,11 @@ app.get("/cw/send/file",upload.single('file'),function(req,res,next){
 //FAQ用の何がし
 app.get('/faq/',(req,res)=>{
   console.log('\n--- Get FAQ ---')
-  const sql = 'SELECT * FROM faq'
+  const sql = `SELECT 
+                id, title, question, answer, slide_url, category, DATE_FORMAT(updated_at, '%Y/%m/%d %H:%i:%s') AS updated_at
+              FROM 
+                faq;
+              `
   db_mkms.query(sql,(err,rows,fields)=>{
     if(err){err.whichApi = 'get /faq/' ; throw err}
 

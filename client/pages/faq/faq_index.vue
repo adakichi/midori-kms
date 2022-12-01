@@ -4,7 +4,7 @@
             <v-avatar>
                 <v-icon>mdi-frequently-asked-questions</v-icon>
             </v-avatar>
-            FAQregistNewFaq
+            FAQ
             <v-spacer></v-spacer>
         </h1>
         <v-row>
@@ -22,24 +22,26 @@
 
         <!-- 登録ダイアログ -->
         <v-dialog v-model="dialogIsOpen">
-            <v-card>
-                <v-card-text>
-                    <v-text-field label="タイトル"      v-model="newFaq.title" filled></v-text-field>
-                    <v-textarea label="質問"          v-model="newFaq.question" filled></v-textarea>
-                    <v-textarea label="回答"          v-model="newFaq.answer" filled></v-textarea>
-                    <v-text-field label="カテゴリ"      v-model="newFaq.category" filled></v-text-field>
-                    <v-text-field label="googleスライドのURL"    v-model="newFaq.slide_url" filled></v-text-field>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn @click="registNewFaq()">登録</v-btn>
-                </v-card-actions>
-            </v-card>
+                <v-card>
+                    <v-card-title>新規FAQ登録</v-card-title>
+                    <v-card-text>
+                        <v-text-field label="タイトル"      v-model="newFaq.title" filled></v-text-field>
+                        <v-textarea label="質問"          v-model="newFaq.question" filled></v-textarea>
+                        <v-textarea label="回答"          v-model="newFaq.answer" filled></v-textarea>
+                        <v-autocomplete label="カテゴリ"  v-model="newFaq.category" filled :items="category"></v-autocomplete>
+                        <v-text-field label="googleスライドのURL"    v-model="newFaq.slide_url" filled></v-text-field>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn @click="registNewFaq()">登録</v-btn>
+                    </v-card-actions>
+                </v-card>
         </v-dialog>
 
 
             <v-row>
                 <v-col
+                xl="6" lg="6" md="6" sm="12"
                 v-for="item in filteredFaq"
                 :key="item.id"
                 >
@@ -59,13 +61,6 @@
                             <v-row>
                                 <v-col>
                                     <h3>質問</h3>
-                                </v-col>
-                                <v-col>
-                                    <h3>回答</h3>
-                                </v-col>
-                            </v-row>
-                            <v-row>
-                                <v-col>
                                     <v-textarea
                                         :value="item.question"
                                         auto-grow
@@ -73,7 +68,10 @@
                                         :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
                                     ></v-textarea>
                                 </v-col>
+                            </v-row>
+                            <v-row>
                                 <v-col>
+                                    <h3>回答</h3>
                                     <v-textarea
                                         :value="item.answer"
                                         auto-grow
@@ -84,10 +82,11 @@
                             </v-row>
                         </v-card-text>
                         <v-card-actions>
-                            <v-btn block x-large @click="openSlide(item)">SLIDE</v-btn>
+                            <v-btn block x-large @click="openSlide(item)" color="primary">スライドを開く</v-btn>
                         </v-card-actions>
-                        <v-card-actions>
-                            カテゴリー：{{item.category}}
+                        <v-card-actions style="font-size:9px;">
+                            カテゴリー：
+                            <v-autocomplete :items="category" v-model="item.category"></v-autocomplete>
                             <v-spacer/>
                             最終更新日：{{item.updated_at}}
                             <v-spacer/>
@@ -136,6 +135,7 @@ export default {
             keyword:'',
             faq:[{question:'質問',answer:'回答',slide_url:'https://hogehoge.com',category:'その他'}],   
             activeSlide:{},
+            category:['メール','VPN','WINDOWS','プリンター(印刷)','エクセル','チャットワーク','その他'],
 
             //snack bar
             snack:'',
@@ -147,8 +147,10 @@ export default {
         filteredFaq(){
             if(this.keyword){
                 return this.faq.filter(item=>{
-                    item.question.indexOf(this.keyword) > -1
-                    console.log(item.question.indexOf(this.keyword))
+                    if(item.title.indexOf(this.keyword) > -1 ){ return true }
+                    if(item.question.indexOf(this.keyword) > -1 ){ return true }
+                    if(item.answer.indexOf(this.keyword) > -1 ){ return true }
+                    if(item.category.indexOf(this.keyword) > -1 ){ return true }
                 })
             } else {
                 return this.faq
