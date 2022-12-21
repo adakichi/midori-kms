@@ -84,9 +84,20 @@
                         <v-card-actions>
                             <v-btn block x-large @click="openSlide(item)" color="primary">スライドを開く</v-btn>
                         </v-card-actions>
+                        <v-card-text>
+                            <v-text-field
+                             v-if="$auth.user ? ($auth.user.isAdmin === 1 ? true : false ) : false "
+                             label="google slide URL"
+                             v-model="item.slide_url"
+                            ></v-text-field>
+                        </v-card-text>
                         <v-card-actions style="font-size:9px;">
                             カテゴリー：
-                            <v-autocomplete :items="category" v-model="item.category"></v-autocomplete>
+                            <v-autocomplete
+                             :items="category"
+                              v-model="item.category"
+                             :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
+                            ></v-autocomplete>
                             <v-spacer/>
                             最終更新日：{{item.updated_at}}
                             <v-spacer/>
