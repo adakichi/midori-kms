@@ -49,6 +49,7 @@
                         <v-card-title>
                             <v-row>
                                 <v-col>
+                                    #{{item.id}}.
                                     <v-text-field
                                         v-model="item.title"
                                         label="タイトル"
@@ -144,9 +145,9 @@ export default {
             dialogIsOpen:false,
             newFaq:{title:'',question:'',answer:'',category:'',slide_url:''},
             keyword:'',
-            faq:[{question:'質問',answer:'回答',slide_url:'https://hogehoge.com',category:'その他'}],   
+            faq:[{id:'0', title:'なし', question:'質問',answer:'回答',slide_url:'https://hogehoge.com',category:'その他'}],   
             activeSlide:{},
-            category:['メール','VPN','WINDOWS','プリンター(印刷)','エクセル','チャットワーク','その他'],
+            category:['メール','LINE','VPN','WINDOWS','プリンター(印刷)','エクセル','チャットワーク','その他'],
 
             //snack bar
             snack:'',
@@ -156,11 +157,17 @@ export default {
     },
     computed:{
         filteredFaq(){
-            if(this.keyword){
+            console.log(this.faq)
+            if(this.keyword || this.faq){
                 return this.faq.filter(item=>{
+                    if(String(item.id).indexOf(this.keyword) > -1 ){ return true }
+                    console.log('1',item.title)
                     if(item.title.indexOf(this.keyword) > -1 ){ return true }
+                    console.log('2')
                     if(item.question.indexOf(this.keyword) > -1 ){ return true }
+                    console.log('3')
                     if(item.answer.indexOf(this.keyword) > -1 ){ return true }
+                    console.log('4')
                     if(item.category.indexOf(this.keyword) > -1 ){ return true }
                 })
             } else {
@@ -232,6 +239,10 @@ export default {
     },
     created(){
         this.getFaq()
+        if(this.$route.query.str != ""){
+            console.log(typeof(this.$route.query.str))
+            this.keyword = this.$route.query.str
+        } 
     }
 };
 </script>
