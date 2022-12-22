@@ -63,7 +63,7 @@
                                 <v-col>
                                     <h3>質問</h3>
                                     <v-textarea
-                                        :value="item.question"
+                                        v-model="item.question"
                                         auto-grow
                                         outlined
                                         :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
@@ -74,7 +74,7 @@
                                 <v-col>
                                     <h3>回答</h3>
                                     <v-textarea
-                                        :value="item.answer"
+                                        v-model="item.answer"
                                         auto-grow
                                         outlined
                                         :disabled="$auth.user ? ($auth.user.isAdmin === 1 ? false : true ) : true "
