@@ -157,17 +157,12 @@ export default {
     },
     computed:{
         filteredFaq(){
-            console.log(this.faq)
-            if(this.keyword || this.faq){
+            if(this.keyword){
                 return this.faq.filter(item=>{
                     if(String(item.id).indexOf(this.keyword) > -1 ){ return true }
-                    console.log('1',item.title)
                     if(item.title.indexOf(this.keyword) > -1 ){ return true }
-                    console.log('2')
                     if(item.question.indexOf(this.keyword) > -1 ){ return true }
-                    console.log('3')
                     if(item.answer.indexOf(this.keyword) > -1 ){ return true }
-                    console.log('4')
                     if(item.category.indexOf(this.keyword) > -1 ){ return true }
                 })
             } else {
