@@ -870,15 +870,15 @@
         <v-dialog v-model="editTemporaryDialog">
             <v-card>
                 <v-tabs v-model="editTemporaryDialogTabs">
-                    <v-tab>仮受金→預り金</v-tab>
-                    <v-tab>仮受金→売掛金</v-tab>
-                    <v-tab><span class="red--text">売掛金→仮受金</span></v-tab>
+                    <v-tab>- 仮受金 → + 預り金</v-tab>
+                    <v-tab>- 仮受金 → - 売掛金</v-tab>
+                    <v-tab><span class="red--text">+ 売掛金 → + 仮受金</span></v-tab>
                     <v-tab>仮受金→本人返金</v-tab>
                 </v-tabs>
                 <v-tabs-items v-model="editTemporaryDialogTabs">
                     <v-tab-item>
                         <v-card>
-                            <v-card-title>仮受金→預り金</v-card-title>
+                            <v-card-title>- 仮受金 → + 預り金</v-card-title>
                             <v-card-subtitle>
                                 仮受金残り：{{Number(customer.temporary_receipt) - (Number(editedTemporaryValues.deposit) + Number(editedTemporaryValues.advance_payment))}}
                                 <v-btn @click="depositAutoTransfer">来月までの</v-btn>
@@ -906,7 +906,7 @@
                     </v-tab-item>
                     <v-tab-item>
                         <v-card>
-                            <v-card-title>仮受金→売掛金</v-card-title>
+                            <v-card-title>- 仮受金 → - 売掛金</v-card-title>
                             <v-card-subtitle>
                                 仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}
                                 売掛金残り：{{Number(customer.accounts_receivable) - Number(editedTemporaryValues.accounts_receivable)}}
@@ -934,10 +934,10 @@
                     <!-- 売掛金→仮受金 -->
                     <v-tab-item>
                         <v-card>
-                            <v-card-title><span class="red--text">売掛金→仮受金</span></v-card-title>
+                            <v-card-title><span class="red--text">+ 売掛金 → + 仮受金</span></v-card-title>
                             <v-card-subtitle>
-                                仮受金残り：{{Number(customer.temporary_receipt) - Number(editedTemporaryValues.accounts_receivable)}}
-                                売掛金残り：{{Number(customer.accounts_receivable) - Number(editedTemporaryValues.accounts_receivable)}}
+                                仮受金残り：{{Number(customer.temporary_receipt) + Number(editedTemporaryValues.accounts_receivable)}}
+                                売掛金残り：{{Number(customer.accounts_receivable) + Number(editedTemporaryValues.accounts_receivable)}}
                                 <strong class="red">※売掛金が増えます。基本的にはやらないでください※</strong>
                             </v-card-subtitle>
                             <v-card-text>
@@ -961,7 +961,7 @@
                     <!-- 仮受金→本人返金 -->
                     <v-tab-item>
                         <v-card>
-                            <v-card-title><span>仮受金→本人返金</span></v-card-title>
+                            <v-card-title><span>- 仮受金 → 本人返金</span></v-card-title>
                             <v-card-subtitle>
                                 仮受金残り：{{Number(customer.temporary_receipt) - Number(refund.amount)}}
                                 <strong class="red">※実際の返金処理は手動で必要です。※</strong>
